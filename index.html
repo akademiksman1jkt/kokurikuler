@@ -839,29 +839,38 @@
     <button class="btn-primary" id="btnSimpanGroupPhotos" onclick="saveGroupPhotosServer()">💾 Simpan & Sinkronkan ke Tim</button>
 </section>
 
-                <!-- EKSPOR & MERGER (ISI LENGKAP UTUH 100%) -->
+                <!-- TAB EKSPOR LAPORAN KELOMPOK (VERSI BARU DENGAN MERGE DIKLIK) -->
                 <section class="content-section" id="secExport">
                     <button class="btn-back-hub" onclick="backToHub()">⬅️ Kembali ke Menu Utama</button>
-                    <h2 class="page-title">Buat Laporan Kelompok</h2>
-                    <p class="page-subtitle">Satukan seluruh isian anggota kelompok dalam 1 kelas yang sama menjadi naskah laporan utuh siap cetak.</p>
+                    <h2 class="page-title">Ekspor & Unduh Laporan Kelompok</h2>
+                    <p class="page-subtitle">Gabungkan data jawaban seluruh anggota tim serta dokumentasi foto untuk menghasilkan laporan akhir.</p>
 
-                    <div class="card" style="border-left: 6px solid var(--accent-emerald);">
-                        <h3 class="card-title">🔄 Rekap Jurnal Kelompok</h3>
-                        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 18px;">
-                            Tekan tombol di bawah untuk menyatukan seluruh isian dari anggota <strong><span id="lblKelompokMerger">-</span></strong> tanpa risiko tertukar dengan kelompok di kelas lain.
+                    <!-- KOTAK KONTROL MERGE LAPORAN -->
+                    <div class="card" style="text-align: center; background: #f0f9ff; border-color: #bae6fd; margin-bottom: 20px;">
+                        <h3 style="margin-top: 0; color: #0369a1;">📢 Gabungkan Data Kelompok</h3>
+                        <p style="font-size: 13.5px; color: #0284c7; margin-bottom: 15px;">
+                            Klik tombol di bawah ini untuk menarik data isian LKPD seluruh anggota kelompok dan menyatukan 5 foto dokumentasi ke dalam preview laporan.
                         </p>
-                        <button class="btn-primary" style="background: var(--accent-gradient);" onclick="fetchAndMergeGroupData()">
-                            ✨ Gabungkan (Merge) Seluruh Isian LKPD Anggota Kelompok
+                        <button id="btnDoMerge" class="btn-primary" onclick="doMergeLaporan()" style="max-width: 340px; margin: 0 auto; display: block;">
+                            🔄 Buat Laporan Kelompok
                         </button>
                     </div>
 
+                    <!-- TOMBOL UNDUH (OTOMATIS MUNCUL SETELAH MERGE DIKLIK) -->
+                    <div id="exportActionButtons" style="display: none; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+                        <button class="btn-primary" onclick="downloadReportPDF()" style="background: #ef4444; flex: 1;">📄 Unduh PDF</button>
+                        <button class="btn-primary" onclick="downloadReportWord()" style="background: #2563eb; flex: 1;">📝 Unduh Word / Cetak</button>
+                    </div>
+
+                    <!-- AREA PREVIEW LAPORAN -->
                     <div class="card">
-                        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px;">
-                            <button class="btn-export-word" onclick="exportToWord()">📘 Unduh Laporan Word (.DOC)</button>
-                            <button class="btn-export-pdf" onclick="exportToPDF()">📕 Simpan Laporan PDF (A4)</button>
+                        <h3 class="card-title">👁️ Pratinjau Laporan Kelompok</h3>
+                        <div id="reportPreviewArea">
+                            <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                                <span style="font-size: 40px; display: block; margin-bottom: 10px;">📋</span>
+                                <p>Silakan klik tombol <strong>"Buat Laporan Kelompok"</strong> di atas untuk memuat pratinjau laporan kelompok.</p>
+                            </div>
                         </div>
-                        <h3 class="card-title">Pratinjau Naskah Laporan Terstruktur</h3>
-                        <div id="draftDocumentRender"></div>
                     </div>
                 </section>
 
@@ -869,10 +878,10 @@
                 <section class="content-section" id="secAdminPeserta">
                     <button class="btn-back-hub" onclick="backToHub()">⬅️ Kembali ke Menu Utama</button>
                     <h2 class="page-title">Admin Panel: Kelola & Edit Data Murid</h2>
-                    <p class="page-subtitle">Pilih murid dari dropdown hasil Sinkronisasi Database Spreadsheet untuk mengedit atau menambah data baru.</p>
+                    <p class="page-subtitle">Pilih murid untuk mengedit atau menambah data baru.</p>
 
                     <div class="card" style="border-left: 6px solid var(--primary);">
-                        <h3 class="card-title">🔍 Pilih Murid Terdaftar (Otomatis dari Database)</h3>
+                        <h3 class="card-title">🔍 Pilih Murid Terdaftar</h3>
                         <div class="form-row">
                             <div class="form-group">
                                 <label class="form-label">1. Filter Kelas Target</label>
@@ -892,7 +901,7 @@
                             </div>
                         </div>
                         <button class="btn-primary" style="background: var(--accent-gradient);" onclick="syncAdminDatabase()">
-                            🔄 Sinkronkan Data Murid dari Spreadsheet
+                            🔄 Sinkronkan Data
                         </button>
                     </div>
 
@@ -905,7 +914,7 @@
                                     <input type="text" id="addNisn" class="form-input" placeholder="Masukkan 10 digit NISN" required>
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label">Nama Lengkap Murid</label>
+                                    <label class="form-label">Nama Lengkap</label>
                                     <input type="text" id="addNama" class="form-input" placeholder="Masukkan nama murid" required>
                                 </div>
                             </div>
@@ -1294,7 +1303,7 @@
             const u = document.getElementById('usernameMurid').value.trim();
             const p = document.getElementById('passwordMurid').value.trim();
             const btn = document.getElementById('btnLoginMurid');
-            btn.innerText = "Memeriksa Database..."; btn.disabled = true;
+            btn.innerText = "Memuat..."; btn.disabled = true;
 
             const uniqueEndpoints = [...new Set(Object.values(API_ENDPOINTS))];
             let loggedInUser = null;
@@ -1502,7 +1511,7 @@
             .then(res => res.json())
             .then(data => {
                 btn.innerHTML = "✅ Laporan Berhasil Terkirim ke Guru";
-                alert("🎉 SELAMAT! Laporan Akhir Kokurikuler kelompok Anda berhasil dikirim secara resmi ke database Guru Pendamping.");
+                alert("🎉 SELAMAT! Laporan Akhir Kokurikuler kelompok Anda berhasil dikirim.");
             })
             .catch(err => {
                 btn.innerHTML = "📬 Kirim Laporan Akhir Kelompok";
@@ -1947,6 +1956,142 @@ async function saveGroupPhotosServer() {
     } catch(err) {
         alert("Terjadi kesalahan jaringan saat menyimpan foto.");
     }
+}
+        // ==========================================
+// FUNGSI MERGE & RENDER LAPORAN (TAMBAHKAN DI BAGIAN <script>)
+// ==========================================
+
+// 1. Dijalankan saat tombol "Gabungkan (Merge) Laporan Kelompok" diklik
+async function doMergeLaporan() {
+    if (!currentStudentData) {
+        alert("⚠️ Silakan login terlebih dahulu!");
+        return;
+    }
+
+    const targetUrl = getApiUrl(currentStudentData.kelas);
+    const gId = currentStudentData.groupId;
+    const btnMerge = document.getElementById('btnDoMerge');
+    const containerPreview = document.getElementById('reportPreviewArea');
+    const actionButtons = document.getElementById('exportActionButtons');
+
+    if(btnMerge) {
+        btnMerge.disabled = true;
+        btnMerge.innerText = "⏳ Menggabungkan Data Kelompok...";
+    }
+    if(containerPreview) {
+        containerPreview.innerHTML = `
+            <div style="text-align:center; padding: 40px; color: var(--text-muted);">
+                <div class="spinner" style="margin: 0 auto 15px;"></div>
+                <p>Sedang mengambil data isian LKPD dan 5 foto dokumentasi kelompok <strong>${gId}</strong>...</p>
+            </div>
+        `;
+    }
+
+    try {
+        // Ambil Data Isian LKPD Seluruh Anggota
+        const resLKPD = await fetch(`${targetUrl}?action=getGroupSubmissions&groupId=${encodeURIComponent(gId)}`);
+        const dataLKPD = await resLKPD.json();
+
+        // Ambil Data Foto Dokumentasi Kelompok Terkini dari Server
+        const resPhotos = await fetch(`${targetUrl}?action=getGroupPhotos&groupId=${encodeURIComponent(gId)}`);
+        const dataPhotos = await resPhotos.json();
+
+        if (dataLKPD.status === "success") {
+            const submissions = dataLKPD.submissions || [];
+            const groupPhotos = dataPhotos.photos || [];
+
+            currentGroupPhotos = groupPhotos;
+
+            // Render Preview dengan format 5 foto baru
+            renderMergedReportPreview(submissions, groupPhotos);
+
+            // Tampilkan tombol unduh PDF & Word
+            if(actionButtons) actionButtons.style.display = "flex";
+
+            alert(`✅ Laporan Kelompok (${gId}) berhasil digabungkan! Silakan periksa pratinjau dan unduh laporan.`);
+        } else {
+            alert("Gagal menggabungkan laporan: " + (dataLKPD.message || "Data tidak ditemukan."));
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Terjadi kesalahan jaringan saat menggabungkan laporan.");
+        if(containerPreview) {
+            containerPreview.innerHTML = `<p style="color:red; text-align:center;">Gagal memuat preview laporan. Silakan coba lagi.</p>`;
+        }
+    } finally {
+        if(btnMerge) {
+            btnMerge.disabled = false;
+            btnMerge.innerHTML = "🔄 Gabungkan (Merge) Laporan Kelompok";
+        }
+    }
+}
+
+// 2. Merender template HTML Laporan lengkap dengan 5 Foto Dokumentasi
+function renderMergedReportPreview(submissions, photos) {
+    const container = document.getElementById('reportPreviewArea');
+    if (!container) return;
+
+    const sample = submissions[0] || {};
+    const namaAnggotaList = submissions.map(s => `<li><strong>${s.nama}</strong> (NISN: ${s.nisn})</li>`).join('');
+
+    // Generate tampilan 5 foto dokumentasi kelompok
+    let photosHTML = '';
+    if (photos && photos.length > 0) {
+        photosHTML = `
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 10px;">
+                ${photos.map((p, idx) => `
+                    <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px; text-align: center; background: #fafafa;">
+                        <img src="${p.url}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px; display: block; margin-bottom: 5px;" alt="Dokumentasi ${idx+1}">
+                        <small style="font-size: 11px; color: #64748b;">Foto ${idx+1} - Oleh: ${p.uploadedBy || 'Tim'}</small>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    } else {
+        photosHTML = `<p style="font-style: italic; color: #94a3b8; font-size: 13px;">Belum ada foto dokumentasi yang diunggah oleh kelompok ini.</p>`;
+    }
+
+    container.innerHTML = `
+        <div id="printableReport" style="background: #ffffff; padding: 25px; border-radius: 8px; border: 1px solid #e2e8f0; font-family: sans-serif; color: #1e293b; line-height: 1.6;">
+            <div style="text-align: center; border-bottom: 2px solid #0284c7; padding-bottom: 12px; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: #0284c7; font-size: 20px; text-transform: uppercase;">LAPORAN KOKURIKULER STOVIA EXPLORE NUSA</h2>
+                <h3 style="margin: 4px 0 0; font-size: 14px; font-weight: 500; color: #475569;">SMAN 1 JAKARTA — TAHUN AJARAN 2026/2027</h3>
+            </div>
+
+            <table style="width: 100%; margin-bottom: 20px; font-size: 13px; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 4px 0; width: 130px;"><strong>Kelas / Kelompok</strong></td>
+                    <td>: ${currentStudentData.kelas} / ${currentStudentData.kelompok} (Group ID: ${currentStudentData.groupId})</td>
+                </tr>
+                <tr>
+                    <td style="padding: 4px 0;"><strong>Anjungan Target</strong></td>
+                    <td>: ${sample.anjungan || '-'} (Kode Misi: ${sample.misiCode || '-'})</td>
+                </tr>
+                <tr>
+                    <td style="padding: 4px 0;"><strong>Guru Pendamping</strong></td>
+                    <td>: ${currentStudentData.guruPendamping || 'Nurul Faozi, S.Pd.'}</td>
+                </tr>
+            </table>
+
+            <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 15px 0 8px; color: #0f172a;">A. Anggota Kelompok Terdaftar (${submissions.length} Orang)</h4>
+            <ol style="margin: 0; padding-left: 20px; font-size: 13px;">
+                ${namaAnggotaList || '<li>Data anggota belum tersedia</li>'}
+            </ol>
+
+            <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 20px 0 8px; color: #0f172a;">B. Hasil Pengamatan LKPD 1 & LKPD 2</h4>
+            <p style="font-size: 13px; margin-top: 4px;"><strong>Deskripsi Arsitektur Rumah Adat:</strong></p>
+            <blockquote style="margin: 0 0 10px; padding: 10px; background: #f8fafc; border-left: 3px solid #cbd5e1; font-size: 12.5px;">
+                ${sample.lk2_fokus || 'Belum diisi'}
+            </blockquote>
+
+            <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 20px 0 8px; color: #0f172a;">C. Perancangan Proyek (STEAM) & Refleksi</h4>
+            <p style="font-size: 13px; margin-top: 4px;"><strong>Judul Prototype / Karya:</strong> ${sample.lk3_judul || 'Belum diisi'}</p>
+            <p style="font-size: 13px;"><strong>Format Produk:</strong> ${sample.lk3_format || 'Belum diisi'}</p>
+
+            <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 25px 0 8px; color: #0f172a;">D. Lampiran Dokumentasi Kelompok (Maks. 5 Foto)</h4>
+            ${photosHTML}
+        </div>
+    `;
 }
     </script>
 </body>
