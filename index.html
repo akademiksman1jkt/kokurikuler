@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LKPD - Kokurikuler SMAN 1 Jakarta</title>
+    <title>STOVIA EXPLORE NUSA — Portal LKPD Komprehensif (X-1 s.d. X-8 & X-10)</title>
+    
+    <!-- FAVICON LOGO SMAN 1 JAKARTA -->
+    <link rel="icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_SMAN_1_Jakarta.png">
+    
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
@@ -37,14 +41,14 @@
         .login-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px; background: var(--primary-gradient); }
 
         .brand-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
-        .brand-logo-icon { width: 52px; height: 52px; background: var(--primary-gradient); color: white; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 22px; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4); flex-shrink: 0; }
+        .brand-logo-img { width: 52px; height: 52px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15)); flex-shrink: 0; }
+        .brand-logo-navbar { width: 36px; height: 36px; object-fit: contain; flex-shrink: 0; }
+
         .brand-title { font-size: 21px; font-weight: 800; color: var(--text-dark); margin: 0; line-height: 1.25; }
         .brand-subtitle { font-size: 13.5px; color: var(--text-muted); margin: 3px 0 0 0; font-weight: 500; }
 
         .form-group { margin-bottom: 22px; }
         .form-label { display: block; font-size: 14.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px; }
-        .field-guide { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; display: block; line-height: 1.5; }
-        .field-example { font-size: 12.5px; color: #1d4ed8; background: #eff6ff; padding: 6px 12px; border-radius: 8px; display: inline-block; margin-bottom: 10px; font-weight: 600; border: 1px solid #bfdbfe; }
         
         .form-input, .form-select { width: 100%; padding: 13px 16px; font-size: 14.5px; border: 1.5px solid var(--border-color); border-radius: 12px; outline: none; background: #ffffff; transition: all 0.2s ease; color: var(--text-dark); }
         .form-input:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15); }
@@ -68,7 +72,6 @@
 
         .body-container { display: flex; flex: 1; position: relative; }
         
-        /* SIDEBAR STYLING & COLLAPSE FUNCTION */
         .sidebar { 
             width: 280px; background: var(--sidebar-gradient); color: #f8fafc; padding: 24px 16px; 
             display: flex; flex-direction: column; gap: 8px; transition: all 0.3s ease; flex-shrink: 0; box-shadow: 4px 0 15px rgba(0, 0, 0, 0.05);
@@ -79,7 +82,6 @@
         .sidebar-item:hover { background: rgba(255, 255, 255, 0.08); color: #ffffff; }
         .sidebar-item.active { background: var(--primary-gradient); color: #ffffff; font-weight: 700; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35); }
 
-        /* MAIN CONTENT AREA */
         .main-content { flex: 1; padding: 36px 40px; max-width: 1100px; width: 100%; margin: 0 auto; transition: all 0.3s ease; }
         .content-section { display: none; }
         .content-section.active { display: block; }
@@ -95,7 +97,6 @@
         textarea.form-textarea { width: 100%; min-height: 110px; padding: 14px; font-size: 14.5px; line-height: 1.6; border: 1.5px solid var(--border-color); border-radius: 12px; outline: none; background: #ffffff; resize: vertical; transition: all 0.2s ease; color: var(--text-dark); }
         textarea.form-textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15); }
 
-        /* KARTU MISI VERTIKAL */
         .guide-box { 
             background: #fffbe6; border: 1.5px solid #fde047; padding: 24px 28px; border-radius: 18px; 
             margin-bottom: 28px; font-size: 15px; line-height: 1.7; box-shadow: 0 4px 14px rgba(234, 179, 8, 0.1);
@@ -118,11 +119,34 @@
 
         #draftDocumentRender { background: #ffffff; padding: 36px; border-radius: 16px; border: 1px solid var(--border-color); color: #000; font-family: Arial, sans-serif; line-height: 1.6; box-shadow: var(--shadow-card); }
 
-        @media (max-width: 768px) {
-            .form-row { grid-template-columns: 1fr; gap: 16px; }
-            .main-content { padding: 24px 16px; }
-            .sidebar { position: fixed; top: 71px; left: 0; bottom: 0; z-index: 16; }
-            .sidebar.collapsed { transform: translateX(-100%); width: 280px; opacity: 1; }
+        /* OVERLAY GELAP TAMPILAN MOBILE & TABLET */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 22;
+            transition: opacity 0.3s ease;
+        }
+        .sidebar-overlay.active { display: block; }
+
+        @media (max-width: 992px) {
+            .main-content { padding: 20px 16px; }
+            .form-row { grid-template-columns: 1fr; gap: 14px; }
+            
+            .sidebar { 
+                position: fixed; 
+                top: 0; left: 0; bottom: 0; 
+                z-index: 25; 
+                width: 270px;
+                transform: translateX(-100%);
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                box-shadow: 10px 0 25px rgba(0, 0, 0, 0.3);
+            }
+            .sidebar.mobile-open { 
+                transform: translateX(0); 
+            }
         }
     </style>
 </head>
@@ -132,14 +156,14 @@
     <div class="login-wrapper" id="loginScreen">
         <div class="login-card">
             <div class="brand-header">
-                <div class="brand-logo-icon">S1</div>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_SMAN_1_Jakarta.png" alt="Logo SMAN 1 Jakarta" class="brand-logo-img">
                 <div>
-                    <h1 class="brand-title">Jurnal Kokurikuler</h1>
-                    <p class="brand-subtitle">SMA Negeri 1 Jakarta</p>
+                    <h1 class="brand-title">STOVIA EXPLORE NUSA</h1>
+                    <p class="brand-subtitle">SMA Negeri 1 Jakarta — Kelas X-1 s.d. X-8 & X-10</p>
                 </div>
             </div>
 
-            <!-- FORM LOGIN MURID (INPUT KOSONG) -->
+            <!-- FORM LOGIN MURID -->
             <form id="formLoginMurid" onsubmit="handleLoginMurid(event)">
                 <h3 style="font-size: 17px; font-weight: 700; margin: 0 0 18px 0;">Akses Masuk Murid</h3>
                 <div class="form-group">
@@ -150,10 +174,10 @@
                     <label class="form-label" for="passwordMurid">Kata Sandi (Password)</label>
                     <input type="password" id="passwordMurid" class="form-input" placeholder="Masukkan kata sandi" required>
                 </div>
-                <button type="submit" class="btn-primary" id="btnLoginMurid">Masuk</button>
+                <button type="submit" class="btn-primary" id="btnLoginMurid">Masuk ke Dashboard Murid</button>
             </form>
 
-            <!-- FORM LOGIN ADMIN (INPUT KOSONG) -->
+            <!-- FORM LOGIN ADMIN -->
             <form id="formLoginAdmin" style="display: none;" onsubmit="handleLoginAdmin(event)">
                 <h3 style="font-size: 17px; font-weight: 700; margin: 0 0 18px 0;">Akses Admin Guru</h3>
                 <div class="form-group">
@@ -181,7 +205,7 @@
                     <span>☰</span> Menu
                 </button>
                 <div style="display:flex; align-items:center; gap:12px;">
-                    <div class="brand-logo-icon" style="width:38px; height:38px; font-size:15px; border-radius:10px;">S1</div>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_SMAN_1_Jakarta.png" alt="Logo SMAN 1 Jakarta" class="brand-logo-navbar">
                     <span style="font-weight: 800; font-size: 16.5px;">STOVIA EXPLORE NUSA</span>
                 </div>
             </div>
@@ -199,12 +223,11 @@
         </header>
 
         <div class="body-container">
-            <!-- SIDEBAR BERWARNA & CAN BE COLLAPSED -->
             <nav class="sidebar" id="sidebarMenu">
                 <div class="sidebar-item item-murid active" onclick="navigate('secInfo')">📌 Profil & Kartu Misi</div>
-                <div class="sidebar-item item-murid" onclick="navigate('secLkpd1')">🔬 LKPD 1: Museum IPTEK</div>
-                <div class="sidebar-item item-murid" onclick="navigate('secLkpd2')">🏛️ LKPD 2: Observasi Anjungan</div>
-                <div class="sidebar-item item-murid" onclick="navigate('secLkpd3')">🛠️ LKPD 3: Tantangan STEAM</div>
+                <div class="sidebar-item item-murid" onclick="navigate('secLkpd1')">🔬 LKPD 1: Eksplorasi Sains IPTEK</div>
+                <div class="sidebar-item item-murid" onclick="navigate('secLkpd2')">🏛️ LKPD 2: Rumah Adat & Anjungan</div>
+                <div class="sidebar-item item-murid" onclick="navigate('secLkpd3')">🛠️ LKPD 3: Tantangan STEAM Proyek</div>
                 <div class="sidebar-item item-murid" onclick="navigate('secLkpd4')">🧠 LKPD 4: Refleksi Mandiri</div>
                 <div class="sidebar-item item-murid" onclick="navigate('secDocs')">📸 Unggah Dokumentasi</div>
                 <div class="sidebar-item item-murid" onclick="navigate('secExport')">📄 Ekspor & Merger Kelompok</div>
@@ -217,8 +240,8 @@
                 
                 <!-- PROFIL & KARTU MISI -->
                 <section class="content-section active" id="secInfo">
-                    <h2 class="page-title">Profil Murid & Penugasan Kartu Misi</h2>
-                    <p class="page-subtitle">Informasi identitas diri, anggota kelompok yang sama, (Group ID), serta panduan kartu misi eksplorasi.</p>
+                    <h2 class="page-title">Profil Murid & Penugasan Kartu Misi Proyek</h2>
+                    <p class="page-subtitle">Informasi identitas diri, anggota kelompok, Group ID unik, dan panduan kartu misi integrasi sains-kebudayaan.</p>
 
                     <div class="card" style="border-left: 6px solid var(--primary);">
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 20px; font-size:15px; margin-bottom: 18px;">
@@ -226,11 +249,10 @@
                             <div><span style="color: var(--text-muted);">NISN / Kelas:</span><br><strong id="detNisn" style="font-size:16.5px;">-</strong></div>
                             <div><span style="color: var(--text-muted);">Kelompok:</span><br><strong id="detKelompok" style="font-size:16.5px;">-</strong></div>
                             <div><span style="color: var(--text-muted);">ID Unik (Group ID):</span><br><strong id="detGroupId" style="color:var(--primary); font-size:16.5px;">-</strong></div>
-                            <div><span style="color: var(--text-muted);">Target Anjungan Daerah:</span><br><strong id="detAnjungan" style="font-size:16px;">-</strong></div>
+                            <div><span style="color: var(--text-muted);">Anjungan & Rumah Adat Target:</span><br><strong id="detAnjungan" style="font-size:16px;">-</strong></div>
                             <div><span style="color: var(--text-muted);">Guru Pendamping:</span><br><strong id="detGuru" style="font-size:16px;">-</strong></div>
                         </div>
 
-                        <!-- LIST ANGGOTA KELOMPOK DARI DATABASE -->
                         <div style="border-top: 1px dashed var(--border-color); padding-top: 16px;">
                             <span style="color: var(--text-muted); font-weight:700; font-size:14px;">👥 Anggota Kelompok Yang Sama (Satu Group ID):</span>
                             <div class="member-badge-list" id="detAnggotaKelompok">
@@ -245,108 +267,86 @@
                     </div>
                 </section>
 
-                <!-- LKPD 1 - MUSEUM IPTEK -->
+                <!-- LKPD 1 (MULTI-DISIPLIN SAINS IPTEK) -->
                 <section class="content-section" id="secLkpd1">
-                    <h2 class="page-title">LKPD 1: Observasi Eksperimental Museum IPTEK</h2>
-                    <p class="page-subtitle">Amati, uji coba, dan analisis minimal 3 alat peraga sains di Museum IPTEK yang relevan dengan prinsip fisik di lapangan.</p>
+                    <h2 class="page-title">LKPD 1: Eksplorasi Sains & Teknologi Terpadu (PP-IPTEK)</h2>
+                    <p class="page-subtitle">Amati dan uji coba minimal 3 wahana/alat peraga dari cabang sains bebas (Biologi, Kimia, Matematika, Komputer/Robotika, atau Fisika) yang relevan dengan kehidupan modern.</p>
 
                     <div class="guide-box">
-                        <h4>💡 Panduan & Cara Pengisian LKPD 1:</h4>
-                        Pilih 3 alat peraga berbeda (misal: Terowongan Angin, Katrol Beban, Sepeda Gantung). Operasikan alat tersebut, amati fenomena fisika yang terjadi, lalu bedah menggunakan teori/hukum fisika yang berlaku.
+                        <h4>💡 Panduan Pengisian LKPD 1 (Multidisiplin):</h4>
+                        Pilih 3 alat peraga dari zona mana saja di Museum IPTEK. Uji coba alat tersebut, catat fenomena menarik yang terjadi, dan jelaskan prinsip ilmu/sains (Biologi, Kimia, Matematika, Teknologi, atau Fisika) yang mendasarinya.
                     </div>
 
-                    <!-- ALAT 1 -->
                     <div class="card">
-                        <h3 class="card-title">1. Alat Peraga Sains Pertama</h3>
+                        <h3 class="card-title">1. Alat Peraga / Wahana Sains Pertama</h3>
                         <div class="form-row">
                             <div class="form-group">
-                                <label class="form-label">Nama Alat Peraga</label>
-                                <span class="field-guide">Tuliskan nama lengkap alat peraga sesuai papan petunjuk museum.</span>
-                                <span class="field-example">Contoh: Terowongan Angin (Wind Tunnel) / Pipa Bernoulli</span>
-                                <input type="text" id="lk1_alat1_nama" class="form-input">
+                                <label class="form-label">Nama Alat Peraga / Wahana</label>
+                                <input type="text" id="lk1_alat1_nama" class="form-input" placeholder="Contoh: Generator Van De Graaff / Simulasi Gempa / Bioteknologi Pangan">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Zona & Area Museum</label>
-                                <span class="field-guide">Sebutkan nama zona atau lantai tempat alat tersebut berada.</span>
-                                <span class="field-example">Contoh: Zona Mekanika & Fluida (Lantai 2)</span>
-                                <input type="text" id="lk1_alat1_zona" class="form-input">
+                                <label class="form-label">Zona & Cabang Sains</label>
+                                <input type="text" id="lk1_alat1_zona" class="form-input" placeholder="Contoh: Zona Lingkungan / Biologi / Kedirgantaraan">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Hasil Observasi & Fenomena Fisik saat Uji Coba</label>
-                            <span class="field-guide">Jelaskan secara runtut fenomena visual/fisik saat Anda mengoperasikan atau menekan tombol peraga.</span>
-                            <span class="field-example">Contoh: Saat kecepatan udara ditingkatkan, bola plastik terangkat melayang tegak lurus tanpa jatuh ke samping.</span>
-                            <textarea id="lk1_alat1_hasil" class="form-textarea"></textarea>
+                            <label class="form-label">Hasil Observasi & Hasil Uji Coba Lapangan</label>
+                            <textarea id="lk1_alat1_hasil" class="form-textarea" placeholder="Deskripsikan apa yang terjadi saat alat dioperasikan..."></textarea>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Analisis Hukum & Konsep Sains yang Bekerja</label>
-                            <span class="field-guide">Sebutkan variabel ilmiah fisika (misal: Persamaan Bernoulli, Hukum Newton, Gaya Gesek, Katrol Majemuk, Tekanan Udara).</span>
-                            <span class="field-example">Contoh: Hukum Bernoulli: Kecepatan aliran udara yang tinggi memicu tekanan udara menjadi rendah di bagian atas bola.</span>
-                            <textarea id="lk1_alat1_konsep" class="form-textarea"></textarea>
+                            <label class="form-label">Prinsip Ilmiah / Konsep Sains Terkait</label>
+                            <textarea id="lk1_alat1_konsep" class="form-textarea" placeholder="Jelaskan konsep Biologi/Kimia/Fisika/Komputer yang bekerja pada alat ini..."></textarea>
                         </div>
                     </div>
 
-                    <!-- ALAT 2 -->
                     <div class="card">
-                        <h3 class="card-title">2. Alat Peraga Sains Kedua</h3>
+                        <h3 class="card-title">2. Alat Peraga / Wahana Sains Kedua</h3>
                         <div class="form-row">
                             <div class="form-group">
-                                <label class="form-label">Nama Alat Peraga</label>
-                                <span class="field-example">Contoh: Katrol Kombinasi (Mechanical Advantage)</span>
+                                <label class="form-label">Nama Alat Peraga / Wahana</label>
                                 <input type="text" id="lk1_alat2_nama" class="form-input">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Zona & Area Museum</label>
-                                <span class="field-example">Contoh: Zona Gaya & Energi</span>
+                                <label class="form-label">Zona & Cabang Sains</label>
                                 <input type="text" id="lk1_alat2_zona" class="form-input">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Hasil Observasi & Fenomena Fisik saat Uji Coba</label>
-                            <span class="field-guide">Catat perbedaan usaha/tenaga yang dibutuhkan saat menarik beban.</span>
+                            <label class="form-label">Hasil Observasi & Hasil Uji Coba Lapangan</label>
                             <textarea id="lk1_alat2_hasil" class="form-textarea"></textarea>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Analisis Hukum & Konsep Sains yang Bekerja</label>
-                            <span class="field-guide">Uraikan perhitungan atau keuntungan mekanis katrol (F = W / n).</span>
+                            <label class="form-label">Prinsip Ilmiah / Konsep Sains Terkait</label>
                             <textarea id="lk1_alat2_konsep" class="form-textarea"></textarea>
                         </div>
                     </div>
 
-                    <!-- ALAT 3 -->
                     <div class="card">
-                        <h3 class="card-title">3. Alat Peraga Sains Ketiga</h3>
+                        <h3 class="card-title">3. Alat Peraga / Wahana Sains Ketiga</h3>
                         <div class="form-row">
                             <div class="form-group">
-                                <label class="form-label">Nama Alat Peraga</label>
-                                <span class="field-example">Contoh: Sepeda Gantung Keseimbangan</span>
+                                <label class="form-label">Nama Alat Peraga / Wahana</label>
                                 <input type="text" id="lk1_alat3_nama" class="form-input">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Zona & Area Museum</label>
-                                <span class="field-example">Contoh: Zona Gerak & Pusat Massa</span>
+                                <label class="form-label">Zona & Cabang Sains</label>
                                 <input type="text" id="lk1_alat3_zona" class="form-input">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Hasil Observasi & Fenomena Fisik saat Uji Coba</label>
-                            <span class="field-guide">Amati posisi penyeimbang beban di bawah tali baja.</span>
+                            <label class="form-label">Hasil Observasi & Hasil Uji Coba Lapangan</label>
                             <textarea id="lk1_alat3_hasil" class="form-textarea"></textarea>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Analisis Hukum & Konsep Sains yang Bekerja</label>
-                            <span class="field-guide">Uraikan konsep Pusat Massa (Center of Gravity) dan Momen Inersia.</span>
+                            <label class="form-label">Prinsip Ilmiah / Konsep Sains Terkait</label>
                             <textarea id="lk1_alat3_konsep" class="form-textarea"></textarea>
                         </div>
                     </div>
 
-                    <!-- APLIKASI TEKNOLOGI -->
                     <div class="card">
-                        <h3 class="card-title">4. Relevansi & Penerapan Teknologi Sehari-hari</h3>
+                        <h3 class="card-title">4. Relevansi Inovasi bagi Kehidupan Modern</h3>
                         <div class="form-group">
-                            <label class="form-label">Aplikasi Prinsip Sains Alat Peraga pada Teknologi Modern</label>
-                            <span class="field-guide">Bagaimana prinsip fisika dari 3 alat di atas dimanfaatkan dalam teknologi masa kini?</span>
-                            <span class="field-example">Contoh: Hukum Bernoulli diterapkan pada bentuk sayap pesawat terbang (aerofoil) dan sistem karburator kendaraan modern.</span>
+                            <label class="form-label">Bagaimana prinsip ilmu dari alat peraga di atas dapat dimanfaatkan untuk memecahkan masalah kehidupan sehari-hari?</label>
                             <textarea id="lk1_aplikasi" class="form-textarea"></textarea>
                         </div>
                     </div>
@@ -354,57 +354,47 @@
                     <button class="btn-primary" style="max-width:240px;" onclick="saveProgress()">Simpan LKPD 1</button>
                 </section>
 
-                <!-- LKPD 2 - OBSERVASI ANJUNGAN -->
+                <!-- LKPD 2 (ARSITEKTUR RUMAH ADAT & ANJUNGAN DAERAH) -->
                 <section class="content-section" id="secLkpd2">
-                    <h2 class="page-title">LKPD 2: Observasi Anjungan & Pengumpulan Data Spesifik Misi</h2>
-                    <p class="page-subtitle">Eksplorasi anjungan sasaran, identifikasi objek fisik/budaya, dan kaitkan langsung dengan sains IPTEK.</p>
+                    <h2 class="page-title">LKPD 2: Observasi Arsitektur Rumah Adat & Anjungan Daerah</h2>
+                    <p class="page-subtitle">Eksplorasi struktur rumah adat, material lokal, tata ruang, serta kearifan lokal daerah sasaran proyek.</p>
                     
                     <div class="guide-box">
-                        <h4 id="lblPanduanMisiJudul">📌 Instruksi Khusus Kartu Misi</h4>
+                        <h4 id="lblPanduanMisiJudul">📌 Instruksi Khusus Rumah Adat Target</h4>
                         <div id="lblPanduanMisiText">Loading panduan...</div>
                     </div>
 
                     <div class="card">
-                        <h3 class="card-title">1. Fokus & Deskripsi Lapangan Utama</h3>
+                        <h3 class="card-title">1. Deskripsi Arsitektur Rumah Adat</h3>
                         <div class="form-group">
-                            <label class="form-label">Gambaran Umum Objek / Bangunan / Alat di Anjungan Sasaran</label>
-                            <span class="field-guide">Deskripsikan kondisi fisik, bentuk tata ruang, material visual, atau interaksi budaya yang Anda amati secara langsung.</span>
-                            <span class="field-example">Contoh: Rumah Panggung Lombok (Bale Tani) memiliki atap jerami tinggi, pintu masuk rendah (1.5m), serta fondasi batu tanpa paku.</span>
-                            <textarea id="lk2_fokus" class="form-textarea"></textarea>
+                            <label class="form-label">Gambaran Bentuk Bangunan, Struktur Atap, Panggung/Pondasi, dan Tata Ruang Rumah Adat</label>
+                            <textarea id="lk2_fokus" class="form-textarea" placeholder="Jelaskan karakteristik fisik rumah adat yang Anda amati di anjungan daerah..."></textarea>
                         </div>
                     </div>
 
                     <div class="card">
-                        <h3 class="card-title">2. Inventarisasi 3 Data Spesifik Kunci Sesuai Kartu Misi</h3>
+                        <h3 class="card-title">2. Inventarisasi Data Kunci Sesuai Kartu Misi</h3>
                         
                         <div class="form-group">
-                            <label class="form-label" id="lblData1">Item Data 1: Karakteristik / Alat / Pangan / Objek 1</label>
-                            <span class="field-guide">Catat detail indikator data ke-1 yang diminta oleh kartu misi kelompok Anda.</span>
-                            <span class="field-example">Contoh (ADAPT): Atap menjulang dari alang-alang & lantai tanah lempung dicampur kotoran kerbau kering.</span>
+                            <label class="form-label" id="lblData1">Item Data 1: Karakteristik Bangunan / Ornamen Budaya</label>
                             <textarea id="lk2_data1" class="form-textarea"></textarea>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label" id="lblData2">Item Data 2: Bentuk Adaptasi / Mekanisme Kerja / Objek 2</label>
-                            <span class="field-guide">Catat detail indikator data ke-2 yang diminta oleh kartu misi kelompok Anda.</span>
-                            <span class="field-example">Contoh (ADAPT): Pintu masuk rendah memaksa tamu membungkuk sebagai rasa hormat dan menahan aliran angin kencang.</span>
+                            <label class="form-label" id="lblData2">Item Data 2: Bentuk Adaptasi Lingkungan (Iklim / Bencana Gempa / Aliran Udara)</label>
                             <textarea id="lk2_data2" class="form-textarea"></textarea>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label" id="lblData3">Item Data 3: Material / Sumber Daya / Nilai Budaya / Objek 3</label>
-                            <span class="field-guide">Catat detail indikator data ke-3 yang diminta oleh kartu misi kelompok Anda.</span>
-                            <span class="field-example">Contoh (ADAPT): Kayu jati & bambu diikat tali ijuk fleksibel yang mampu meredam gelombang gempa bumi.</span>
+                            <label class="form-label" id="lblData3">Item Data 3: Material Kayu / Bambu / Roof Tile / Sumber Daya Alam Lokal</label>
                             <textarea id="lk2_data3" class="form-textarea"></textarea>
                         </div>
                     </div>
 
                     <div class="card">
-                        <h3 class="card-title">3. Integrasi & Koneksi Sains (IPTEK ↔ Anjungan)</h3>
+                        <h3 class="card-title">3. Integrasi Kebudayaan ↔ Teknologi Modern</h3>
                         <div class="form-group">
-                            <label class="form-label">Analisis Ilmiah: Mengapa Kearifan Lokal Anjungan ini Bekerja Secara Efektif?</label>
-                            <span class="field-guide">Hubungkan objek kearifan lokal anjungan dengan alat peraga/hukum sains yang Anda pelajari di Museum IPTEK.</span>
-                            <span class="field-example">Contoh: Rongga udara pada atap jerami Bale Tani bertindak sebagai isolator termal dan celah sirkulasi Bernoulli yang mendinginkan ruangan.</span>
+                            <label class="form-label">Analisis Kebudayaan & Sains: Mengapa struktur rumah adat tersebut terbukti kokoh dan ramah lingkungan?</label>
                             <textarea id="lk2_koneksi" class="form-textarea"></textarea>
                         </div>
                     </div>
@@ -412,67 +402,53 @@
                     <button class="btn-primary" style="max-width:240px;" onclick="saveProgress()">Simpan LKPD 2</button>
                 </section>
 
-                <!-- LKPD 3 - TANTANGAN STEAM -->
+                <!-- LKPD 3 (PROYEK AKHIR & STEAM) -->
                 <section class="content-section" id="secLkpd3">
-                    <h2 class="page-title">LKPD 3: Perancangan Solusi Tantangan STEAM</h2>
-                    <p class="page-subtitle">Formulasikan prototype, model fisik, atau konsep inovasi digital untuk menjawab tantangan kartu misi Anda.</p>
+                    <h2 class="page-title">LKPD 3: Perancangan Proyek Akhir (Pendekatan STEAM)</h2>
+                    <p class="page-subtitle">Formulasikan prototype, maket rumah adat adaptif, media digital interaktif, atau karya inovasi proyek akhir kelompok.</p>
                     
                     <div class="guide-box">
-                        <h4 id="lblSteamTantanganJudul">🛠️ Tantangan STEAM Kartu Misi</h4>
-                        <div id="lblSteamTantanganText">Rancang ide prototype solutif berdasarkan tantangan akhir pada kartu misi kelompok Anda.</div>
+                        <h4 id="lblSteamTantanganJudul">🛠️ Tantangan Proyek Akhir Kelompok</h4>
+                        <div id="lblSteamTantanganText">Rancang solusi karya proyek akhir berdasarkan inspirasi observasi rumah adat dan museum IPTEK.</div>
                     </div>
 
                     <div class="card">
-                        <h3 class="card-title">Identitas Solusi Karya STEAM</h3>
+                        <h3 class="card-title">Identitas Solusi Proyek Akhir</h3>
                         <div class="form-group">
-                            <label class="form-label">Judul Prototype / Solusi Inovasi</label>
-                            <span class="field-guide">Buat judul karya yang menarik, menggambarkan solusi, dan mencerminkan kearifan lokal.</span>
-                            <span class="field-example">Contoh: Eco-Bale: Prototype Rumah Adaptif Gempa dengan Ventilasi Silang Aerodinamis</span>
-                            <input type="text" id="lk3_judul" class="form-input">
+                            <label class="form-label">Judul Prototype / Karya Proyek Akhir</label>
+                            <input type="text" id="lk3_judul" class="form-input" placeholder="Contoh: Maket Rumah Panggung Antigempa / Digital VR Cultural Experience">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Format Luaran Final Karya</label>
-                            <span class="field-guide">Tentukan bentuk fisik/digital karya yang dirancang oleh kelompok Anda.</span>
-                            <span class="field-example">Contoh: Prototype Maket 3D Skala 1:20 / Digital Interactive Storyline / Konsep AR Mobile App</span>
+                            <label class="form-label">Format Produk Final (Maket / Video / Aplikasi / Poster STEAM)</label>
                             <input type="text" id="lk3_format" class="form-input">
                         </div>
                     </div>
 
                     <div class="card">
-                        <h3 class="card-title">Matriks Pembobotan 5 Pilar STEAM</h3>
+                        <h3 class="card-title">Matriks Pembobotan 5 Pilar STEAM Proyek</h3>
                         
                         <div class="form-group">
-                            <label class="form-label" style="color:var(--primary);">1. Science (Prinsip Sains & Fisika Lingkungan)</label>
-                            <span class="field-guide">Jelaskan hukum fisika/biologi/kimia yang menjadi dasar berkerjanya inovasi karya Anda.</span>
-                            <span class="field-example">Contoh: Memanfaatkan prinsip isolasi termal bahan organik dan distribusi massa simetris untuk stabilitas gempa.</span>
+                            <label class="form-label" style="color:var(--primary);">1. Science (Prinsip Sains, Pencahayaan, & Sirkulasi Udara Alami)</label>
                             <textarea id="steam_s" class="form-textarea"></textarea>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label" style="color:var(--primary);">2. Technology (Peralatan, Perangkat Lunak, & Material)</label>
-                            <span class="field-guide">Sebutkan teknologi digital atau perangkat keras yang digunakan dalam proses perancangan.</span>
-                            <span class="field-example">Contoh: Software modeling Tinkercad/Sketchup, sensor suhu IoT, dan material serat komposit.</span>
+                            <label class="form-label" style="color:var(--primary);">2. Technology (Peralatan, Perangkat Digital, Material Lokal)</label>
                             <textarea id="steam_t" class="form-textarea"></textarea>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label" style="color:var(--primary);">3. Engineering (Mekanika Teknis & Konstruksi Struktur)</label>
-                            <span class="field-guide">Uraikan langkah perakitan, sambungan struktural, atau mekanisme operasional prototype.</span>
-                            <span class="field-example">Contoh: Menggunakan teknik sambungan alur paku kayu tanpa pasak besi untuk fleksibilitas simpangan beban gempa.</span>
+                            <label class="form-label" style="color:var(--primary);">3. Engineering (Mekanika Struktur Rumah Adat & Pasak Kayu)</label>
                             <textarea id="steam_e" class="form-textarea"></textarea>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label" style="color:var(--primary);">4. Arts (Estetika, Ornamen Budaya, & Desain Komunikasi)</label>
-                            <span class="field-guide">Jelaskan ornamen ukiran daerah, keselarasan warna visual, serta kenyamanan desain pengguna.</span>
-                            <span class="field-example">Contoh: Menerapkan motif ukiran geometris khas NTB pada fasad luar bangunan dengan cat berbahan alami.</span>
+                            <label class="form-label" style="color:var(--primary);">4. Arts (Estetika Ornamen Budaya, Ukiran, & Visual Karya)</label>
                             <textarea id="steam_a" class="form-textarea"></textarea>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label" style="color:var(--primary);">5. Mathematics (Kalkulasi Skala, Rasio, & Perhitungan Data)</label>
-                            <span class="field-guide">Cantumkan perhitungan angka, perbandingan rasio skala maket, atau estimasi biaya/daya.</span>
-                            <span class="field-example">Contoh: Perhitungan rasio maket 1:20 (panjang 30cm, lebar 20cm) serta sudut kemiringan atap 45° untuk aliran air hujan.</span>
+                            <label class="form-label" style="color:var(--primary);">5. Mathematics (Skala Maket, Simetri Bangunan, & Perhitungan Biaya)</label>
                             <textarea id="steam_m" class="form-textarea"></textarea>
                         </div>
                     </div>
@@ -480,22 +456,18 @@
                     <button class="btn-primary" style="max-width:240px;" onclick="saveProgress()">Simpan LKPD 3</button>
                 </section>
 
-                <!-- LKPD 4 - REFLEKSI MANDIRI -->
+                <!-- LKPD 4 -->
                 <section class="content-section" id="secLkpd4">
-                    <h2 class="page-title">LKPD 4: Refleksi Pembelajaran & Pengalaman Lapangan</h2>
-                    <p class="page-subtitle">Evaluasi tantangan kerja tim, pemecahan masalah di lapangan, serta internalisasi nilai kearifan lokal.</p>
+                    <h2 class="page-title">LKPD 4: Refleksi Pembelajaran & Kolaborasi Tim</h2>
+                    <p class="page-subtitle">Evaluasi tantangan kerja kelompok di lapangan, pemecahan masalah, serta apresiasi terhadap kearifan nusantara.</p>
 
                     <div class="card">
                         <div class="form-group">
                             <label class="form-label">1. Kendala Utama di Lapangan & Strategi Pemecahannya</label>
-                            <span class="field-guide">Tuliskan masalah nyata yang dialami (misal: keterbatasan waktu, pencarian lokasi anjungan, atau kesulitan alat peraga) dan solusinya.</span>
-                            <span class="field-example">Contoh: Kesulitan menemukan papan informasi di anjungan, diatasi dengan bertanya kepada pemandu lokal dan mencatat wawancara.</span>
                             <textarea id="lk4_kendala" class="form-textarea"></textarea>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">2. Refleksi Kolaborasi Kelompok & Wawasan Keberagaman Budaya</label>
-                            <span class="field-guide">Sampaikan pembelajaran bermakna tentang dinamika pembagian tugas serta rasa bangga terhadap kekayaan kearifan Nusantara.</span>
-                            <span class="field-example">Contoh: Kami belajar membagi peran secara adil antara pencatat data dan fotografer, serta makin kagum pada kehebatan nenek moyang.</span>
+                            <label class="form-label">2. Refleksi Kolaborasi Tim & Internalisasi Nilai Kebudayaan Rumah Adat</label>
                             <textarea id="lk4_kerjasama" class="form-textarea"></textarea>
                         </div>
                     </div>
@@ -506,18 +478,16 @@
                 <!-- DOKUMENTASI FOTO -->
                 <section class="content-section" id="secDocs">
                     <h2 class="page-title">Unggah Dokumentasi Lapangan (Minimal 5 Foto)</h2>
-                    <p class="page-subtitle">Upload bukti autentik observasi peraga IPTEK dan arsitektur/objek di anjungan daerah.</p>
+                    <p class="page-subtitle">Upload foto bukti pengamatan wahana IPTEK dan detail arsitektur rumah adat anjungan daerah.</p>
 
                     <div class="card">
-                        <h3 class="card-title">📸 Foto Uji Coba Museum IPTEK</h3>
-                        <span class="field-guide">Pilih minimal 2 foto saat anggota kelompok menguji coba alat peraga sains di Museum IPTEK.</span>
+                        <h3 class="card-title">📸 Foto Observasi Museum IPTEK</h3>
                         <input type="file" id="inputFotoIptek" class="form-input" accept="image/*" multiple onchange="handleFotoUpload(event, 'previewIptek')">
                         <div id="previewIptek" style="display:flex; gap:12px; margin-top:16px; flex-wrap:wrap;"></div>
                     </div>
 
                     <div class="card">
-                        <h3 class="card-title">📸 Foto Observasi Anjungan Daerah</h3>
-                        <span class="field-guide">Pilih minimal 3 foto objek fisik, struktur bangunan, atau detail kearifan lokal di Anjungan sasaran.</span>
+                        <h3 class="card-title">📸 Foto Arsitektur Rumah Adat Anjungan</h3>
                         <input type="file" id="inputFotoAnjungan" class="form-input" accept="image/*" multiple onchange="handleFotoUpload(event, 'previewAnjungan')">
                         <div id="previewAnjungan" style="display:flex; gap:12px; margin-top:16px; flex-wrap:wrap;"></div>
                     </div>
@@ -550,7 +520,7 @@
                     </div>
                 </section>
 
-                <!-- ADMIN: KELOLA DATA MURID (DENGAN DROPDOWN NAMA LENGKAP) -->
+                <!-- ADMIN: KELOLA DATA MURID -->
                 <section class="content-section" id="secAdminPeserta">
                     <h2 class="page-title">Admin Panel: Kelola & Edit Data Murid</h2>
                     <p class="page-subtitle">Pilih murid dari dropdown hasil Sinkronisasi Database Spreadsheet untuk mengedit atau menambah data baru.</p>
@@ -633,7 +603,7 @@
                 <!-- ADMIN EASY PLOTTING MULTI-KELAS -->
                 <section class="content-section" id="secAdminKelompok">
                     <h2 class="page-title">Admin: Easy Plotting Multi-Kelas (X-1 s.d. X-8 & X-10)</h2>
-                    <p class="page-subtitle">Tentukan Kelas, Kelompok, Anjungan Daerah (8 Pilihan), dan Kartu Misi (6 Pilihan). Group ID unik akan dibentuk otomatis.</p>
+                    <p class="page-subtitle">Tentukan Kelas, Kelompok, Anjungan Rumah Adat (8 Pilihan), dan Kartu Misi (6 Pilihan). Group ID unik akan dibentuk otomatis.</p>
                     <div class="card">
                         <form onsubmit="handleUpdatePlottingAdmin(event)">
                             <div class="form-row">
@@ -662,28 +632,28 @@
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label">3. Pilih Anjungan Daerah Sasaran (8 Pilihan)</label>
+                                <label class="form-label">3. Pilih Anjungan & Rumah Adat Sasaran (8 Pilihan)</label>
                                 <select id="adminAnjungan" class="form-select">
-                                    <option value="Anjungan Nusa Tenggara Barat (NTB)">Anjungan Nusa Tenggara Barat (NTB)</option>
-                                    <option value="Anjungan Jawa Timur">Anjungan Jawa Timur</option>
-                                    <option value="Anjungan Sulawesi Tengah">Anjungan Sulawesi Tengah</option>
-                                    <option value="Anjungan Sulawesi Selatan">Anjungan Sulawesi Selatan</option>
-                                    <option value="Anjungan Bali">Anjungan Bali</option>
-                                    <option value="Anjungan Nusa Tenggara Timur (NTT)">Anjungan Nusa Tenggara Timur (NTT)</option>
-                                    <option value="Anjungan Yogyakarta">Anjungan Yogyakarta</option>
-                                    <option value="Anjungan Papua">Anjungan Papua</option>
+                                    <option value="Anjungan Nusa Tenggara Barat (Rumah Dalam Loka / Bale)">Anjungan Nusa Tenggara Barat (NTB)</option>
+                                    <option value="Anjungan Jawa Timur (Rumah Joglo Situbondo)">Anjungan Jawa Timur</option>
+                                    <option value="Anjungan Sulawesi Tengah (Rumah Tambi)">Anjungan Sulawesi Tengah</option>
+                                    <option value="Anjungan Sulawesi Selatan (Rumah Tongkonan / Balla Lompoa)">Anjungan Sulawesi Selatan</option>
+                                    <option value="Anjungan Bali (Candi Centar & Bale Gapura)">Anjungan Bali</option>
+                                    <option value="Anjungan Nusa Tenggara Timur (Rumah Musalaki)">Anjungan Nusa Tenggara Timur (NTT)</option>
+                                    <option value="Anjungan Yogyakarta (Bangsal Pagelaran Joglo)">Anjungan Yogyakarta</option>
+                                    <option value="Anjungan Papua (Rumah Honai & Kariwari)">Anjungan Papua</option>
                                 </select>
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label">4. Pilih Mission Card (6 Misi Eksplorasi)</label>
+                                <label class="form-label">4. Pilih Mission Card (6 Misi Proyek)</label>
                                 <select id="selMisiAdmin" class="form-select" onchange="autoFillMisiAdmin()">
-                                    <option value="MISSION 01 — ADAPT">MISSION 01 — ADAPT (Manusia, Lingkungan, dan Ruang)</option>
-                                    <option value="MISSION 02 — MOVE">MISSION 02 — MOVE (Gerak, Mekanisme, dan Teknologi)</option>
-                                    <option value="MISSION 03 — FLOW">MISSION 03 — FLOW (Air, Udara, dan Energi)</option>
-                                    <option value="MISSION 04 — FOOD">MISSION 04 — FOOD (Pangan, Lingkungan, dan Keberlanjutan)</option>
-                                    <option value="MISSION 05 — CONNECT">MISSION 05 — CONNECT (Budaya, Teknologi, dan Komunikasi)</option>
-                                    <option value="MISSION 06 — FUTURE">MISSION 06 — FUTURE (Kearifan Lokal untuk Masa Depan)</option>
+                                    <option value="MISSION 01 — ADAPT">MISSION 01 — ADAPT (Arsitektur Adaptif & Ruang Kebudayaan)</option>
+                                    <option value="MISSION 02 — MOVE">MISSION 02 — MOVE (Mekanisme Kerja & Teknologi Tradisional)</option>
+                                    <option value="MISSION 03 — FLOW">MISSION 03 — FLOW (Aliran Udara Alami & Pengelolaan Air)</option>
+                                    <option value="MISSION 04 — FOOD">MISSION 04 — FOOD (Ketahanan Pangan & Penyimpanan Tradisional)</option>
+                                    <option value="MISSION 05 — CONNECT">MISSION 05 — CONNECT (Media Komunikasi Budaya & Teknologi)</option>
+                                    <option value="MISSION 06 — FUTURE">MISSION 06 — FUTURE (Kearifan Lokal untuk Inovasi Masa Depan)</option>
                                 </select>
                             </div>
 
@@ -701,22 +671,18 @@
         </div>
     </div>
 
-    <!-- LOGIKA JAVASCRIPT UTUH -->
+    <!-- LOGIKA JAVASCRIPT -->
     <script>
-        // Mapping URL Spreadsheet Apps Script per Pasangan Kelas
         const API_ENDPOINTS = {
             "X-1": "https://script.google.com/macros/s/AKfycbwQ4QHTdKyxSyUiKd5NjFhW9-Z4X5rRlhRnDeGgpc_S7Z9EF4KXjPW7AMfYTEeKEkdv6Q/exec",
             "X-2": "https://script.google.com/macros/s/AKfycbwQ4QHTdKyxSyUiKd5NjFhW9-Z4X5rRlhRnDeGgpc_S7Z9EF4KXjPW7AMfYTEeKEkdv6Q/exec",
-            
-            "X-3": "https://script.google.com/macros/s/AKfycbwhLdusKDtgyvtigTM--pfJ5KwbU7ST4DGCCbJ706lwvy-3lhXgWzVNga-ktvFibZ_Apw/exec",
-            "X-4": "https://script.google.com/macros/s/AKfycbwhLdusKDtgyvtigTM--pfJ5KwbU7ST4DGCCbJ706lwvy-3lhXgWzVNga-ktvFibZ_Apw/exec",
-
-            "X-5": "https://script.google.com/macros/s/AKfycbxW0wx2UKGvpqN0DgwJKN3NBzpsG6FajwY9VOJ_STCToweH0wXyvVvhGJzk-lCzXvL5WQ/exec",
-            "X-6": "https://script.google.com/macros/s/AKfycbxW0wx2UKGvpqN0DgwJKN3NBzpsG6FajwY9VOJ_STCToweH0wXyvVvhGJzk-lCzXvL5WQ/exec",
-
-            "X-7": "https://script.google.com/macros/s/AKfycbyMAh95twUkROy7BelU5CC5WcplERnHcwWyu9kWDt3CAhy73JakhVr6kVh78EVIkR27/exec",
-            "X-8": "https://script.google.com/macros/s/AKfycbyMAh95twUkROy7BelU5CC5WcplERnHcwWyu9kWDt3CAhy73JakhVr6kVh78EVIkR27/exec",
-            "X-10": "https://script.google.com/macros/s/AKfycbyMAh95twUkROy7BelU5CC5WcplERnHcwWyu9kWDt3CAhy73JakhVr6kVh78EVIkR27/exec"
+            "X-3": "https://script.google.com/macros/s/AKfycbw-NE30CYINsAuWKLAj1TagvsZHDJ523-77wNVu4jx2y_Uz5lIdONc-MtGZTUeRQeOXTg/exec",
+            "X-4": "https://script.google.com/macros/s/AKfycbw-NE30CYINsAuWKLAj1TagvsZHDJ523-77wNVu4jx2y_Uz5lIdONc-MtGZTUeRQeOXTg/exec",
+            "X-5": "https://script.google.com/macros/s/AKfycbxLEnIjO8fe9CVP3F_v-A0x4WRVG9jBSFEp0txPHZBqTy0B4cDFDn2urTTNT093OeoXrw/exec",
+            "X-6": "https://script.google.com/macros/s/AKfycbxLEnIjO8fe9CVP3F_v-A0x4WRVG9jBSFEp0txPHZBqTy0B4cDFDn2urTTNT093OeoXrw/exec",
+            "X-7": "https://script.google.com/macros/s/AKfycbxQQp8SFEgadwysaFjudH1Yf8CIdf3vxQoXvrzbqYEft3i3AbfmmZSfuLDqwCpI9QX1/exec",
+            "X-8": "https://script.google.com/macros/s/AKfycbxQQp8SFEgadwysaFjudH1Yf8CIdf3vxQoXvrzbqYEft3i3AbfmmZSfuLDqwCpI9QX1/exec",
+            "X-10": "https://script.google.com/macros/s/AKfycbxQQp8SFEgadwysaFjudH1Yf8CIdf3vxQoXvrzbqYEft3i3AbfmmZSfuLDqwCpI9QX1/exec"
         };
 
         function getApiUrl(kelas) {
@@ -732,71 +698,85 @@
 
         const MISI_DETAILS = {
             "MISSION 01 — ADAPT": {
-                tanya: "Bagaimana kondisi lingkungan memengaruhi bentuk ruang, bangunan, atau cara hidup masyarakat?",
-                amati: "Amati bangunan/ruang, material, atap, ventilasi, posisi, dan bentuk adaptasi.",
-                data: "Minimal 3 karakteristik, 2 bentuk adaptasi, 1 material, 5 dokumentasi.",
-                iptek: "Hubungkan dengan gaya, tekanan, distribusi massa, gaya gesek, atau aliran udara/Bernoulli.",
-                steam: "Rancang prototype/model ruang atau bangunan masa depan yang adaptif.",
-                d1: "Item Data 1: Minimal 3 Karakteristik Utama Bangunan/Ruang",
-                d2: "Item Data 2: Minimal 2 Bentuk Adaptasi terhadap Iklim/Gempa",
-                d3: "Item Data 3: Minimal 1 Material Utama yang Digunakan"
+                tanya: "Bagaimana arsitektur rumah adat menyesuaikan diri dengan kondisi iklim, potensi gempa, atau tata ruang kebudayaan lokal?",
+                amati: "Amati bentuk rumah panggung, konstruksi atap, sirkulasi udara alami, dan material kayu/bambu di rumah adat.",
+                data: "Minimal 3 karakteristik bangunan, 2 bentuk adaptasi lingkungan, 1 jenis material utama, 5 dokumentasi.",
+                iptek: "Hubungkan dengan ilmu sains dari Museum IPTEK (misal: simulasi gempa, struktur material, atau ventilasi alami).",
+                steam: "Rancang prototype maket rumah adat masa depan yang tangguh bencana dan ramah lingkungan.",
+                d1: "Item Data 1: Minimal 3 Karakteristik Utama Arsitektur Rumah Adat",
+                d2: "Item Data 2: Minimal 2 Bentuk Adaptasi (Gempa / Iklim Tropis / Aliran Udara)",
+                d3: "Item Data 3: Minimal 1 Jenis Material Utama (Kayu / Bambu / Atap Ijuk)"
             },
             "MISSION 02 — MOVE": {
-                tanya: "Bagaimana teknologi lokal membantu manusia bergerak atau menyelesaikan pekerjaan dengan lebih efektif?",
-                amati: "Amati alat transportasi, alat kerja, mekanisme, roda, pengangkatan, atau teknologi tradisional.",
-                data: "Minimal 1 teknologi/alat, fungsi, cara kerja, gaya/energi, 5 dokumentasi.",
-                iptek: "Hubungkan dengan distribusi massa, momen inersia, gaya gesek, katrol, gerak, atau lintasan.",
-                steam: "Rancang prototype mekanisme sederhana.",
-                d1: "Item Data 1: Nama Teknologi / Alat Tradisional yang Diamati",
-                d2: "Item Data 2: Fungsi & Cara Kerja Mekanismenya",
-                d3: "Item Data 3: Analisis Gaya / Jenis Energi yang Bekerja"
+                tanya: "Bagaimana teknologi tradisional dan alat kerja lokal membantu masyarakat menyelesaikan pekerjaan fisik?",
+                amati: "Amati perkakas tradisional, alat penumbuk, perahu, mekanisme roda, atau pasak kayu di rumah adat.",
+                data: "Minimal 1 teknologi/alat tradisional, fungsi, cara kerja, analisis mekanisme, 5 dokumentasi.",
+                iptek: "Hubungkan dengan prinsip mekanika/robotika/gaya dari wahana Museum IPTEK.",
+                steam: "Rancang prototype alat sederhana pendukung aktivitas rumah adat.",
+                d1: "Item Data 1: Nama Alat / Mekanisme Tradisional yang Diamati",
+                d2: "Item Data 2: Fungsi Utama & Cara Kerja Mekanisnya",
+                d3: "Item Data 3: Analisis Energi / Prinsip Kerja Sainsnya"
             },
             "MISSION 03 — FLOW": {
-                tanya: "Bagaimana masyarakat memanfaatkan air, udara, atau energi sesuai kondisi lingkungannya?",
-                amati: "Amati sumber/pemanfaatan air, aliran, ventilasi, energi, tekanan, dan kearifan lokal.",
-                data: "Minimal 1 bentuk pemanfaatan, fungsi, cara kerja, sumber daya, kondisi lingkungan, 5 dokumentasi.",
-                iptek: "Hubungkan dengan Bernoulli, tekanan udara, aliran, katrol, atau gaya.",
-                steam: "Rancang prototype sistem aliran/energi sederhana.",
-                d1: "Item Data 1: Bentuk Pemanfaatan Air/Udara/Energi yang Diamati",
-                d2: "Item Data 2: Fungsi, Cara Kerja, & Sumber Daya",
-                d3: "Item Data 3: Kondisi Lingkungan yang Memengaruhinya"
+                tanya: "Bagaimana rumah adat memanfaatkan sirkulasi pencahayaan alami, aliran udara, serta sistem air?",
+                amati: "Amati posisi jendela, atap tinggi, drainase sekitar anjungan, dan sistem pencahayaan alami.",
+                data: "Minimal 1 sistem ventilasi/air, cara kerja, manfaat lingkungan, 5 dokumentasi.",
+                iptek: "Hubungkan dengan ilmu fisika/lingkungan dari Museum IPTEK (misal: tekanan udara/aliran fluid).",
+                steam: "Rancang prototype sistem sirkulasi udara / pemanen air hujan mandiri.",
+                d1: "Item Data 1: Sistem Aliran Udara / Air / Cahaya yang Diamati",
+                d2: "Item Data 2: Manfaat bagi Kenyamanan Penghuni Rumah Adat",
+                d3: "Item Data 3: Analisis Sains Aliran Lingkungannya"
             },
             "MISSION 04 — FOOD": {
-                tanya: "Bagaimana kondisi lingkungan dan budaya memengaruhi pangan yang dihasilkan dan dimanfaatkan?",
-                amati: "Amati pangan/komoditas, lingkungan, produksi, pengolahan, penyimpanan, dan teknologi pangan.",
-                data: "Minimal 2 contoh pangan/komoditas, bahan, kondisi lingkungan, cara pengolahan/penyimpanan, 5 dokumentasi.",
-                iptek: "Hubungkan dengan energi, suhu, mekanisme, teknologi, atau pengukuran.",
-                steam: "Rancang model/prototype sistem pangan berkelanjutan.",
-                d1: "Item Data 1: Minimal 2 Contoh Pangan / Komoditas Utama",
-                d2: "Item Data 2: Bahan & Cara Pengolahan / Storage (Penyimpanan)",
-                d3: "Item Data 3: Kondisi Lingkungan Tempat Tumbuh/Produksi"
+                tanya: "Bagaimana rumah adat menyediakan lumbung pangan lokal dan teknologi penyimpanan alami?",
+                amati: "Amati lumbung padi (leuit/rangkang), tempat penyimpanan pangan, dan wadah pengolahan tradisional.",
+                data: "Minimal 2 cara penyimpanan/pangan lokal, bahan wadah, kondisi suhu/kelembaban, 5 dokumentasi.",
+                iptek: "Hubungkan dengan ilmu bioteknologi/kimia pangan dari wahana Museum IPTEK.",
+                steam: "Rancang model/prototype lumbung pangan efisien berbasis material alami.",
+                d1: "Item Data 1: Bentuk Lumbung / Wadah Penyimpanan Pangan Tradisional",
+                d2: "Item Data 2: Cara Menjaga Keawetan Pangan dari Hama / Kelembaban",
+                d3: "Item Data 3: Prinsip Sains / Kimia Pangan yang Terlibat"
             },
             "MISSION 05 — CONNECT": {
-                tanya: "Bagaimana teknologi dapat membantu generasi muda mengenal dan menghargai budaya daerah?",
-                amati: "Amati objek budaya, cerita, simbol, seni, arsitektur, dan informasi yang tersedia.",
-                data: "Minimal 3 objek budaya, makna/nilai, target pengguna, 5 dokumentasi, 1 masalah komunikasi.",
-                iptek: "Gunakan inspirasi teknologi/media interaktif yang ditemukan di Museum IPTEK.",
-                steam: "Rancang Digital Cultural Experience (digital map, QR cultural trail, interactive story, AR).",
-                d1: "Item Data 1: Minimal 3 Objek Budaya yang Diamati",
-                d2: "Item Data 2: Makna / Nilai Filosofis Objek Budaya",
-                d3: "Item Data 3: Rumusan 1 Masalah Komunikasi Budaya pada Generasi Muda"
+                tanya: "Bagaimana media teknologi dapat membantu mengenalkan keunikan arsitektur rumah adat kepada generasi muda?",
+                amati: "Amati ukiran, simbol filosofis budaya, ornamen rumah adat, dan sajian visual di anjungan.",
+                data: "Minimal 3 simbol/ornamen rumah adat, makna filosofisnya, 5 dokumentasi, 1 gagasan media digital.",
+                iptek: "Gunakan inspirasi teknologi komputer/interaktif yang ada di Museum IPTEK.",
+                steam: "Rancang Digital Cultural Experience (aplikasi interaktif, QR cerita budaya, atau maket 3D).",
+                d1: "Item Data 1: Minimal 3 Ornamen / Simbol Filosofis Rumah Adat",
+                d2: "Item Data 2: Makna Kebudayaan & Nilai Historisnya",
+                d3: "Item Data 3: Gagasan Media Teknologi Digital untuk Mempromosikannya"
             },
             "MISSION 06 — FUTURE": {
-                tanya: "Apa yang dapat dipelajari dari pengetahuan dan kearifan lokal untuk menjawab tantangan masa depan?",
-                amati: "Amati kearifan lokal, teknologi tradisional, pengelolaan sumber daya, adaptasi, dan praktik berkelanjutan.",
-                data: "Minimal 2 kearifan/teknologi lokal, fungsi, prinsip, peluang inovasi, 5 dokumentasi.",
-                iptek: "Hubungkan satu kearifan lokal dengan satu konsep sains/teknologi dari Museum IPTEK.",
-                steam: "Rancang prototype atau concept innovation untuk solusi masa depan.",
-                d1: "Item Data 1: Minimal 2 Kearifan Lokal / Teknologi Tradisional",
-                d2: "Item Data 2: Fungsi & Prinsip Kerjanya",
-                d3: "Item Data 3: Peluang Inovasi Solusi Masa Depan"
+                tanya: "Apa kearifan lokal arsitektur rumah adat yang dapat diintegrasikan menjadi inovasi bangunan masa depan?",
+                amati: "Amati penggunaan material ramah lingkungan, struktur pasak tanpa paku, dan tata hijau di anjungan.",
+                data: "Minimal 2 kearifan arsitektur lokal, keunggulannya, 5 dokumentasi.",
+                iptek: "Hubungkan satu keunggulan rumah adat dengan konsep sains modern dari Museum IPTEK.",
+                steam: "Rancang concept innovation bangunan ramah lingkungan masa depan.",
+                d1: "Item Data 1: Minimal 2 Keunggulan Arsitektur Rumah Adat Nusantara",
+                d2: "Item Data 2: Alasan Ilmiah Mengapa Konstruksi Tersebut Berkelanjutan",
+                d3: "Item Data 3: Inovasi Konsep Bangunan Masa Depan yang Ditawarkan"
             }
         };
 
-        // FUNGSI TOGGLE COLLAPSE SIDEBAR
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebarMenu');
-            sidebar.classList.toggle('collapsed');
+            let overlay = document.getElementById('sidebarOverlay');
+            
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'sidebarOverlay';
+                overlay.className = 'sidebar-overlay';
+                overlay.onclick = toggleSidebar;
+                document.body.appendChild(overlay);
+            }
+
+            if (window.innerWidth <= 992) {
+                sidebar.classList.toggle('mobile-open');
+                overlay.classList.toggle('active');
+            } else {
+                sidebar.classList.toggle('collapsed');
+            }
         }
 
         function toggleAuthMode() {
@@ -826,8 +806,8 @@
                 `Pertanyaan Utama: ${det.tanya || '-'}\n` +
                 `Apa yang Diamati: ${det.amati || '-'}\n` +
                 `Data Dikumpulkan: ${det.data || '-'}\n` +
-                `Koneksi IPTEK: ${det.iptek || '-'}\n` +
-                `Tantangan STEAM: ${det.steam || '-'}`;
+                `Koneksi Sains & Budaya: ${det.iptek || '-'}\n` +
+                `Tantangan STEAM Proyek: ${det.steam || '-'}`;
         }
 
         async function handleLoginMurid(e) {
@@ -841,6 +821,8 @@
             let loggedInUser = null;
 
             for (const url of uniqueEndpoints) {
+                if (!url || !url.includes("script.google.com/macros/s/")) continue;
+
                 try {
                     const formData = new URLSearchParams();
                     formData.append("action", "login");
@@ -852,14 +834,19 @@
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                         body: formData.toString()
                     });
-                    const data = await res.json();
 
-                    if (data.status === "success") {
-                        loggedInUser = data;
-                        break;
+                    if (res.ok) {
+                        const text = await res.text();
+                        if (text.trim().startsWith('{')) {
+                            const data = JSON.parse(text);
+                            if (data.status === "success") {
+                                loggedInUser = data;
+                                break;
+                            }
+                        }
                     }
                 } catch (err) {
-                    console.error("Endpoint skip:", err);
+                    console.warn("Skip endpoint error:", url);
                 }
             }
 
@@ -877,8 +864,8 @@
                     groupId: st.groupId || "X1-K1",
                     groupMembers: st.groupMembers || [st.nama],
                     misiCode: ms.misiCode || "MISSION 01 — ADAPT",
-                    anjungan: ms.anjungan || "Anjungan Nusa Tenggara Barat (NTB)",
-                    guruPendamping: st.guruPendamping || "Eny Nur Fitri",
+                    anjungan: ms.anjungan || "Anjungan Nusa Tenggara Barat (Rumah Dalam Loka)",
+                    guruPendamping: st.guruPendamping || "Nurul Faozi, S.Pd.",
                     avatar: st.nama ? st.nama.substring(0,2).toUpperCase() : "SD"
                 };
 
@@ -913,15 +900,15 @@
             const membersList = currentStudentData.groupMembers || [currentStudentData.nama];
             document.getElementById('detAnggotaKelompok').innerHTML = membersList.map(m => `<span class="member-badge">👤 ${m}</span>`).join('');
 
-            document.getElementById('detMisiJudul').innerText = `🎯 Kartu Misi: ${currentStudentData.misiCode}`;
+            document.getElementById('detMisiJudul').innerText = `🎯 Kartu Misi Proyek: ${currentStudentData.misiCode}`;
             document.getElementById('detMisiDeskripsi').innerHTML = `
                 <div class="mission-list">
                     <div class="mission-item">
-                        <span class="mission-label">📌 Pertanyaan Utama</span>
+                        <span class="mission-label">📌 Pertanyaan Utama Misi</span>
                         <span class="mission-value"><strong>${det.tanya}</strong></span>
                     </div>
                     <div class="mission-item">
-                        <span class="mission-label">🔍 Apa yang Diamati</span>
+                        <span class="mission-label">🔍 Fokus Observasi</span>
                         <span class="mission-value">${det.amati}</span>
                     </div>
                     <div class="mission-item">
@@ -929,27 +916,27 @@
                         <span class="mission-value">${det.data}</span>
                     </div>
                     <div class="mission-item">
-                        <span class="mission-label">🧪 Koneksi IPTEK</span>
+                        <span class="mission-label">🧪 Integrasi Sains & Budaya</span>
                         <span class="mission-value">${det.iptek}</span>
                     </div>
                     <div class="mission-item">
-                        <span class="mission-label">🛠️ Tantangan STEAM</span>
+                        <span class="mission-label">🛠️ Tantangan STEAM Proyek</span>
                         <span class="mission-value">${det.steam}</span>
                     </div>
                 </div>
             `;
 
-            document.getElementById('lblPanduanMisiJudul').innerText = `📌 Instruksi Misi: ${currentStudentData.misiCode} di ${currentStudentData.anjungan}`;
+            document.getElementById('lblPanduanMisiJudul').innerText = `📌 Misi Rumah Adat: ${currentStudentData.misiCode} (${currentStudentData.anjungan})`;
             document.getElementById('lblPanduanMisiText').innerHTML = `
-                <div style="margin-bottom: 8px;"><strong>Tugas Observasi:</strong> ${det.amati}</div>
-                <div><strong>Ketentuan Data Wajib:</strong> ${det.data}</div>
+                <div style="margin-bottom: 8px;"><strong>Fokus Pengamatan Arsitektur:</strong> ${det.amati}</div>
+                <div><strong>Data Wajib Dikumpulkan:</strong> ${det.data}</div>
             `;
             
             document.getElementById('lblData1').innerText = det.d1;
             document.getElementById('lblData2').innerText = det.d2;
             document.getElementById('lblData3').innerText = det.d3;
 
-            document.getElementById('lblSteamTantanganJudul').innerText = `🛠️ Tantangan STEAM: ${currentStudentData.misiCode}`;
+            document.getElementById('lblSteamTantanganJudul').innerText = `🛠️ Tantangan Proyek STEAM: ${currentStudentData.misiCode}`;
             document.getElementById('lblSteamTantanganText').innerText = det.steam;
         }
 
@@ -988,10 +975,17 @@
             if(event && event.currentTarget) event.currentTarget.classList.add('active');
             document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
             document.getElementById(secId).classList.add('active');
+            
+            if (window.innerWidth <= 992) {
+                const sidebar = document.getElementById('sidebarMenu');
+                const overlay = document.getElementById('sidebarOverlay');
+                if (sidebar) sidebar.classList.remove('mobile-open');
+                if (overlay) overlay.classList.remove('active');
+            }
+
             if(secId === 'secExport') updateDraftPreview();
         }
 
-        /* ADMIN DATABASE DROPDOWN LOGIC */
         async function syncAdminDatabase() {
             const kls = document.getElementById('adminFilterKelas').value;
             const targetUrl = getApiUrl(kls);
@@ -1067,11 +1061,11 @@
                 nama: currentStudentData ? currentStudentData.nama : "MURID",
                 kelas: currentStudentData ? currentStudentData.kelas : "X-1",
                 waliKelas: `Tim Wali Kelas ${currentStudentData ? currentStudentData.kelas : 'X-1'}`,
-                guruPendamping: currentStudentData ? currentStudentData.guruPendamping : "Eny Nur Fitri",
+                guruPendamping: currentStudentData ? currentStudentData.guruPendamping : "Nurul Faozi, S.Pd.",
                 sesi: "06.30-13.30",
                 kelompok: currentStudentData ? currentStudentData.kelompok : "Kelompok 1",
                 groupId: currentStudentData ? currentStudentData.groupId : "X1-K1",
-                anjungan: currentStudentData ? currentStudentData.anjungan : "Anjungan NTB",
+                anjungan: currentStudentData ? currentStudentData.anjungan : "Anjungan NTB (Rumah Dalam Loka)",
                 misiCode: currentStudentData ? currentStudentData.misiCode : "MISSION 01 — ADAPT",
 
                 lk1_a1_nama: getVal('lk1_alat1_nama'), lk1_a1_zona: getVal('lk1_alat1_zona'), lk1_a1_hasil: getVal('lk1_alat1_hasil'), lk1_a1_konsep: getVal('lk1_alat1_konsep'),
@@ -1229,13 +1223,12 @@
             });
         }
 
-        // FUNGSI EXPORT DENGAN ANGGOTA KELOMPOK BERURUTAN (NUMBERING)
         function generateDraftHTML() {
             const nama = currentStudentData ? currentStudentData.nama : "Murid SMAN 1 Jakarta";
             const kelas = currentStudentData ? currentStudentData.kelas : "X-10";
             const kelompok = currentStudentData ? currentStudentData.kelompok : "Kelompok 1";
             const groupId = currentStudentData ? currentStudentData.groupId : "X10-K1";
-            const anjungan = currentStudentData ? currentStudentData.anjungan : "Anjungan NTB";
+            const anjungan = currentStudentData ? currentStudentData.anjungan : "Anjungan NTB (Rumah Dalam Loka)";
             const misi = currentStudentData ? currentStudentData.misiCode : "MISSION 01 — ADAPT";
 
             const rawMembers = (currentStudentData && currentStudentData.groupMembers && currentStudentData.groupMembers.length > 0)
@@ -1255,7 +1248,7 @@
             if(!htmlFotoIptek) htmlFotoIptek = '<em style="color:#94a3b8;">Tidak ada dokumentasi foto Museum IPTEK.</em>';
 
             let htmlFotoAnjungan = fotoAnjunganBase64.map(src => `<img src="${src}" style="width: 150px; height: 100px; object-fit: cover; margin: 4px; border: 1px solid #cbd5e1; border-radius: 6px;">`).join('');
-            if(!htmlFotoAnjungan) htmlFotoAnjungan = '<em style="color:#94a3b8;">Tidak ada dokumentasi foto Anjungan Daerah.</em>';
+            if(!htmlFotoAnjungan) htmlFotoAnjungan = '<em style="color:#94a3b8;">Tidak ada dokumentasi foto Rumah Adat / Anjungan.</em>';
 
             let mergedContentHTML = "";
             if (mergedSubmissionsData.length > 0) {
@@ -1272,12 +1265,12 @@
                     mergedContentHTML += `
                         <div style="border:1px solid #cbd5e1; padding:16px; margin-bottom:14px; border-radius:10px; background:#fff;">
                             <h4 style="margin:0 0 8px 0; color:#1e3e6d;">Kontributor #${idx+1}: ${sub.nama} (${sub.kelas})</h4>
-                            <p style="margin:4px 0;"><strong>Fokus Observasi:</strong> ${sub.lk2_fokus || '-'}</p>
+                            <p style="margin:4px 0;"><strong>Deskripsi Arsitektur:</strong> ${sub.lk2_fokus || '-'}</p>
                             <p style="margin:4px 0;"><strong>Item Data 1:</strong> ${sub.lk2_data1 || '-'}</p>
                             <p style="margin:4px 0;"><strong>Item Data 2:</strong> ${sub.lk2_data2 || '-'}</p>
                             <p style="margin:4px 0;"><strong>Item Data 3:</strong> ${sub.lk2_data3 || '-'}</p>
-                            <p style="margin:4px 0;"><strong>Koneksi IPTEK ↔ Anjungan:</strong> ${sub.lk2_koneksi || '-'}</p>
-                            <p style="margin:4px 0;"><strong>Solusi STEAM (${sub.lk3_judul || 'Solusi'}):</strong> S: ${sub.steam_s || '-'} | T: ${sub.steam_t || '-'} | E: ${sub.steam_e || '-'} | A: ${sub.steam_a || '-'} | M: ${sub.steam_m || '-'}</p>
+                            <p style="margin:4px 0;"><strong>Koneksi Sains ↔ Rumah Adat:</strong> ${sub.lk2_koneksi || '-'}</p>
+                            <p style="margin:4px 0;"><strong>Solusi STEAM Proyek (${sub.lk3_judul || 'Solusi Proyek'}):</strong> S: ${sub.steam_s || '-'} | T: ${sub.steam_t || '-'} | E: ${sub.steam_e || '-'} | A: ${sub.steam_a || '-'} | M: ${sub.steam_m || '-'}</p>
                         </div>
                     `;
                 });
@@ -1285,13 +1278,14 @@
 
             return `
                 <div style="font-family: Arial, sans-serif; color: #0f172a; line-height: 1.6; font-size: 10.5pt;">
-                    <!-- KOP LAPORAN -->
-                    <div style="text-align: center; border-bottom: 2.5pt solid #0f172a; padding-bottom: 12px; margin-bottom: 20px;">
-                        <h2 style="margin: 0; font-size: 16pt; text-transform: uppercase;">LAPORAN KOMPREHENSIF EKSPLORASI LAPANGAN</h2>
-                        <h4 style="margin: 4px 0 0 0; font-weight: normal; font-size: 11pt; color: #475569;">SMA Negeri 1 Jakarta — Program STOVIA EXPLORE NUSA (Kelas ${kelas})</h4>
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 16px; border-bottom: 2.5pt solid #0f172a; padding-bottom: 12px; margin-bottom: 20px;">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_SMAN_1_Jakarta.png" style="width: 50px; height: 50px; object-fit: contain;">
+                        <div style="text-align: center;">
+                            <h2 style="margin: 0; font-size: 15pt; text-transform: uppercase;">LAPORAN KOMPREHENSIF EKSPLORASI LAPANGAN</h2>
+                            <h4 style="margin: 2px 0 0 0; font-weight: normal; font-size: 10.5pt; color: #475569;">SMA Negeri 1 Jakarta — Program STOVIA EXPLORE NUSA (Kelas ${kelas})</h4>
+                        </div>
                     </div>
 
-                    <!-- TABEL IDENTITAS -->
                     <table style="width: 100%; margin-bottom: 22px; font-size: 10pt; border-collapse: collapse; background-color: #f8fafc; border: 1px solid #cbd5e1;">
                         <tr>
                             <td style="padding: 8px 12px; font-weight: bold; width: 22%; vertical-align: top;">Penyusun Laporan</td>
@@ -1311,55 +1305,52 @@
                         <tr>
                             <td style="padding: 8px 12px; font-weight: bold; vertical-align: top;">Kartu Misi Target</td>
                             <td style="padding: 8px 12px; vertical-align: top;">: ${misi}</td>
-                            <td style="padding: 8px 12px; font-weight: bold; vertical-align: top;">Target Anjungan</td>
+                            <td style="padding: 8px 12px; font-weight: bold; vertical-align: top;">Target Rumah Adat</td>
                             <td style="padding: 8px 12px; vertical-align: top;">: ${anjungan}</td>
                         </tr>
                     </table>
 
                     ${mergedContentHTML ? `<h3 style="background:#e2e8f0; padding:6px 10px; font-size:11pt; border-left:4px solid #2563eb; margin-top:20px;">HASIL MERGER ANGGOTA KELOMPOK</h3>${mergedContentHTML}` : ''}
 
-                    <!-- LKPD 1 -->
-                    <h3 style="background: #e2e8f0; padding: 6px 10px; font-size: 11pt; border-left: 4px solid #2563eb; margin-top: 22px; text-transform: uppercase;">I. ISIAN LKPD 1: OBSERVASI MUSEUM IPTEK</h3>
+                    <h3 style="background: #e2e8f0; padding: 6px 10px; font-size: 11pt; border-left: 4px solid #2563eb; margin-top: 22px; text-transform: uppercase;">I. ISIAN LKPD 1: EKSPLORASI SAINS & TEKNOLOGI TERPADU (PP-IPTEK)</h3>
                     
                     <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 12px;">
-                        <h4 style="margin: 0 0 6px 0; color: #1e40af; font-size: 10pt;">Alat Peraga 1: ${getV('lk1_alat1_nama')} [Zona: ${getV('lk1_alat1_zona')}]</h4>
-                        <p style="margin: 4px 0;"><strong>Hasil Observasi & Fenomena Fisik:</strong><br>${getV('lk1_alat1_hasil')}</p>
-                        <p style="margin: 4px 0;"><strong>Analisis Hukum & Konsep Sains:</strong><br>${getV('lk1_alat1_konsep')}</p>
+                        <h4 style="margin: 0 0 6px 0; color: #1e40af; font-size: 10pt;">Wahana/Alat 1: ${getV('lk1_alat1_nama')} [Zona: ${getV('lk1_alat1_zona')}]</h4>
+                        <p style="margin: 4px 0;"><strong>Hasil Observasi Lapangan:</strong><br>${getV('lk1_alat1_hasil')}</p>
+                        <p style="margin: 4px 0;"><strong>Prinsip Ilmiah / Konsep Sains Terkait:</strong><br>${getV('lk1_alat1_konsep')}</p>
                     </div>
 
                     <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 12px;">
-                        <h4 style="margin: 0 0 6px 0; color: #1e40af; font-size: 10pt;">Alat Peraga 2: ${getV('lk1_alat2_nama')} [Zona: ${getV('lk1_alat2_zona')}]</h4>
-                        <p style="margin: 4px 0;"><strong>Hasil Observasi & Fenomena Fisik:</strong><br>${getV('lk1_alat2_hasil')}</p>
-                        <p style="margin: 4px 0;"><strong>Analisis Hukum & Konsep Sains:</strong><br>${getV('lk1_alat2_konsep')}</p>
+                        <h4 style="margin: 0 0 6px 0; color: #1e40af; font-size: 10pt;">Wahana/Alat 2: ${getV('lk1_alat2_nama')} [Zona: ${getV('lk1_alat2_zona')}]</h4>
+                        <p style="margin: 4px 0;"><strong>Hasil Observasi Lapangan:</strong><br>${getV('lk1_alat2_hasil')}</p>
+                        <p style="margin: 4px 0;"><strong>Prinsip Ilmiah / Konsep Sains Terkait:</strong><br>${getV('lk1_alat2_konsep')}</p>
                     </div>
 
                     <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 12px;">
-                        <h4 style="margin: 0 0 6px 0; color: #1e40af; font-size: 10pt;">Alat Peraga 3: ${getV('lk1_alat3_nama')} [Zona: ${getV('lk1_alat3_zona')}]</h4>
-                        <p style="margin: 4px 0;"><strong>Hasil Observasi & Fenomena Fisik:</strong><br>${getV('lk1_alat3_hasil')}</p>
-                        <p style="margin: 4px 0;"><strong>Analisis Hukum & Konsep Sains:</strong><br>${getV('lk1_alat3_konsep')}</p>
+                        <h4 style="margin: 0 0 6px 0; color: #1e40af; font-size: 10pt;">Wahana/Alat 3: ${getV('lk1_alat3_nama')} [Zona: ${getV('lk1_alat3_zona')}]</h4>
+                        <p style="margin: 4px 0;"><strong>Hasil Observasi Lapangan:</strong><br>${getV('lk1_alat3_hasil')}</p>
+                        <p style="margin: 4px 0;"><strong>Prinsip Ilmiah / Konsep Sains Terkait:</strong><br>${getV('lk1_alat3_konsep')}</p>
                     </div>
 
                     <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 16px;">
-                        <strong>Relevansi Aplikasi pada Teknologi Modern:</strong><br>${getV('lk1_aplikasi')}
+                        <strong>Relevansi Inovasi bagi Kehidupan Modern:</strong><br>${getV('lk1_aplikasi')}
                     </div>
 
-                    <!-- LKPD 2 -->
-                    <h3 style="background: #e2e8f0; padding: 6px 10px; font-size: 11pt; border-left: 4px solid #2563eb; margin-top: 22px; text-transform: uppercase;">II. ISIAN LKPD 2: OBSERVASI ANJUNGAN DAERAH (${anjungan})</h3>
+                    <h3 style="background: #e2e8f0; padding: 6px 10px; font-size: 11pt; border-left: 4px solid #2563eb; margin-top: 22px; text-transform: uppercase;">II. ISIAN LKPD 2: OBSERVASI ARSITEKTUR RUMAH ADAT (${anjungan})</h3>
                     
                     <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 16px;">
-                        <p style="margin: 4px 0;"><strong>Fokus Pengamatan Utama:</strong><br>${getV('lk2_fokus')}</p>
+                        <p style="margin: 4px 0;"><strong>Deskripsi Arsitektur & Struktur Bangunan:</strong><br>${getV('lk2_fokus')}</p>
                         <p style="margin: 6px 0 4px 0;"><strong>Item Data 1 (Sesuai Kartu Misi):</strong><br>${getV('lk2_data1')}</p>
                         <p style="margin: 6px 0 4px 0;"><strong>Item Data 2 (Sesuai Kartu Misi):</strong><br>${getV('lk2_data2')}</p>
                         <p style="margin: 6px 0 4px 0;"><strong>Item Data 3 (Sesuai Kartu Misi):</strong><br>${getV('lk2_data3')}</p>
-                        <p style="margin: 6px 0 4px 0;"><strong>Integrasi Koneksi IPTEK ↔ Anjungan:</strong><br>${getV('lk2_koneksi')}</p>
+                        <p style="margin: 6px 0 4px 0;"><strong>Integrasi Kebudayaan ↔ Teknologi Modern:</strong><br>${getV('lk2_koneksi')}</p>
                     </div>
 
-                    <!-- LKPD 3 -->
-                    <h3 style="background: #e2e8f0; padding: 6px 10px; font-size: 11pt; border-left: 4px solid #2563eb; margin-top: 22px; text-transform: uppercase;">III. ISIAN LKPD 3: RANCANGAN SOLUSI STEAM</h3>
+                    <h3 style="background: #e2e8f0; padding: 6px 10px; font-size: 11pt; border-left: 4px solid #2563eb; margin-top: 22px; text-transform: uppercase;">III. ISIAN LKPD 3: RANCANGAN PROYEK AKHIR (STEAM)</h3>
                     
                     <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 16px;">
-                        <p style="margin: 4px 0;"><strong>Judul Inovasi / Prototype:</strong> <span style="font-weight:bold; color:#2563eb;">${getV('lk3_judul')}</span></p>
-                        <p style="margin: 4px 0 10px 0;"><strong>Format Luaran Karya:</strong> ${getV('lk3_format')}</p>
+                        <p style="margin: 4px 0;"><strong>Judul Prototype / Karya Proyek:</strong> <span style="font-weight:bold; color:#2563eb;">${getV('lk3_judul')}</span></p>
+                        <p style="margin: 4px 0 10px 0;"><strong>Format Produk Final:</strong> ${getV('lk3_format')}</p>
                         
                         <table style="width: 100%; border-collapse: collapse; border: 1px solid #cbd5e1; font-size: 9.5pt;">
                             <tr style="background:#f1f5f9;"><td style="padding:6px 10px; font-weight:bold; width:22%; border:1px solid #cbd5e1;">1. Science</td><td style="padding:6px 10px; border:1px solid #cbd5e1;">${getV('steam_s')}</td></tr>
@@ -1370,18 +1361,16 @@
                         </table>
                     </div>
 
-                    <!-- LKPD 4 -->
                     <h3 style="background: #e2e8f0; padding: 6px 10px; font-size: 11pt; border-left: 4px solid #2563eb; margin-top: 22px; text-transform: uppercase;">IV. ISIAN LKPD 4: REFLEKSI MANDIRI</h3>
                     
                     <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 16px;">
                         <p style="margin: 4px 0;"><strong>Kendala Utama Lapangan & Solusi:</strong><br>${getV('lk4_kendala')}</p>
-                        <p style="margin: 8px 0 4px 0;"><strong>Refleksi Kolaborasi & Wawasan Budaya:</strong><br>${getV('lk4_kerjasama')}</p>
+                        <p style="margin: 8px 0 4px 0;"><strong>Refleksi Kolaborasi & Wawasan Kebudayaan:</strong><br>${getV('lk4_kerjasama')}</p>
                     </div>
 
-                    <!-- DOKUMENTASI FOTO -->
                     <h3 style="background: #e2e8f0; padding: 6px 10px; font-size: 11pt; border-left: 4px solid #2563eb; margin-top: 22px; text-transform: uppercase;">V. DOKUMENTASI LAPANGAN</h3>
-                    <p style="margin:4px 0 6px 0;"><strong>Uji Coba Museum IPTEK:</strong></p><div>${htmlFotoIptek}</div>
-                    <p style="margin: 12px 0 6px 0;"><strong>Observasi Anjungan Daerah (${anjungan}):</strong></p><div>${htmlFotoAnjungan}</div>
+                    <p style="margin:4px 0 6px 0;"><strong>Observasi Museum IPTEK:</strong></p><div>${htmlFotoIptek}</div>
+                    <p style="margin: 12px 0 6px 0;"><strong>Observasi Arsitektur Rumah Adat (${anjungan}):</strong></p><div>${htmlFotoAnjungan}</div>
                 </div>
             `;
         }
