@@ -275,6 +275,66 @@
             .hub-menu-desc { font-size: 12px; }
             .card { padding: 18px; border-radius: 16px; }
         }
+
+        /* NOTIFIKASI TOAST & DIALOG POP-UP CUSTOM */
+.custom-toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: #ffffff;
+    color: var(--text-dark);
+    padding: 16px 20px;
+    border-radius: 14px;
+    box-shadow: 0 15px 30px rgba(15, 23, 42, 0.2);
+    border-left: 6px solid var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 99999;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    font-size: 14px;
+    font-weight: 600;
+}
+.custom-toast.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+.custom-toast.error { border-left-color: #ef4444; }
+.custom-toast.success { border-left-color: #10b981; }
+
+.custom-dialog-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 99998;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+.custom-dialog-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+.custom-dialog-box {
+    background: #ffffff;
+    width: 90%;
+    max-width: 420px;
+    border-radius: 20px;
+    padding: 24px;
+    text-align: center;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+    transform: scale(0.9);
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.custom-dialog-overlay.active .custom-dialog-box {
+    transform: scale(1);
+}
     </style>
 </head>
 <body>
@@ -1423,7 +1483,7 @@
                 document.getElementById('dashboardScreen').classList.add('active');
                 backToHub();
             } else {
-                alert("Gagal Login: NISN atau Password salah!");
+                showToast("Gagal Login: NISN atau Password salah!", "error");
             }
         }
 
@@ -1559,7 +1619,7 @@
             formData.append("action", "saveLKPD");
             formData.append("data", JSON.stringify(dataObj));
 
-            alert("Menyimpan data...");
+            showToast("Menyimpan data...", "info");
 
             fetch(targetUrl, {
                 method: 'POST',
@@ -1572,7 +1632,7 @@
                     if (type) completionStatus[type] = true;
                     updateChecklistUI();
                     syncGroupStatusProgress(); // Perbarui status tabel anggota kelompok setelah simpan
-                    alert("✅ Tersimpan! Menampilkan centang hijau di menu utama.");
+                    showToast("✅ Tersimpan! Menampilkan centang hijau di menu utama.", "success");
                     backToHub();
                 } else alert("⚠️ " + data.message);
             })
@@ -1580,36 +1640,44 @@
         }
 
         function submitFinalLaporanKeGuru() {
-            if(!confirm("Apakah Anda yakin ingin mengirim Laporan Akhir ini ke Guru Pendamping? Pastikan isian inti tim sudah mewakili seluruh bagian tugas.")) return;
+            showCustomConfirm("Kirim Laporan?",
+            "Pastikan laporan sudah sesuai.", () => {
 
             const btn = document.getElementById('btnSubmitFinalLaporan');
-            btn.innerHTML = "⏳ Mengirim Laporan Resmi..."; btn.disabled = true;
+                    if (btn) {
+                        btn.innerHTML = "⏳ Mengirim Laporan..."; 
+                        btn.disabled = true;
+                    }
 
-            const targetUrl = getApiUrl(currentStudentData ? currentStudentData.kelas : "X-1");
-            const htmlLaporanContent = generateDraftHTML();
+                    const targetUrl = getApiUrl(currentStudentData ? currentStudentData.kelas : "X-1");
+                    const htmlLaporanContent = generateDraftHTML();
 
-            const formData = new URLSearchParams();
-            formData.append("action", "submitFinalLaporan");
-            formData.append("groupId", currentStudentData ? currentStudentData.groupId : "X1-K1");
-            formData.append("nisn", currentStudentData ? currentStudentData.nisn : "");
-            formData.append("nama", currentStudentData ? currentStudentData.nama : "");
-            formData.append("laporanHtml", htmlLaporanContent);
+                    const formData = new URLSearchParams();
+                    formData.append("action", "submitFinalLaporan");
+                    formData.append("groupId", currentStudentData ? currentStudentData.groupId : "X1-K1");
+                    formData.append("nisn", currentStudentData ? currentStudentData.nisn : "");
+                    formData.append("nama", currentStudentData ? currentStudentData.nama : "");
+                    formData.append("laporanHtml", htmlLaporanContent);
 
-            fetch(targetUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData.toString()
-            })
-            .then(res => res.json())
-            .then(data => {
-                btn.innerHTML = "✅ Laporan Berhasil Terkirim ke Guru";
-                alert("🎉 SELAMAT! Laporan Akhir Kokurikuler kelompok Anda berhasil dikirim.");
-            })
-            .catch(err => {
-                btn.innerHTML = "📬 Kirim Laporan Akhir Kelompok";
-                btn.disabled = false;
-                alert("Gagal mengirim laporan: " + err.message);
-            });
+                    fetch(targetUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: formData.toString()
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (btn) btn.innerHTML = "✅ Laporan Berhasil Terkirim";
+                        showToast("🎉 SELAMAT! Laporan Akhir Kelompok berhasil dikirim.", "success");
+                    })
+                    .catch(err => {
+                        if (btn) {
+                            btn.innerHTML = "📬 Kirim Laporan Akhir Kelompok";
+                            btn.disabled = false;
+                        }
+                        showToast("Gagal mengirim laporan: " + err.message, "error");
+                    });
+                }
+            );
         }
 
         function fetchAndMergeGroupData() {
@@ -1970,7 +2038,7 @@ function handleGroupFotoUpload(event) {
 
     const remainingQuota = 5 - currentGroupPhotos.length;
     if (files.length > remainingQuota) {
-        alert(`⚠️ Anda memilih ${files.length} foto, namun kuota yang tersisa hanya ${remainingQuota} foto lagi (Maksimal 5).`);
+        showToast(`Anda memilih ${files.length} foto, kuota tersisa hanya ${remainingQuota} lagi!`, "error");
         event.target.value = ""; 
         return;
     }
@@ -2005,12 +2073,11 @@ function handleGroupFotoUpload(event) {
 
 // 4. Fungsi Menghapus Foto dari Daftar Lokal
 function deleteGroupPhoto(photoIdOrIndex) {
-    if(!confirm("Apakah Anda yakin ingin menghapus foto ini dari album kelompok?")) return;
-    
+    showCustomConfirm("Hapus Foto?", "Apakah Anda yakin ingin menghapus foto ini dari album kelompok?", () => {
     currentGroupPhotos = currentGroupPhotos.filter((p, idx) => (p.id && p.id !== photoIdOrIndex) && (idx.toString() !== photoIdOrIndex.toString()));
     renderGroupPhotosUI();
-    alert("🗑️ Foto berhasil dihapus. Klik tombol 'Simpan & Sinkronkan ke Tim' di bawah untuk memperbarui data server.");
-}
+    showToast("🗑️ Foto berhasil dihapus. Jangan lupa simpan perubahan.", "info");
+});
 
 // 5. Menyimpan Data Foto ke Server Kelompok
 async function saveGroupPhotosServer() {
@@ -2235,6 +2302,74 @@ function renderMergedReportPreview(submissions, photos) {
 }
 function downloadReportPDF() { exportToPDF(); }
 function downloadReportWord() { exportToWord(); }
+    // FUNGSI NOTIFIKASI MELAYANG (REPLACE ALERT)
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('customToast');
+            const toastMsg = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+
+            if (!toast) return;
+
+            toast.className = `custom-toast ${type} show`;
+            toastMsg.innerText = message;
+
+            if (type === 'success') toastIcon.innerText = '✅';
+            else if (type === 'error') toastIcon.innerText = '⚠️';
+            else toastIcon.innerText = '🔔';
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+
+        // FUNGSI KONFIRMASI POP-UP INTERAKTIF (REPLACE CONFIRM)
+        function showCustomConfirm(title, message, onConfirm) {
+            const overlay = document.getElementById('customConfirmOverlay');
+            document.getElementById('confirmTitle').innerText = title;
+            document.getElementById('confirmMessage').innerText = message;
+
+            overlay.classList.add('active');
+
+            const btnOk = document.getElementById('btnConfirmOk');
+            const btnCancel = document.getElementById('btnConfirmCancel');
+
+            const handleOk = () => {
+                overlay.classList.remove('active');
+                cleanup();
+                onConfirm();
+            };
+
+            const handleCancel = () => {
+                overlay.classList.remove('active');
+                cleanup();
+            };
+
+            const cleanup = () => {
+                btnOk.removeEventListener('click', handleOk);
+                btnCancel.removeEventListener('click', handleCancel);
+            };
+
+            btnOk.addEventListener('click', handleOk);
+            btnCancel.addEventListener('click', handleCancel);
+        }
     </script>
+<!-- CONTAINER POP-UP NOTIFIKASI CUSTOM -->
+    <div id="customToast" class="custom-toast">
+        <span id="toastIcon">🔔</span>
+        <span id="toastMessage">Pesan notifikasi...</span>
+    </div>
+
+    <!-- CONTAINER KONFIRMASI CUSTOM -->
+    <div id="customConfirmOverlay" class="custom-dialog-overlay">
+        <div class="custom-dialog-box">
+            <div style="font-size: 40px; margin-bottom: 8px;">❓</div>
+            <h3 id="confirmTitle" style="margin: 0 0 8px 0; font-size: 17px;">Konfirmasi Action</h3>
+            <p id="confirmMessage" style="font-size: 13.5px; color: var(--text-muted); margin: 0 0 20px 0;">Apakah Anda yakin?</p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button id="btnConfirmCancel" class="btn-secondary" style="flex:1;">Batal</button>
+                <button id="btnConfirmOk" class="btn-primary" style="flex:1;">Ya, Lanjutkan</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
