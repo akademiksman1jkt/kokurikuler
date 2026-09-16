@@ -805,26 +805,39 @@
                     <button class="btn-primary" onclick="saveProgress('lkpd4')">💾 Simpan LKPD 4</button>
                 </section>
 
-                <!-- DOKUMENTASI (ISI LENGKAP UTUH 100%) -->
-                <section class="content-section" id="secDocs">
-                    <button class="btn-back-hub" onclick="backToHub()">⬅️ Kembali ke Menu Utama</button>
-                    <h2 class="page-title">Unggah Dokumentasi Lapangan (Minimal 5 Foto)</h2>
-                    <p class="page-subtitle">Upload foto bukti pengamatan wahana IPTEK dan detail arsitektur rumah adat anjungan daerah.</p>
+                <!-- DOKUMENTASI DENGAN BATASAN KUOTA 5 FOTO KELOMPOK -->
+<section class="content-section" id="secDocs">
+    <button class="btn-back-hub" onclick="backToHub()">⬅️ Kembali ke Menu Utama</button>
+    <h2 class="page-title">Unggah Dokumentasi Lapangan (Maks. 5 Foto per Kelompok)</h2>
+    <p class="page-subtitle">Upload foto bukti pengamatan wahana IPTEK dan arsitektur rumah adat anjungan daerah secara bersama-sama dalam satu tim.</p>
 
-                    <div class="card">
-                        <h3 class="card-title">📸 Foto Observasi Museum IPTEK</h3>
-                        <input type="file" id="inputFotoIptek" class="form-input" accept="image/*" multiple onchange="handleFotoUpload(event, 'previewIptek')">
-                        <div id="previewIptek" style="display:flex; gap:12px; margin-top:16px; flex-wrap:wrap;"></div>
-                    </div>
+    <!-- KOTAK PANDUAN & NOTIFIKASI STATUS KUOTA -->
+    <div id="photoQuotaNotice" class="guide-box" style="background: #f0fdf4; border-color: #86efac;">
+        <h4 style="color: #166534; margin-bottom: 6px;">📊 Status Kuota Dokumentasi Kelompok</h4>
+        <p id="quotaNoticeText" style="margin: 0; color: #15803d; font-weight: 600; font-size: 13.5px;">Memeriksa kuota foto kelompok...</p>
+    </div>
 
-                    <div class="card">
-                        <h3 class="card-title">📸 Foto Arsitektur Rumah Adat Anjungan</h3>
-                        <input type="file" id="inputFotoAnjungan" class="form-input" accept="image/*" multiple onchange="handleFotoUpload(event, 'previewAnjungan')">
-                        <div id="previewAnjungan" style="display:flex; gap:12px; margin-top:16px; flex-wrap:wrap;"></div>
-                    </div>
+    <div class="card" id="uploadCardArea">
+        <h3 class="card-title">📸 Kelola Foto Dokumentasi Tim (<span id="countFotoBadge">0/5</span>)</h3>
+        
+        <!-- KONTROL TOMBOL UPLOAD (TERKUNCI OTOMATIS JIKA PENUH) -->
+        <div id="uploadInputWrapper" style="margin-bottom: 16px;">
+            <label class="form-label">Pilih File Foto Baru (Maksimal 2 MB per Foto)</label>
+            <input type="file" id="inputFotoKelompok" class="form-input" accept="image/*" multiple onchange="handleGroupFotoUpload(event)">
+            <small id="uploadHelperText" style="color: var(--text-muted); display: block; margin-top: 5px;">
+                *Total akumulasi foto kelompok dibatasi maksimal 5 buah. File di atas 2 MB akan otomatis ditolak sistem.
+            </small>
+        </div>
 
-                    <button class="btn-primary" onclick="saveProgress('docs')">💾 Simpan Dokumentasi</button>
-                </section>
+        <!-- CONTAINER PREVIEW FOTO & TOMBOL HAPUS -->
+        <label class="form-label" style="margin-top: 14px; display: block;">Daftar Foto Tersimpan di Kelompok:</label>
+        <div id="previewGroupPhotosContainer" style="display:flex; gap:14px; margin-top:10px; flex-wrap:wrap;">
+            <em style="color: var(--text-muted); font-size: 13.5px;">Belum ada foto yang diunggah.</em>
+        </div>
+    </div>
+
+    <button class="btn-primary" id="btnSimpanGroupPhotos" onclick="saveGroupPhotosServer()">💾 Simpan & Sinkronkan ke Tim</button>
+</section>
 
                 <!-- EKSPOR & MERGER (ISI LENGKAP UTUH 100%) -->
                 <section class="content-section" id="secExport">
@@ -1093,6 +1106,9 @@
             }
 
             if(secId === 'secExport') updateDraftPreview();
+            if(secId === 'secDocs') {
+        loadGroupPhotosQuota();
+    }
         }
 
         function backToHub() {
@@ -1775,6 +1791,163 @@
             fetch(getApiUrl(kls), { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: formData.toString() })
             .then(res => res.json()).then(data => { btn.innerText = "💾 Simpan Data Murid"; btn.disabled = false; alert("✅ " + data.message); resetFormMuridAdmin(); syncAdminDatabase(); });
         }
+    let currentGroupPhotos = []; // Menyimpan daftar foto kelompok
+
+// 1. Memuat data foto dan kuota saat menu dibuka
+async function loadGroupPhotosQuota() {
+    if(!currentStudentData) return;
+    const targetUrl = getApiUrl(currentStudentData.kelas);
+    const gId = currentStudentData.groupId;
+
+    try {
+        const res = await fetch(`${targetUrl}?action=getGroupPhotos&groupId=${encodeURIComponent(gId)}`);
+        const data = await res.json();
+
+        if(data.status === "success") {
+            currentGroupPhotos = data.photos || [];
+            renderGroupPhotosUI();
+        }
+    } catch(err) {
+        console.warn("Gagal memuat data foto kelompok:", err);
+    }
+}
+
+// 2. Merender UI (Notifikasi, Tombol Kunci, Pratinjau, dan Tombol Hapus)
+function renderGroupPhotosUI() {
+    const totalPhotos = currentGroupPhotos.length;
+    const quotaBadge = document.getElementById('countFotoBadge');
+    const noticeText = document.getElementById('quotaNoticeText');
+    const noticeBox = document.getElementById('photoQuotaNotice');
+    const inputWrapper = document.getElementById('uploadInputWrapper');
+    const container = document.getElementById('previewGroupPhotosContainer');
+
+    if(quotaBadge) quotaBadge.innerText = `${totalPhotos}/5`;
+
+    // Aturan Notifikasi & Penguncian Tombol Upload jika Penuh (5/5)
+    if (totalPhotos >= 5) {
+        noticeBox.style.background = "#fef2f2";
+        noticeBox.style.borderColor = "#fecaca";
+        noticeText.style.color = "#dc2626";
+        noticeText.innerHTML = `⚠️ <strong>Batas Kuota Penuh (5/5 Foto)!</strong> Anggota kelompok tidak dapat mengunggah foto baru. Hapus salah satu foto di bawah ini jika ingin menggantinya.`;
+        
+        inputWrapper.style.opacity = "0.5";
+        inputWrapper.style.pointerEvents = "none";
+    } else {
+        noticeBox.style.background = "#f0fdf4";
+        noticeBox.style.borderColor = "#86efac";
+        noticeText.style.color = "#15803d";
+        noticeText.innerHTML = `✅ <strong>Kuota Tersedia (${totalPhotos}/5 Foto).</strong> Anda masih dapat mengunggah ${5 - totalPhotos} foto lagi untuk kelompok ini.`;
+        
+        inputWrapper.style.opacity = "1";
+        inputWrapper.style.pointerEvents = "auto";
+    }
+
+    if (currentGroupPhotos.length === 0) {
+        container.innerHTML = `<em style="color: var(--text-muted); font-size: 13.5px;">Belum ada foto yang diunggah oleh kelompok ini.</em>`;
+        return;
+    }
+
+    // Render daftar foto beserta tombol hapus
+    container.innerHTML = currentGroupPhotos.map((photo, index) => `
+        <div style="position: relative; border: 1.5px solid var(--border-color); border-radius: 12px; padding: 6px; background: #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+            <img src="${photo.url}" style="width: 110px; height: 90px; object-fit: cover; border-radius: 8px; display: block;">
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px; text-align: center; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                Oleh: ${photo.uploadedBy || 'Tim'}
+            </div>
+            <!-- Tombol Hapus Foto -->
+            <button onclick="deleteGroupPhoto('${photo.id || index}')" style="width: 100%; margin-top: 6px; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; padding: 3px 0;">
+                🗑️ Hapus
+            </button>
+        </div>
+    `).join('');
+}
+
+// 3. Validasi Ukuran File (Maksimal 2 MB) & Kuota saat Dipilih
+function handleGroupFotoUpload(event) {
+    const files = event.target.files;
+    if(!files || files.length === 0) return;
+
+    const remainingQuota = 5 - currentGroupPhotos.length;
+    if (files.length > remainingQuota) {
+        alert(`⚠️ Anda memilih ${files.length} foto, namun kuota yang tersisa hanya ${remainingQuota} foto lagi (Maksimal 5).`);
+        event.target.value = ""; 
+        return;
+    }
+
+    const MAX_SIZE = 2 * 1024 * 1024; // Batas ukuran file 2 MB dalam bytes
+    let invalidFiles = 0;
+
+    Array.from(files).forEach(file => {
+        if (file.size > MAX_SIZE) {
+            invalidFiles++;
+            return; // Lewati file yang ukurannya di atas 2 MB
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            currentGroupPhotos.push({
+                id: 'foto_' + Date.now() + Math.random().toString(36).substring(2, 7),
+                url: e.target.result,
+                uploadedBy: currentStudentData.nama
+            });
+            renderGroupPhotosUI();
+        };
+        reader.readAsDataURL(file);
+    });
+
+    if (invalidFiles > 0) {
+        alert(`⚠️ Ada ${invalidFiles} foto yang ukurannya melebihi 2 MB dan otomatis dilewati. Harap pilih foto berukuran di bawah 2 MB.`);
+    }
+    
+    event.target.value = ""; // Reset input file
+}
+
+// 4. Fungsi Menghapus Foto dari Daftar Lokal
+function deleteGroupPhoto(photoIdOrIndex) {
+    if(!confirm("Apakah Anda yakin ingin menghapus foto ini dari album kelompok?")) return;
+    
+    currentGroupPhotos = currentGroupPhotos.filter((p, idx) => (p.id && p.id !== photoIdOrIndex) && (idx.toString() !== photoIdOrIndex.toString()));
+    renderGroupPhotosUI();
+    alert("🗑️ Foto berhasil dihapus. Klik tombol 'Simpan & Sinkronkan ke Tim' di bawah untuk memperbarui data server.");
+}
+
+// 5. Menyimpan Data Foto ke Server Kelompok
+async function saveGroupPhotosServer() {
+    if(!currentStudentData) return;
+    const targetUrl = getApiUrl(currentStudentData.kelas);
+    
+    alert("Menyinkronkan dokumentasi foto ke server kelompok...");
+
+    const dataObj = {
+        groupId: currentStudentData.groupId,
+        nisn: currentStudentData.nisn,
+        nama: currentStudentData.nama,
+        photos: currentGroupPhotos
+    };
+
+    const formData = new URLSearchParams();
+    formData.append("action", "saveGroupPhotos");
+    formData.append("data", JSON.stringify(dataObj));
+
+    try {
+        const res = await fetch(targetUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData.toString()
+        });
+        const result = await res.json();
+        if(result.status === "success") {
+            completionStatus.docs = true;
+            updateChecklistUI();
+            alert("✅ Dokumentasi foto kelompok berhasil disimpan dan disinkronkan ke seluruh anggota tim!");
+            backToHub();
+        } else {
+            alert("Gagal menyimpan foto: " + result.message);
+        }
+    } catch(err) {
+        alert("Terjadi kesalahan jaringan saat menyimpan foto.");
+    }
+}
     </script>
 </body>
 </html>
