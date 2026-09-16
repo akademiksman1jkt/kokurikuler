@@ -1369,55 +1369,75 @@
             const mCode = currentStudentData.misiCode;
             const det = MISI_DETAILS[mCode] || MISI_DETAILS["MISSION 01 — ADAPT"];
 
-            document.getElementById('detNama').innerText = currentStudentData.nama;
-            document.getElementById('detNisn').innerText = `${currentStudentData.nisn} (${currentStudentData.kelas})`;
-            document.getElementById('detKelompok').innerText = currentStudentData.kelompok;
-            document.getElementById('detGroupId').innerText = currentStudentData.groupId;
-            document.getElementById('detGroupIdTitle').innerText = currentStudentData.groupId;
-            document.getElementById('lblKelompokMerger').innerText = `${currentStudentData.kelas} ${currentStudentData.kelompok} (Group ID: ${currentStudentData.groupId})`;
-            document.getElementById('detAnjungan').innerText = currentStudentData.anjungan;
-            document.getElementById('detGuru').innerText = currentStudentData.guruPendamping;
+            document.getElementById('detNama')?.innerText = currentStudentData.nama;
+            document.getElementById('detNisn')?.innerText = `${currentStudentData.nisn} (${currentStudentData.kelas})`;
+            document.getElementById('detKelompok')?.innerText = currentStudentData.kelompok;
+            document.getElementById('detGroupId')?.innerText = currentStudentData.groupId;
+            document.getElementById('detGroupIdTitle')?.innerText = currentStudentData.groupId;
+            document.getElementById('lblKelompokMerger')?.innerText = `${currentStudentData.kelas} ${currentStudentData.kelompok} (Group ID: ${currentStudentData.groupId})`;
+            document.getElementById('detAnjungan')?.innerText = currentStudentData.anjungan;
+            document.getElementById('detGuru')?.innerText = currentStudentData.guruPendamping;
 
-            document.getElementById('detMisiJudul').innerText = `🎯 Kartu Misi Proyek: ${currentStudentData.misiCode}`;
-            document.getElementById('detMisiDeskripsi').innerHTML = `
-                <div class="mission-list">
-                    <div class="mission-item">
-                        <span class="mission-label">📌 Pertanyaan Utama Misi</span>
-                        <span class="mission-value"><strong>${det.tanya}</strong></span>
+            if (document.getElementById('detMisiJudul')) {
+                document.getElementById('detMisiJudul').innerText = `🎯 Kartu Misi Proyek: ${currentStudentData.misiCode}`;
+            }
+            if (document.getElementById('detMisiDeskripsi')) {
+                document.getElementById('detMisiDeskripsi').innerHTML = `
+                    <div class="mission-list">
+                        <div class="mission-item">
+                            <span class="mission-label">📌 Pertanyaan Utama Misi</span>
+                            <span class="mission-value"><strong>${det.tanya}</strong></span>
+                        </div>
+                        <div class="mission-item">
+                            <span class="mission-label">🔍 Fokus Observasi</span>
+                            <span class="mission-value">${det.amati}</span>
+                        </div>
+                        <div class="mission-item">
+                            <span class="mission-label">📸 Target Data (Min. 5 Foto)</span>
+                            <span class="mission-value">${det.data}</span>
+                        </div>
+                        <div class="mission-item">
+                            <span class="mission-label">🧪 Integrasi Sains & Budaya</span>
+                            <span class="mission-value">${det.iptek}</span>
+                        </div>
+                        <div class="mission-item">
+                            <span class="mission-label">🛠️ Tantangan STEAM Proyek</span>
+                            <span class="mission-value">${det.steam}</span>
+                        </div>
                     </div>
-                    <div class="mission-item">
-                        <span class="mission-label">🔍 Fokus Observasi</span>
-                        <span class="mission-value">${det.amati}</span>
-                    </div>
-                    <div class="mission-item">
-                        <span class="mission-label">📸 Target Data (Min. 5 Foto)</span>
-                        <span class="mission-value">${det.data}</span>
-                    </div>
-                    <div class="mission-item">
-                        <span class="mission-label">🧪 Integrasi Sains & Budaya</span>
-                        <span class="mission-value">${det.iptek}</span>
-                    </div>
-                    <div class="mission-item">
-                        <span class="mission-label">🛠️ Tantangan STEAM Proyek</span>
-                        <span class="mission-value">${det.steam}</span>
-                    </div>
-                </div>
-            `;
+                `;
+            }
             
-            document.getElementById('lblPanduanMisiJudul').innerText = `📌 Misi Rumah Adat: ${currentStudentData.misiCode} (${currentStudentData.anjungan})`;
-            document.getElementById('lblPanduanMisiText').innerHTML = `
-                <div style="margin-bottom: 8px;"><strong>Fokus Pengamatan Arsitektur:</strong> ${det.amati}</div>
-                <div><strong>Data Wajib Dikumpulkan:</strong> ${det.data}</div>
-            `;
+            if (document.getElementById('lblPanduanMisiJudul')) {
+                document.getElementById('lblPanduanMisiJudul').innerText = `📌 Misi Rumah Adat: ${currentStudentData.misiCode} (${currentStudentData.anjungan})`;
+            }
+            if (document.getElementById('lblPanduanMisiText')) {
+                document.getElementById('lblPanduanMisiText').innerHTML = `
+                    <div style="margin-bottom: 8px;"><strong>Fokus Pengamatan Arsitektur:</strong> ${det.amati}</div>
+                    <div><strong>Data Wajib Dikumpulkan:</strong> ${det.data}</div>
+                `;
+            }
 
-            document.getElementById('lblData1').innerText = det.d1;
-            document.getElementById('lblData2').innerText = det.d2;
-            document.getElementById('lblData3').innerText = det.d3;
+            if (document.getElementById('lblData1')) document.getElementById('lblData1').innerText = det.d1;
+            if (document.getElementById('lblData2')) document.getElementById('lblData2').innerText = det.d2;
+            if (document.getElementById('lblData3')) document.getElementById('lblData3').innerText = det.d3;
 
-            document.getElementById('lblSteamTantanganJudul').innerText = `🛠️ Tantangan Proyek STEAM: ${currentStudentData.misiCode}`;
-            document.getElementById('lblSteamTantanganText').innerText = det.steam;
+            if (document.getElementById('lblSteamTantanganJudul')) document.getElementById('lblSteamTantanganJudul').innerText = `🛠️ Tantangan Proyek STEAM: ${currentStudentData.misiCode}`;
+            if (document.getElementById('lblSteamTantanganText')) document.getElementById('lblSteamTantanganText').innerText = det.steam;
 
             updateChecklistUI();
+            // RENDER DAFTAR ANGGOTA KELOMPOK DI PROFIL
+            const containerAnggota = document.getElementById('detListAnggota');
+            if (containerAnggota && currentStudentData.groupMembers) {
+                if (currentStudentData.groupMembers.length > 0) {
+                    containerAnggota.innerHTML = currentStudentData.groupMembers.map(namaMem => {
+                        const isSelf = namaMem.trim().toLowerCase() === currentStudentData.nama.trim().toLowerCase();
+                        return `<span class="member-badge">${namaMem} ${isSelf ? '(Saya)' : ''}</span>`;
+                    }).join('');
+                } else {
+                    containerAnggota.innerHTML = `<span style="color: var(--text-muted); font-size: 13px;">Belum ada data anggota.</span>`;
+                }
+            }
         }
 
         function handleLoginAdmin(e) {
@@ -2093,6 +2113,8 @@ function renderMergedReportPreview(submissions, photos) {
         </div>
     `;
 }
+function downloadReportPDF() { exportToPDF(); }
+function downloadReportWord() { exportToWord(); }
     </script>
 </body>
 </html>
