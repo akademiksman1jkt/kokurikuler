@@ -2206,10 +2206,8 @@ async function saveGroupPhotosServer() {
             const allGroupMembers = currentStudentData.groupMembers || [currentStudentData.nama];
 
             const namaAnggotaList = allGroupMembers.map(mNama => {
-                const sub = submissions.find(s => s.nama.trim().toLowerCase() === mNama.trim().toLowerCase());
-                const statusStr = sub ? `<span style="color:#059669; font-weight:bold;">(Sudah Mengisi)</span>` : `<span style="color:#64748b; font-style:italic;">(Anggota Tim Lapangan)</span>`;
-                return `<li><strong>${mNama}</strong> ${statusStr}</li>`;
-            }).join('');
+        return `<li><strong>${mNama}</strong></li>`;
+    }).join('');
 
             const primaryData = submissions.find(s => s.lk1_a1_nama || s.lk2_fokus || s.lk3_judul) || submissions[0] || {};
             const getVal = (val) => val ? val.replace(/\n/g, '<br>') : '<em style="color:#94a3b8;">(Belum diisi)</em>';
