@@ -548,7 +548,7 @@
                             <div class="hub-menu-info">
                                 <div class="hub-menu-icon" style="background:#d1fae5; color:var(--accent-emerald);">📄</div>
                                 <div>
-                                    <h4 class="hub-menu-title" style="color:var(--accent-emerald);">Ekspor & Merger Laporan</h4>
+                                    <h4 class="hub-menu-title" style="color:var(--accent-emerald);">Buat Laporan Kelompok</h4>
                                     <p class="hub-menu-desc">Cetak rangkuman dokumen PDF/Word untuk tugas kelompok</p>
                                 </div>
                             </div>
@@ -1182,6 +1182,67 @@
                 tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red; padding:16px;">Gagal memuat status tim. Tekan tombol Refresh.</td></tr>`;
             }
         }
+        async function loadStudentOwnAnswers() {
+            if (!currentStudentData) return;
+            const targetUrl = getApiUrl(currentStudentData.kelas);
+            
+            try {
+                const res = await fetch(`${targetUrl}?action=getGroupSubmissions&groupId=${encodeURIComponent(currentStudentData.groupId)}`);
+                const data = await res.json();
+                
+                if (data.status === "success" && data.submissions) {
+                    const mySub = data.submissions.find(s => s.nama.trim().toLowerCase() === currentStudentData.nama.trim().toLowerCase() || s.nisn === currentStudentData.nisn);
+                    
+                    if (mySub) {
+                        // Isi ulang LKPD 1
+                        if (document.getElementById('lk1_alat1_nama')) document.getElementById('lk1_alat1_nama').value = mySub.lk1_a1_nama || '';
+                        if (document.getElementById('lk1_alat1_zona')) document.getElementById('lk1_alat1_zona').value = mySub.lk1_a1_zona || '';
+                        if (document.getElementById('lk1_alat1_hasil')) document.getElementById('lk1_alat1_hasil').value = mySub.lk1_a1_hasil || '';
+                        if (document.getElementById('lk1_alat1_konsep')) document.getElementById('lk1_alat1_konsep').value = mySub.lk1_a1_konsep || '';
+
+                        if (document.getElementById('lk1_alat2_nama')) document.getElementById('lk1_alat2_nama').value = mySub.lk1_a2_nama || '';
+                        if (document.getElementById('lk1_alat2_zona')) document.getElementById('lk1_alat2_zona').value = mySub.lk1_a2_zona || '';
+                        if (document.getElementById('lk1_alat2_hasil')) document.getElementById('lk1_alat2_hasil').value = mySub.lk1_a2_hasil || '';
+                        if (document.getElementById('lk1_alat2_konsep')) document.getElementById('lk1_alat2_konsep').value = mySub.lk1_a2_konsep || '';
+
+                        if (document.getElementById('lk1_alat3_nama')) document.getElementById('lk1_alat3_nama').value = mySub.lk1_a3_nama || '';
+                        if (document.getElementById('lk1_alat3_zona')) document.getElementById('lk1_alat3_zona').value = mySub.lk1_a3_zona || '';
+                        if (document.getElementById('lk1_alat3_hasil')) document.getElementById('lk1_alat3_hasil').value = mySub.lk1_a3_hasil || '';
+                        if (document.getElementById('lk1_alat3_konsep')) document.getElementById('lk1_alat3_konsep').value = mySub.lk1_a3_konsep || '';
+                        if (document.getElementById('lk1_aplikasi')) document.getElementById('lk1_aplikasi').value = mySub.lk1_aplikasi || '';
+
+                        // Isi ulang LKPD 2
+                        if (document.getElementById('lk2_fokus')) document.getElementById('lk2_fokus').value = mySub.lk2_fokus || '';
+                        if (document.getElementById('lk2_data1')) document.getElementById('lk2_data1').value = mySub.lk2_data1 || '';
+                        if (document.getElementById('lk2_data2')) document.getElementById('lk2_data2').value = mySub.lk2_data2 || '';
+                        if (document.getElementById('lk2_data3')) document.getElementById('lk2_data3').value = mySub.lk2_data3 || '';
+                        if (document.getElementById('lk2_koneksi')) document.getElementById('lk2_koneksi').value = mySub.lk2_koneksi || '';
+
+                        // Isi ulang LKPD 3
+                        if (document.getElementById('lk3_judul')) document.getElementById('lk3_judul').value = mySub.lk3_judul || '';
+                        if (document.getElementById('lk3_format')) document.getElementById('lk3_format').value = mySub.lk3_format || '';
+                        if (document.getElementById('steam_s')) document.getElementById('steam_s').value = mySub.steam_s || '';
+                        if (document.getElementById('steam_t')) document.getElementById('steam_t').value = mySub.steam_t || '';
+                        if (document.getElementById('steam_e')) document.getElementById('steam_e').value = mySub.steam_e || '';
+                        if (document.getElementById('steam_a')) document.getElementById('steam_a').value = mySub.steam_a || '';
+                        if (document.getElementById('steam_m')) document.getElementById('steam_m').value = mySub.steam_m || '';
+
+                        // Isi ulang LKPD 4
+                        if (document.getElementById('lk4_kendala')) document.getElementById('lk4_kendala').value = mySub.lk4_kendala || '';
+                        if (document.getElementById('lk4_kerjasama')) document.getElementById('lk4_kerjasama').value = mySub.lk4_kerjasama || '';
+
+                        // Perbarui status checklist centang hijau
+                        completionStatus.lkpd1 = !!(mySub.lk1_a1_nama || mySub.lk1_a1_hasil);
+                        completionStatus.lkpd2 = !!(mySub.lk2_fokus || mySub.lk2_data1);
+                        completionStatus.lkpd3 = !!(mySub.lk3_judul || mySub.steam_s);
+                        completionStatus.lkpd4 = !!(mySub.lk4_kendala || mySub.lk4_kerjasama);
+                        updateChecklistUI();
+                    }
+                }
+            } catch(err) {
+                console.warn("Gagal memuat isian awal murid:", err);
+            }
+        }
 
         function renderGroupStatusTable(submissions) {
             const tbody = document.getElementById('groupStatusTableBody');
@@ -1355,6 +1416,7 @@
 
                 updateUIProfile();
                 syncGroupStatusProgress(); // Ambil Data Teman Sekelompok saat Login
+                loadStudentOwnAnswers();
                 document.querySelectorAll('.item-murid').forEach(el => el.style.display = 'flex');
                 document.querySelectorAll('.item-admin').forEach(el => el.style.display = 'none');
                 document.getElementById('loginScreen').style.display = 'none';
@@ -1560,11 +1622,11 @@
             .then(data => {
                 if(data.status === "success" && data.submissions.length > 0) {
                     mergedSubmissionsData = data.submissions;
-                    alert(`✅ Berhasil menggabungkan ${data.submissions.length} isian anggota kelompok!`);
+                    alert(`✅ Berhasil membuat laproan ${data.submissions.length} isian anggota kelompok!`);
                     updateDraftPreview();
                 } else { alert(`Belum ada anggota lain yang simpan data.`); }
             })
-            .catch(err => alert("Gagal merger: " + err.message));
+            .catch(err => alert("Gagal: " + err.message));
         }
 
         function handleFotoUpload(event, targetPreviewId) {
@@ -1620,7 +1682,7 @@
             if (mergedSubmissionsData.length > 0) {
                 mergedContentHTML = `
                     <div style="background:#eff6ff; padding:14px 18px; border-radius:10px; margin-bottom:20px; border:1px solid #bfdbfe;">
-                        <strong style="color:#2563eb;">HASIL MERGER KELOMPOK (Group ID: ${groupId}):</strong>
+                        <strong style="color:#2563eb;">HASIL LAPORAN KELOMPOK (Group ID: ${groupId}):</strong>
                         <ul style="margin:8px 0 0 20px; padding:0;">
                             ${mergedSubmissionsData.map(s => `<li><strong>${s.nama}</strong> (${s.nisn}) — ${s.kelas}</li>`).join('')}
                         </ul>
@@ -1676,7 +1738,7 @@
                         </tr>
                     </table>
 
-                    ${mergedContentHTML ? `<h3 style="background:#e2e8f0; padding:6px 10px; font-size:11pt; border-left:4px solid #4f46e5; margin-top:20px;">HASIL MERGER ANGGOTA KELOMPOK</h3>${mergedContentHTML}` : ''}
+                    ${mergedContentHTML ? `<h3 style="background:#e2e8f0; padding:6px 10px; font-size:11pt; border-left:4px solid #4f46e5; margin-top:20px;">HASIL LAPORAN KELOMPOK</h3>${mergedContentHTML}` : ''}
 
                     <h3 style="background: #e2e8f0; padding: 6px 10px; font-size: 11pt; border-left: 4px solid #4f46e5; margin-top: 22px; text-transform: uppercase;">I. ISIAN LKPD 1: EKSPLORASI SAINS & TEKNOLOGI TERPADU (PP-IPTEK)</h3>
                     
@@ -2061,64 +2123,112 @@ function renderMergedReportPreview(submissions, photos) {
     const container = document.getElementById('reportPreviewArea');
     if (!container) return;
 
-    const sample = submissions[0] || {};
-    const namaAnggotaList = submissions.map(s => `<li><strong>${s.nama}</strong> (NISN: ${s.nisn})</li>`).join('');
+    // Ambil seluruh daftar anggota dari profil kelompok (bukan hanya yang ada di submissions)
+    const allGroupMembers = currentStudentData.groupMembers || [currentStudentData.nama];
 
-    // Generate tampilan 5 foto dokumentasi kelompok
+    const namaAnggotaList = allGroupMembers.map(mNama => {
+        const sub = submissions.find(s => s.nama.trim().toLowerCase() === mNama.trim().toLowerCase());
+        const statusStr = sub ? `<span style="color:#059669; font-weight:bold;">(Sudah Mengisi)</span>` : `<span style="color:#64748b; font-style:italic;">(Anggota Tim Lapangan)</span>`;
+        return `<li><strong>${mNama}</strong> ${statusStr}</li>`;
+    }).join('');
+
+    // Gabungkan seluruh kontribusi atau cari sampel data utama
+    const primaryData = submissions.find(s => s.lk1_a1_nama || s.lk2_fokus || s.lk3_judul) || submissions[0] || {};
+
+    const getVal = (val) => val ? val.replace(/\n/g, '<br>') : '<em style="color:#94a3b8;">(Belum diisi)</em>';
+
+    // Render 5 foto dokumentasi kelompok
     let photosHTML = '';
     if (photos && photos.length > 0) {
         photosHTML = `
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 10px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 10px;">
                 ${photos.map((p, idx) => `
                     <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px; text-align: center; background: #fafafa;">
-                        <img src="${p.url}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px; display: block; margin-bottom: 5px;" alt="Dokumentasi ${idx+1}">
-                        <small style="font-size: 11px; color: #64748b;">Foto ${idx+1} - Oleh: ${p.uploadedBy || 'Tim'}</small>
+                        <img src="${p.url}" style="width: 100%; height: 110px; object-fit: cover; border-radius: 6px; display: block; margin-bottom: 5px;">
+                        <small style="font-size: 11px; color: #64748b;">Foto ${idx+1} (${p.uploadedBy || 'Tim'})</small>
                     </div>
                 `).join('')}
             </div>
         `;
     } else {
-        photosHTML = `<p style="font-style: italic; color: #94a3b8; font-size: 13px;">Belum ada foto dokumentasi yang diunggah oleh kelompok ini.</p>`;
+        photosHTML = `<p style="font-style: italic; color: #94a3b8; font-size: 13px;">Belum ada foto dokumentasi yang diunggah.</p>`;
     }
 
     container.innerHTML = `
         <div id="printableReport" style="background: #ffffff; padding: 25px; border-radius: 8px; border: 1px solid #e2e8f0; font-family: sans-serif; color: #1e293b; line-height: 1.6;">
-            <div style="text-align: center; border-bottom: 2px solid #0284c7; padding-bottom: 12px; margin-bottom: 20px;">
-                <h2 style="margin: 0; color: #0284c7; font-size: 20px; text-transform: uppercase;">LAPORAN KOKURIKULER STOVIA EXPLORE NUSA</h2>
-                <h3 style="margin: 4px 0 0; font-size: 14px; font-weight: 500; color: #475569;">SMAN 1 JAKARTA — TAHUN AJARAN 2026/2027</h3>
+            <div style="text-align: center; border-bottom: 2.5px solid #0284c7; padding-bottom: 12px; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: #0284c7; font-size: 18px; text-transform: uppercase;">LAPORAN KOKURIKULER STOVIA EXPLORE NUSA</h2>
+                <h3 style="margin: 4px 0 0; font-size: 13px; font-weight: 500; color: #475569;">SMA Negeri 1 Jakarta — TAHUN AJARAN 2026/2027</h3>
             </div>
 
-            <table style="width: 100%; margin-bottom: 20px; font-size: 13px; border-collapse: collapse;">
+            <table style="width: 100%; margin-bottom: 20px; font-size: 13px; border-collapse: collapse; background: #f8fafc; border: 1px solid #e2e8f0;">
                 <tr>
-                    <td style="padding: 4px 0; width: 130px;"><strong>Kelas / Kelompok</strong></td>
-                    <td>: ${currentStudentData.kelas} / ${currentStudentData.kelompok} (Group ID: ${currentStudentData.groupId})</td>
+                    <td style="padding: 6px 10px; font-weight: bold; width: 140px;">Kelas / Kelompok</td>
+                    <td style="padding: 6px 10px;">: ${currentStudentData.kelas} / ${currentStudentData.kelompok} (Group ID: ${currentStudentData.groupId})</td>
                 </tr>
                 <tr>
-                    <td style="padding: 4px 0;"><strong>Anjungan Target</strong></td>
-                    <td>: ${sample.anjungan || '-'} (Kode Misi: ${sample.misiCode || '-'})</td>
+                    <td style="padding: 6px 10px; font-weight: bold;">Anjungan Target</td>
+                    <td style="padding: 6px 10px;">: ${currentStudentData.anjungan} (${currentStudentData.misiCode})</td>
                 </tr>
                 <tr>
-                    <td style="padding: 4px 0;"><strong>Guru Pendamping</strong></td>
-                    <td>: ${currentStudentData.guruPendamping || 'Nurul Faozi, S.Pd.'}</td>
+                    <td style="padding: 6px 10px; font-weight: bold;">Guru Pendamping</td>
+                    <td style="padding: 6px 10px;">: ${currentStudentData.guruPendamping || 'Nurul Faozi, S.Pd.'}</td>
                 </tr>
             </table>
 
-            <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 15px 0 8px; color: #0f172a;">A. Anggota Kelompok Terdaftar (${submissions.length} Orang)</h4>
+            <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 15px 0 8px; color: #0f172a;">I. DAFTAR ANGGOTA KELOMPOK TIM LAPANGAN</h4>
             <ol style="margin: 0; padding-left: 20px; font-size: 13px;">
-                ${namaAnggotaList || '<li>Data anggota belum tersedia</li>'}
+                ${namaAnggotaList}
             </ol>
 
-            <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 20px 0 8px; color: #0f172a;">B. Hasil Pengamatan LKPD 1 & LKPD 2</h4>
-            <p style="font-size: 13px; margin-top: 4px;"><strong>Deskripsi Arsitektur Rumah Adat:</strong></p>
-            <blockquote style="margin: 0 0 10px; padding: 10px; background: #f8fafc; border-left: 3px solid #cbd5e1; font-size: 12.5px;">
-                ${sample.lk2_fokus || 'Belum diisi'}
-            </blockquote>
+            <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 20px 0 8px; color: #0f172a;">II. LKPD 1: EKSPLORASI SAINS & TEKNOLOGI TERPADU (PP-IPTEK)</h4>
+            <div style="font-size: 13px; display: flex; flex-direction: column; gap: 8px;">
+                <div style="background:#f8fafc; padding:8px 12px; border-radius:6px; border:1px solid #e2e8f0;">
+                    <strong>1. Wahana Pertama:</strong> ${getVal(primaryData.lk1_a1_nama)} [${getVal(primaryData.lk1_a1_zona)}]<br>
+                    <strong>Hasil Observasi:</strong> ${getVal(primaryData.lk1_a1_hasil)}<br>
+                    <strong>Konsep Sains:</strong> ${getVal(primaryData.lk1_a1_konsep)}
+                </div>
+                <div style="background:#f8fafc; padding:8px 12px; border-radius:6px; border:1px solid #e2e8f0;">
+                    <strong>2. Wahana Kedua:</strong> ${getVal(primaryData.lk1_a2_nama)} [${getVal(primaryData.lk1_a2_zona)}]<br>
+                    <strong>Hasil Observasi:</strong> ${getVal(primaryData.lk1_a2_hasil)}<br>
+                    <strong>Konsep Sains:</strong> ${getVal(primaryData.lk1_a2_konsep)}
+                </div>
+                <div style="background:#f8fafc; padding:8px 12px; border-radius:6px; border:1px solid #e2e8f0;">
+                    <strong>3. Wahana Ketiga:</strong> ${getVal(primaryData.lk1_a3_nama)} [${getVal(primaryData.lk1_a3_zona)}]<br>
+                    <strong>Hasil Observasi:</strong> ${getVal(primaryData.lk1_a3_hasil)}<br>
+                    <strong>Konsep Sains:</strong> ${getVal(primaryData.lk1_a3_konsep)}
+                </div>
+                <p style="margin:4px 0;"><strong>Relevansi Kehidupan Modern:</strong><br>${getVal(primaryData.lk1_aplikasi)}</p>
+            </div>
 
-            <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 20px 0 8px; color: #0f172a;">C. Perancangan Proyek (STEAM) & Refleksi</h4>
-            <p style="font-size: 13px; margin-top: 4px;"><strong>Judul Prototype / Karya:</strong> ${sample.lk3_judul || 'Belum diisi'}</p>
-            <p style="font-size: 13px;"><strong>Format Produk:</strong> ${sample.lk3_format || 'Belum diisi'}</p>
+            <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 20px 0 8px; color: #0f172a;">III. LKPD 2: OBSERVASI ARSITEKTUR RUMAH ADAT</h4>
+            <div style="font-size: 13px; line-height: 1.5;">
+                <p><strong>Deskripsi Arsitektur Bangunan:</strong><br>${getVal(primaryData.lk2_fokus)}</p>
+                <p><strong>Item Data 1 (Karakteristik):</strong> ${getVal(primaryData.lk2_data1)}</p>
+                <p><strong>Item Data 2 (Adaptasi Lingkungan):</strong> ${getVal(primaryData.lk2_data2)}</p>
+                <p><strong>Item Data 3 (Material Utama):</strong> ${getVal(primaryData.lk2_data3)}</p>
+                <p><strong>Integrasi Kebudayaan ↔ Sains Modern:</strong><br>${getVal(primaryData.lk2_koneksi)}</p>
+            </div>
 
-            <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 25px 0 8px; color: #0f172a;">D. Lampiran Dokumentasi Kelompok (Maks. 5 Foto)</h4>
+            <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 20px 0 8px; color: #0f172a;">IV. LKPD 3: PERANCANGAN PROYEK (STEAM)</h4>
+            <div style="font-size: 13px;">
+                <p><strong>Judul Proyek / Prototype:</strong> <strong style="color:#0284c7;">${getVal(primaryData.lk3_judul)}</strong> (${getVal(primaryData.lk3_format)})</p>
+                <table style="width:100%; border-collapse:collapse; border:1px solid #cbd5e1; font-size:12.5px;">
+                    <tr style="background:#f1f5f9;"><td style="padding:4px 8px; font-weight:bold; width:20%;">1. Science</td><td style="padding:4px 8px;">${getVal(primaryData.steam_s)}</td></tr>
+                    <tr><td style="padding:4px 8px; font-weight:bold;">2. Technology</td><td style="padding:4px 8px;">${getVal(primaryData.steam_t)}</td></tr>
+                    <tr style="background:#f1f5f9;"><td style="padding:4px 8px; font-weight:bold;">3. Engineering</td><td style="padding:4px 8px;">${getVal(primaryData.steam_e)}</td></tr>
+                    <tr><td style="padding:4px 8px; font-weight:bold;">4. Arts</td><td style="padding:4px 8px;">${getVal(primaryData.steam_a)}</td></tr>
+                    <tr style="background:#f1f5f9;"><td style="padding:4px 8px; font-weight:bold;">5. Mathematics</td><td style="padding:4px 8px;">${getVal(primaryData.steam_m)}</td></tr>
+                </table>
+            </div>
+
+            <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 20px 0 8px; color: #0f172a;">V. LKPD 4: REFLEKSI MANDIRI & TIM</h4>
+            <div style="font-size: 13px;">
+                <p><strong>Kendala Lapangan & Pemecahannya:</strong><br>${getVal(primaryData.lk4_kendala)}</p>
+                <p><strong>Refleksi Kolaborasi & Budaya:</strong><br>${getVal(primaryData.lk4_kerjasama)}</p>
+            </div>
+
+            <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 20px 0 8px; color: #0f172a;">VI. LAMPIRAN DOKUMENTASI LAPANGAN KELOMPOK</h4>
             ${photosHTML}
         </div>
     `;
