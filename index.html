@@ -12,141 +12,268 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
-            --bg-body: #f1f5f9;
+            --bg-body: #f8fafc;
             --bg-surface: #ffffff;
-            --primary: #2563eb;
-            --primary-gradient: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            --primary: #4f46e5;
+            --primary-gradient: linear-gradient(135deg, #4338ca 0%, #6366f1 100%);
+            --cta-gradient: linear-gradient(135deg, #4f46e5 0%, #0d9488 100%);
             --sidebar-gradient: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-            --accent-amber: #d97706;
-            --accent-amber-bg: #fffbe6;
+            --accent-gradient: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            --card-gradient: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
             --accent-emerald: #059669;
+            --accent-emerald-bg: #d1fae5;
+            --danger-bg: #fef2f2;
+            --danger-text: #dc2626;
+            --danger-border: #fecaca;
             --text-dark: #0f172a;
-            --text-regular: #334155;
             --text-muted: #64748b;
-            --border-color: #cbd5e1;
-            --shadow-card: 0 10px 30px -5px rgba(15, 23, 42, 0.08);
-            --shadow-hover: 0 14px 35px -5px rgba(37, 99, 235, 0.15);
+            --border-color: #e2e8f0;
+            --shadow-card: 0 10px 25px -5px rgba(15, 23, 42, 0.05);
+            --shadow-hover: 0 20px 30px -10px rgba(79, 70, 229, 0.15);
         }
 
         /* RESET & BASE STYLES */
         * { box-sizing: border-box; font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; }
         body { 
             margin: 0; padding: 0; background-color: var(--bg-body); color: var(--text-dark); 
-            min-height: 100vh; font-size: 15.5px; line-height: 1.7; -webkit-font-smoothing: antialiased;
+            min-height: 100vh; font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased;
         }
 
-        /* LOGIN SCREEN */
-        .login-wrapper { display: flex; min-height: 100vh; align-items: center; justify-content: center; padding: 32px 16px; background: radial-gradient(circle at top left, #1e3a8a 0%, #0f172a 60%, #020617 100%); }
-        .login-card { background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 24px; width: 100%; max-width: 460px; padding: 40px 36px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4); position: relative; overflow: hidden; }
+        /* LOGIN SCREEN GLASSMORPHISM */
+        .login-wrapper { display: flex; min-height: 100vh; align-items: center; justify-content: center; padding: 24px 16px; background: radial-gradient(circle at top left, #312e81 0%, #0f172a 60%, #020617 100%); }
+        .login-card { background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 24px; width: 100%; max-width: 450px; padding: 40px 32px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); position: relative; overflow: hidden; }
         .login-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px; background: var(--primary-gradient); }
 
-        .brand-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
-        .brand-logo-img { width: 52px; height: 52px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15)); flex-shrink: 0; }
-        .brand-logo-navbar { width: 36px; height: 36px; object-fit: contain; flex-shrink: 0; }
+        .brand-header { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; }
+        .brand-logo-img { width: 52px; height: 52px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15)); flex-shrink: 0; }
+        .brand-logo-navbar { width: 34px; height: 34px; object-fit: contain; flex-shrink: 0; }
 
-        .brand-title { font-size: 21px; font-weight: 800; color: var(--text-dark); margin: 0; line-height: 1.25; }
-        .brand-subtitle { font-size: 13.5px; color: var(--text-muted); margin: 3px 0 0 0; font-weight: 500; }
+        .brand-title { font-size: 20px; font-weight: 800; color: var(--text-dark); margin: 0; line-height: 1.2; letter-spacing: -0.5px; }
+        .brand-subtitle { font-size: 13px; color: var(--text-muted); margin: 3px 0 0 0; font-weight: 500; }
 
-        .form-group { margin-bottom: 22px; }
-        .form-label { display: block; font-size: 14.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px; }
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; font-size: 13.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 7px; }
         
-        .form-input, .form-select { width: 100%; padding: 13px 16px; font-size: 14.5px; border: 1.5px solid var(--border-color); border-radius: 12px; outline: none; background: #ffffff; transition: all 0.2s ease; color: var(--text-dark); }
-        .form-input:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15); }
+        .form-input, .form-select { width: 100%; padding: 13px 16px; font-size: 14px; border: 1.5px solid var(--border-color); border-radius: 12px; outline: none; background: #ffffff; transition: all 0.2s ease; color: var(--text-dark); }
+        .form-input:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15); }
 
-        .btn-primary { width: 100%; background: var(--primary-gradient); color: white; border: none; padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3); }
-        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4); }
-        .btn-secondary { background: #ffffff; color: var(--text-dark); border: 1.5px solid var(--border-color); padding: 10px 18px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+        .btn-primary { width: 100%; background: var(--primary-gradient); color: white; border: none; padding: 14px; border-radius: 12px; font-size: 14.5px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3); }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4); }
+        
+        .btn-secondary { background: #ffffff; color: var(--text-dark); border: 1.5px solid var(--border-color); padding: 10px 18px; border-radius: 12px; font-size: 13.5px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
         .btn-secondary:hover { background: #f8fafc; border-color: #94a3b8; }
+        
+        .btn-logout { background: var(--danger-bg); color: var(--danger-text); border: 1.5px solid var(--danger-border); padding: 7px 14px; border-radius: 10px; font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+        .btn-logout:hover { background: #fee2e2; }
 
-        /* MAIN APP LAYOUT */
+        /* DASHBOARD APP LAYOUT */
         .app-layout { display: none; min-height: 100vh; flex-direction: column; }
         .app-layout.active { display: flex; }
         
-        .top-navbar { background: #ffffff; border-bottom: 1px solid var(--border-color); padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 20; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04); }
-        .user-profile-menu { display: flex; align-items: center; gap: 16px; }
-        .user-avatar { width: 42px; height: 42px; border-radius: 12px; background: #eff6ff; color: var(--primary); border: 1.5px solid #bfdbfe; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; }
-        .badge-mission { background: var(--accent-amber-bg); color: var(--accent-amber); border: 1px solid #fde047; padding: 6px 14px; border-radius: 30px; font-size: 12.5px; font-weight: 700; }
+        .top-navbar { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-color); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 20; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); }
+        .nav-brand-group { display: flex; align-items: center; gap: 12px; }
 
-        .btn-toggle-sidebar { background: #f1f5f9; border: 1.5px solid var(--border-color); border-radius: 10px; padding: 8px 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; color: var(--text-dark); transition: all 0.2s; }
-        .btn-toggle-sidebar:hover { background: #e2e8f0; }
+        .btn-toggle-sidebar { background: #f1f5f9; border: 1.5px solid var(--border-color); border-radius: 10px; padding: 8px 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; color: var(--text-dark); font-size: 13.5px; transition: all 0.2s; }
+        .btn-toggle-sidebar:hover { background: #e2e8f0; border-color: var(--primary); color: var(--primary); }
 
         .body-container { display: flex; flex: 1; position: relative; }
-        
+
+        /* SIDEBAR MENU DRAWER */
         .sidebar { 
             width: 280px; background: var(--sidebar-gradient); color: #f8fafc; padding: 24px 16px; 
-            display: flex; flex-direction: column; gap: 8px; transition: all 0.3s ease; flex-shrink: 0; box-shadow: 4px 0 15px rgba(0, 0, 0, 0.05);
+            display: flex; flex-direction: column; gap: 8px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); flex-shrink: 0; box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
         }
         .sidebar.collapsed { width: 0; padding: 24px 0; overflow: hidden; opacity: 0; }
         
-        .sidebar-item { padding: 14px 16px; border-radius: 12px; font-size: 14.5px; font-weight: 600; color: #94a3b8; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s ease; }
+        .sidebar-item { padding: 14px 16px; border-radius: 12px; font-size: 14px; font-weight: 600; color: #94a3b8; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s ease; }
         .sidebar-item:hover { background: rgba(255, 255, 255, 0.08); color: #ffffff; }
-        .sidebar-item.active { background: var(--primary-gradient); color: #ffffff; font-weight: 700; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35); }
+        .sidebar-item.active { background: var(--primary-gradient); color: #ffffff; font-weight: 800; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35); }
 
-        .main-content { flex: 1; padding: 36px 40px; max-width: 1100px; width: 100%; margin: 0 auto; transition: all 0.3s ease; }
-        .content-section { display: none; }
-        .content-section.active { display: block; }
-        
-        .page-title { font-size: 25px; font-weight: 800; margin: 0 0 6px 0; color: var(--text-dark); }
-        .page-subtitle { font-size: 15px; color: var(--text-muted); margin: 0 0 28px 0; }
-
-        .card { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 18px; padding: 28px; margin-bottom: 28px; box-shadow: var(--shadow-card); transition: all 0.2s ease; }
-        .card:hover { box-shadow: var(--shadow-hover); }
-        .card-title { font-size: 18px; font-weight: 800; margin: 0 0 20px 0; color: var(--text-dark); display: flex; align-items: center; gap: 10px; border-bottom: 1.5px solid #f1f5f9; padding-bottom: 12px; }
-        
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        textarea.form-textarea { width: 100%; min-height: 110px; padding: 14px; font-size: 14.5px; line-height: 1.6; border: 1.5px solid var(--border-color); border-radius: 12px; outline: none; background: #ffffff; resize: vertical; transition: all 0.2s ease; color: var(--text-dark); }
-        textarea.form-textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15); }
-
-        .guide-box { 
-            background: #fffbe6; border: 1.5px solid #fde047; padding: 24px 28px; border-radius: 18px; 
-            margin-bottom: 28px; font-size: 15px; line-height: 1.7; box-shadow: 0 4px 14px rgba(234, 179, 8, 0.1);
-        }
-        .guide-box h4 { 
-            margin: 0 0 14px 0; color: #92400e; font-size: 17.5px; font-weight: 800; 
-            display: flex; align-items: center; gap: 10px; border-bottom: 1.5px solid #fef08a; padding-bottom: 10px;
-        }
-
-        .mission-list { display: flex; flex-direction: column; gap: 14px; margin-top: 14px; }
-        .mission-item { display: flex; flex-direction: column; gap: 4px; background: rgba(254, 240, 138, 0.4); padding: 14px 16px; border-radius: 12px; border-left: 5px solid #d97706; }
-        .mission-label { font-weight: 800; color: #78350f; font-size: 14.5px; display: flex; align-items: center; gap: 6px; }
-        .mission-value { color: #1e293b; font-size: 15px; line-height: 1.6; padding-left: 2px; }
-
-        .member-badge-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-        .member-badge { background: #eff6ff; color: var(--primary); border: 1.5px solid #bfdbfe; padding: 6px 14px; border-radius: 10px; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
-
-        .btn-export-word { background: #1e40af; color: white; border: none; padding: 12px 22px; border-radius: 12px; font-size: 14.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25); }
-        .btn-export-pdf { background: #b91c1c; color: white; border: none; padding: 12px 22px; border-radius: 12px; font-size: 14.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(185, 28, 28, 0.25); }
-
-        #draftDocumentRender { background: #ffffff; padding: 36px; border-radius: 16px; border: 1px solid var(--border-color); color: #000; font-family: Arial, sans-serif; line-height: 1.6; box-shadow: var(--shadow-card); }
-
-        /* OVERLAY GELAP TAMPILAN MOBILE & TABLET */
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(4px);
-            z-index: 22;
-            transition: opacity 0.3s ease;
-        }
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 22; }
         .sidebar-overlay.active { display: block; }
 
+        .container-app { width: 100%; max-width: 900px; margin: 0 auto; padding: 24px 20px 40px 20px; flex: 1; }
+        .content-section { display: none; }
+        .content-section.active { display: block; animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* MODAL POP-UP LIHAT JAWABAN TEMAN */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(5px); z-index: 999; align-items: center; justify-content: center; padding: 20px; }
+        .modal-overlay.active { display: flex; animation: fadeIn 0.2s ease; }
+        .modal-content { background: #ffffff; width: 100%; max-width: 650px; max-height: 85vh; border-radius: 20px; overflow-y: auto; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); position: relative; }
+        .btn-close-modal { position: absolute; top: 20px; right: 20px; background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; font-weight: bold; font-size: 16px; cursor: pointer; color: #64748b; transition: all 0.2s; }
+        .btn-close-modal:hover { background: #e2e8f0; color: #0f172a; }
+
+        /* BUTTON KEMBALI DI HEADER FORMS */
+        .btn-back-hub { display: inline-flex; align-items: center; gap: 8px; background: #ffffff; border: 1.5px solid var(--border-color); padding: 9px 16px; border-radius: 12px; font-size: 13.5px; font-weight: 700; color: var(--text-dark); cursor: pointer; margin-bottom: 20px; transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .btn-back-hub:hover { background: #f8fafc; border-color: var(--primary); color: var(--primary); transform: translateX(-2px); }
+
+        .page-title { font-size: 22px; font-weight: 800; margin: 0 0 6px 0; color: var(--text-dark); letter-spacing: -0.5px; }
+        .page-subtitle { font-size: 14px; color: var(--text-muted); margin: 0 0 24px 0; }
+
+        .card { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 20px; padding: 24px; margin-bottom: 24px; box-shadow: var(--shadow-card); }
+        .card-title { font-size: 17px; font-weight: 800; margin: 0 0 18px 0; color: var(--text-dark); border-bottom: 1.5px solid #f1f5f9; padding-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        textarea.form-textarea { width: 100%; min-height: 100px; padding: 13px 16px; font-size: 14px; border: 1.5px solid var(--border-color); border-radius: 12px; outline: none; background: #ffffff; resize: vertical; color: var(--text-dark); transition: all 0.2s; }
+        textarea.form-textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15); }
+
+        /* HERO CTA TOMBOL UTAMA ISI JURNAL KOKURIKULER */
+        .hero-cta-card {
+            background: var(--cta-gradient);
+            color: #ffffff;
+            border-radius: 24px;
+            padding: 28px 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 16px 35px -5px rgba(79, 70, 229, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-cta-card::after {
+            content: ''; position: absolute; top: -50%; right: -20%; width: 220px; height: 220px;
+            background: rgba(255, 255, 255, 0.1); border-radius: 50%; pointer-events: none;
+        }
+        .hero-cta-title { font-size: 22px; font-weight: 800; margin: 0 0 6px 0; line-height: 1.2; letter-spacing: -0.5px; }
+        .hero-cta-desc { font-size: 14px; opacity: 0.95; margin: 0; font-weight: 500; }
+        .btn-hero-cta {
+            background: #ffffff;
+            color: var(--primary);
+            border: none;
+            padding: 16px 32px;
+            border-radius: 16px;
+            font-size: 15.5px;
+            font-weight: 800;
+            cursor: pointer;
+            white-space: nowrap;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+            animation: pulseGlow 2s infinite;
+        }
+        .btn-hero-cta:hover { transform: scale(1.05); background: #f8fafc; box-shadow: 0 12px 25px rgba(0, 0, 0, 0.25); }
+        @keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.4); } 70% { box-shadow: 0 0 0 14px rgba(255,255,255,0); } 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); } }
+
+        /* TABEL MONITORING KELOMPOK BARU */
+        .group-status-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13.5px; }
+        .group-status-table th { background: #f1f5f9; color: var(--text-dark); padding: 10px 12px; text-align: center; font-weight: 800; border-bottom: 2px solid var(--border-color); }
+        .group-status-table th:first-child { text-align: left; }
+        .group-status-table td { padding: 12px; border-bottom: 1px solid var(--border-color); vertical-align: middle; text-align: center; }
+        .group-status-table td:first-child { text-align: left; }
+        .status-pill { padding: 3px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 800; display: inline-block; text-align: center; }
+        .status-pill.done { background: #d1fae5; color: #059669; border: 1px solid #a7f3d0; }
+        .status-pill.yet { background: #f1f5f9; color: #94a3b8; border: 1px solid var(--border-color); }
+        .btn-lihat-isian { background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; padding: 4px 10px; border-radius: 8px; font-size: 11.5px; font-weight: 700; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+        .btn-lihat-isian:hover { background: #dbeafe; transform: scale(1.05); }
+
+        /* DASHBOARD HUB MENU CARDS */
+        .hub-menu-grid { display: flex; flex-direction: column; gap: 14px; margin-top: 18px; }
+        .hub-menu-card {
+            background: var(--card-gradient);
+            border: 1.5px solid var(--border-color);
+            border-radius: 18px;
+            padding: 18px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--shadow-card);
+        }
+        .hub-menu-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); border-color: #a5b4fc; }
+        .hub-menu-card:active { transform: scale(0.98); }
+        .hub-menu-info { display: flex; align-items: center; gap: 16px; }
+        .hub-menu-icon { width: 48px; height: 48px; border-radius: 14px; background: #e0e7ff; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+        .hub-menu-title { font-weight: 800; font-size: 15.5px; color: var(--text-dark); margin: 0; }
+        .hub-menu-desc { font-size: 13px; color: var(--text-muted); margin: 3px 0 0 0; }
+
+        /* CHECKLIST STATUS BADGE MODERN */
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+        .status-badge.pending { background: #f1f5f9; color: var(--text-muted); border: 1.5px solid var(--border-color); }
+        .status-badge.completed { background: var(--accent-emerald-bg); color: var(--accent-emerald); border: 1.5px solid #a7f3d0; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2); }
+
+        .guide-box { background: #fffbe6; border: 1.5px solid #fde047; padding: 20px; border-radius: 18px; margin-bottom: 24px; font-size: 14.5px; line-height: 1.6; box-shadow: 0 4px 15px rgba(234, 179, 8, 0.08); }
+        .guide-box h4 { margin: 0 0 12px 0; color: #92400e; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px; border-bottom: 1.5px solid #fef08a; padding-bottom: 8px; }
+
+        .mission-list { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+        .mission-item { display: flex; flex-direction: column; gap: 3px; background: rgba(254, 240, 138, 0.4); padding: 12px 14px; border-radius: 12px; border-left: 4px solid #d97706; }
+        .mission-label { font-weight: 800; color: #78350f; font-size: 13.5px; }
+        .mission-value { color: #1e293b; font-size: 14px; line-height: 1.5; }
+
+        .member-badge-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .member-badge { background: #e0e7ff; color: var(--primary); border: 1px solid #c7d2fe; padding: 5px 12px; border-radius: 10px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; }
+
+        /* STEP BY STEP GUIDE CARD */
+        .step-guide-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 12px; }
+        .step-card { background: #ffffff; border: 1.5px solid var(--border-color); border-radius: 14px; padding: 14px 16px; }
+        .step-num { font-size: 12px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .step-title { font-weight: 800; font-size: 14px; margin: 2px 0 4px 0; color: var(--text-dark); }
+        .step-desc { font-size: 12.5px; color: var(--text-muted); margin: 0; line-height: 1.4; }
+
+        /* KIRIM LAPORAN BUTTON & CARD */
+        .submit-final-card {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            color: white;
+            border-radius: 20px;
+            padding: 24px;
+            margin-top: 24px;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.25);
+        }
+        .btn-submit-final {
+            width: 100%;
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-submit-final:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(16, 185, 129, 0.45); }
+        .btn-submit-final:disabled { background: #475569; cursor: not-allowed; opacity: 0.7; box-shadow: none; }
+
+        .btn-export-word { background: #1e40af; color: white; border: none; padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25); }
+        .btn-export-pdf { background: #b91c1c; color: white; border: none; padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(185, 28, 28, 0.25); }
+
+        #draftDocumentRender { background: #ffffff; padding: 28px; border-radius: 16px; border: 1px solid var(--border-color); color: #000; font-family: Arial, sans-serif; line-height: 1.6; }
+
         @media (max-width: 992px) {
-            .main-content { padding: 20px 16px; }
-            .form-row { grid-template-columns: 1fr; gap: 14px; }
-            
             .sidebar { 
-                position: fixed; 
-                top: 0; left: 0; bottom: 0; 
-                z-index: 25; 
-                width: 270px;
-                transform: translateX(-100%);
-                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                box-shadow: 10px 0 25px rgba(0, 0, 0, 0.3);
+                position: fixed; top: 0; left: 0; bottom: 0; z-index: 25; 
+                transform: translateX(-100%); width: 270px;
             }
-            .sidebar.mobile-open { 
-                transform: translateX(0); 
-            }
+            .sidebar.mobile-open { transform: translateX(0); }
+            .hero-cta-card { flex-direction: column; align-items: flex-start; gap: 16px; padding: 20px; }
+            .btn-hero-cta { width: 100%; justify-content: center; }
+        }
+        @media (max-width: 640px) {
+            .form-row { grid-template-columns: 1fr; gap: 14px; }
+            .hub-menu-title { font-size: 14.5px; }
+            .hub-menu-desc { font-size: 12px; }
+            .card { padding: 18px; border-radius: 16px; }
         }
     </style>
 </head>
@@ -156,16 +283,16 @@
     <div class="login-wrapper" id="loginScreen">
         <div class="login-card">
             <div class="brand-header">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_SMAN_1_Jakarta.png" alt="Logo SMAN 1 Jakarta" class="brand-logo-img">
+                <img src="https://iili.io/nnSW4xR.png" alt="Logo SMAN 1 Jakarta" class="brand-logo-img">
                 <div>
-                    <h1 class="brand-title">JURNAL KOKURIKULER</h1>
+                    <h1 class="brand-title">KOKURIKULER</h1>
                     <p class="brand-subtitle">SMA Negeri 1 Jakarta</p>
                 </div>
             </div>
 
             <!-- FORM LOGIN MURID -->
             <form id="formLoginMurid" onsubmit="handleLoginMurid(event)">
-                <h3 style="font-size: 17px; font-weight: 700; margin: 0 0 18px 0;">Akses Masuk Murid</h3>
+                <h3 style="font-size: 16.5px; font-weight: 800; margin: 0 0 18px 0;">Akses Masuk Murid</h3>
                 <div class="form-group">
                     <label class="form-label" for="usernameMurid">Username / NISN</label>
                     <input type="text" id="usernameMurid" class="form-input" placeholder="Masukkan 10 digit NISN" required>
@@ -179,7 +306,7 @@
 
             <!-- FORM LOGIN ADMIN -->
             <form id="formLoginAdmin" style="display: none;" onsubmit="handleLoginAdmin(event)">
-                <h3 style="font-size: 17px; font-weight: 700; margin: 0 0 18px 0;">Akses Admin Guru</h3>
+                <h3 style="font-size: 16.5px; font-weight: 800; margin: 0 0 18px 0;">Akses Admin Guru</h3>
                 <div class="form-group">
                     <label class="form-label" for="usernameAdmin">Username Admin</label>
                     <input type="text" id="usernameAdmin" class="form-input" placeholder="Username admin guru" required>
@@ -191,84 +318,276 @@
                 <button type="submit" class="btn-primary" style="background: linear-gradient(135deg, #0f172a 0%, #334155 100%);">Masuk Panel Admin</button>
             </form>
 
-            <div style="margin-top:24px; text-align:center; padding-top:18px; border-top: 1px dashed var(--border-color);">
+            <div style="margin-top:22px; text-align:center; padding-top:16px; border-top: 1px dashed var(--border-color);">
                 <button class="btn-secondary" id="btnSwitchAuth" onclick="toggleAuthMode()">🔒 Masuk sebagai Admin Guru</button>
             </div>
         </div>
     </div>
 
-    <!-- MAIN DASHBOARD -->
+    <!-- MAIN DASHBOARD APP -->
     <div class="app-layout" id="dashboardScreen">
+        
+        <!-- TOP NAVBAR WITH SIDEBAR TOGGLE -->
         <header class="top-navbar">
-            <div style="display:flex; align-items:center; gap:16px;">
+            <div class="nav-brand-group">
                 <button class="btn-toggle-sidebar" onclick="toggleSidebar()">
                     <span>☰</span> Menu
                 </button>
-                <div style="display:flex; align-items:center; gap:12px;">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_SMAN_1_Jakarta.png" alt="Logo SMAN 1 Jakarta" class="brand-logo-navbar">
-                    <span style="font-weight: 800; font-size: 16.5px;">STOVIA EXPLORE NUSA</span>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <img src="https://iili.io/nnSW4xR.png" alt="Logo SMAN 1 Jakarta" class="brand-logo-navbar">
+                    <span style="font-weight: 800; font-size: 15px; letter-spacing:-0.3px;">JURNAL KOKURIKULER</span>
                 </div>
             </div>
-            <div class="user-profile-menu">
-                <div class="badge-mission" id="lblMission">MISSION 01 — ADAPT</div>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div class="user-avatar" id="lblAvatar">AB</div>
-                    <div>
-                        <div style="font-weight: 700; font-size:14.5px;" id="lblName">MURID</div>
-                        <div style="font-size: 12.5px; color: var(--text-muted);" id="lblKelas">Kelas X-1</div>
-                    </div>
-                </div>
-                <button class="btn-secondary" onclick="handleLogout()">Keluar</button>
-            </div>
+            <button class="btn-logout" onclick="handleLogout()">Keluar 🚪</button>
         </header>
 
         <div class="body-container">
+            
+            <!-- SIDEBAR NAVIGASI TERHUBUNG -->
             <nav class="sidebar" id="sidebarMenu">
-                <div class="sidebar-item item-murid active" onclick="navigate('secInfo')">📌 Profil & Kartu Misi</div>
-                <div class="sidebar-item item-murid" onclick="navigate('secLkpd1')">🔬 LKPD 1: Eksplorasi Sains IPTEK</div>
-                <div class="sidebar-item item-murid" onclick="navigate('secLkpd2')">🏛️ LKPD 2: Rumah Adat & Anjungan</div>
-                <div class="sidebar-item item-murid" onclick="navigate('secLkpd3')">🛠️ LKPD 3: Tantangan STEAM Proyek</div>
-                <div class="sidebar-item item-murid" onclick="navigate('secLkpd4')">🧠 LKPD 4: Refleksi Mandiri</div>
-                <div class="sidebar-item item-murid" onclick="navigate('secDocs')">📸 Unggah Dokumentasi</div>
-                <div class="sidebar-item item-murid" onclick="navigate('secExport')">📄 Ekspor & Merger Kelompok</div>
+                <div style="padding: 10px 12px 18px 12px; border-bottom: 1px dashed rgba(255,255,255,0.15); margin-bottom: 8px;">
+                    <div style="font-size:12px; color:#94a3b8; font-weight:700;">PORTAL JURNAL KOKURIKULER</div>
+                    <div style="font-size:16px; font-weight:800; color:#fff;">STOVIA EXPLORE NUSA</div>
+                </div>
+
+                <div class="sidebar-item item-murid active" onclick="openSection('secHub')">📌 Dashboard & Profil</div>
+                <div class="sidebar-item item-murid" onclick="openSection('secLkpd1')">🔬 LKPD 1: Eksplorasi Sains IPTEK</div>
+                <div class="sidebar-item item-murid" onclick="openSection('secLkpd2')">🏛️ LKPD 2: Eksplorasi Anjungan Daerah</div>
+                <div class="sidebar-item item-murid" onclick="openSection('secLkpd3')">🛠️ LKPD 3: Rancangan Projek</div>
+                <div class="sidebar-item item-murid" onclick="openSection('secLkpd4')">🧠 LKPD 4: Refleksi Mandiri</div>
+                <div class="sidebar-item item-murid" onclick="openSection('secDocs')">📸 Unggah Dokumentasi</div>
+                <div class="sidebar-item item-murid" onclick="openSection('secExport')">📄 Buat Laporan Jurnal Kelompok</div>
                 
-                <div class="sidebar-item item-admin" style="display:none;" onclick="navigate('secAdminPeserta')">👥 Kelola Data Murid</div>
-                <div class="sidebar-item item-admin" style="display:none;" onclick="navigate('secAdminKelompok')">⚙️ Easy Plotting Admin</div>
+                <div class="sidebar-item item-admin" style="display:none;" onclick="openSection('secAdminPeserta')">👥 Kelola Data Murid</div>
+                <div class="sidebar-item item-admin" style="display:none;" onclick="openSection('secAdminKelompok')">⚙️ Easy Plotting Admin</div>
             </nav>
 
-            <main class="main-content">
-                
-                <!-- PROFIL & KARTU MISI -->
-                <section class="content-section active" id="secInfo">
-                    <h2 class="page-title">Profil Murid & Penugasan Kartu Misi Proyek</h2>
-                    <p class="page-subtitle">Informasi identitas diri, anggota kelompok, Group ID unik, dan panduan kartu misi integrasi sains-kebudayaan.</p>
+            <main class="container-app">
 
-                    <div class="card" style="border-left: 6px solid var(--primary);">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 20px; font-size:15px; margin-bottom: 18px;">
-                            <div><span style="color: var(--text-muted);">Nama Murid:</span><br><strong id="detNama" style="font-size:16.5px;">-</strong></div>
-                            <div><span style="color: var(--text-muted);">NISN / Kelas:</span><br><strong id="detNisn" style="font-size:16.5px;">-</strong></div>
-                            <div><span style="color: var(--text-muted);">Kelompok:</span><br><strong id="detKelompok" style="font-size:16.5px;">-</strong></div>
-                            <div><span style="color: var(--text-muted);">ID Unik (Group ID):</span><br><strong id="detGroupId" style="color:var(--primary); font-size:16.5px;">-</strong></div>
-                            <div><span style="color: var(--text-muted);">Anjungan & Rumah Adat Target:</span><br><strong id="detAnjungan" style="font-size:16px;">-</strong></div>
-                            <div><span style="color: var(--text-muted);">Guru Pendamping:</span><br><strong id="detGuru" style="font-size:16px;">-</strong></div>
+                <!-- HALAMAN UTAMA DASHBOARD (HUB MENU) -->
+                <section class="content-section active" id="secHub">
+                    
+                    <!-- KARTU PROFIL MURID & KELOMPOK -->
+                    <div class="card" style="border-left: 6px solid var(--primary); background: linear-gradient(135deg, #ffffff 0%, #f5f3ff 100%);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+                            <div>
+                                <span style="font-size: 11.5px; color: var(--primary); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">Identitas Murid</span>
+                                <h3 id="detNama" style="margin: 2px 0 0 0; font-size: 19px; font-weight: 800;">-</h3>
+                            </div>
+                            <span id="detGroupId" style="background: var(--primary-gradient); color: white; font-weight: 800; padding: 6px 14px; border-radius: 12px; font-size: 13.5px; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);">-</span>
                         </div>
 
-                        <div style="border-top: 1px dashed var(--border-color); padding-top: 16px;">
-                            <span style="color: var(--text-muted); font-weight:700; font-size:14px;">👥 Anggota Kelompok Yang Sama (Satu Group ID):</span>
-                            <div class="member-badge-list" id="detAnggotaKelompok">
-                                <span class="member-badge">👤 -</span>
+                        <!-- PROGRESS BAR KELENGKAPAN INDIVIDU -->
+                        <div style="background: #e2e8f0; border-radius: 12px; height: 12px; width: 100%; overflow: hidden; margin-bottom: 14px; display: flex;">
+                            <div id="progressBarFill" style="background: var(--accent-gradient); width: 0%; height: 100%; transition: width 0.5s ease;"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 700; color: var(--text-muted); margin-bottom: 16px;">
+                            <span>Progress Mandiri Saya</span>
+                            <span id="progressPercentText" style="color: var(--accent-emerald);">0% Selesai</span>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; font-size: 13.5px; margin-bottom: 14px;">
+                            <div><span style="color: var(--text-muted);">NISN / Kelas:</span><br><strong id="detNisn">-</strong></div>
+                            <div><span style="color: var(--text-muted);">Kelompok:</span><br><strong id="detKelompok">-</strong></div>
+                            <div><span style="color: var(--text-muted);">Guru Pendamping:</span><br><strong id="detGuru">-</strong></div>
+                            <div style="grid-column: span 2;"><span style="color: var(--text-muted);">Rumah Adat & Anjungan Target:</span><br><strong id="detAnjungan" style="color:var(--primary); font-size:14.5px;">-</strong></div>
+                        </div>
+                    </div>
+
+                    <!-- TOMBOL UTAMA (HERO CTA): LANGSUNG SCROLL KE MODUL LKPD -->
+                    <div class="hero-cta-card">
+                        <div>
+                            <h3 class="hero-cta-title">Jurnal Kokurikuler Eksplorasi STOVIA</h3>
+                            <p class="hero-cta-desc">Mulai isi lembar kerja pengamatan sains IPTEK dan arsitektur rumah adat sekarang.</p>
+                        </div>
+                        <button class="btn-hero-cta" onclick="openFirstPendingLkpd()">
+                            🚀 ISI JURNAL KOKURIKULER
+                        </button>
+                    </div>
+
+                    <!-- KARTU BARU: MONITORING KOLEKTIF & INTIP JAWABAN TIM -->
+                    <div class="card" style="border-left: 6px solid var(--accent-emerald);">
+                        <div class="card-title">
+                            <span>👥 Status & Isian Anggota Kelompok (<span id="detGroupIdTitle">-</span>)</span>
+                            <button class="btn-secondary" style="padding:4px 12px; font-size:12px;" onclick="syncGroupStatusProgress()">🔄 Refresh Progress Tim</button>
+                        </div>
+                        <p style="font-size: 13.5px; color: var(--text-muted); margin: -8px 0 14px 0;">
+                            Tidak semua anggota harus mengisi jurnal. Jika Anda bertugas di lapangan (fotografer/wawancara), Anda tetap bisa melihat pekerjaan teman yang sudah mengisi dengan menekan tombol <strong>🔍 Lihat</strong> di bawah ini.
+                        </p>
+                        <div style="overflow-x: auto;">
+                            <table class="group-status-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nama Anggota</th>
+                                        <th>LKPD 1</th>
+                                        <th>LKPD 2</th>
+                                        <th>LKPD 3</th>
+                                        <th>LKPD 4</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="groupStatusTableBody">
+                                    <tr>
+                                        <td colspan="6" style="text-align:center; color:var(--text-muted); padding:16px;">Memuat status anggota kelompok...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- PANDUAN PETUNJUK LANGKAH DEMI LANGKAH -->
+                    <div class="card" style="border: 1.5px solid #bfdbfe; background: #eff6ff;">
+                        <h3 class="card-title" style="color: #1e40af; border-bottom-color: #dbeafe;">
+                            📖 Panduan Kerja Kelompok (Role-Play)
+                        </h3>
+                        <div class="step-guide-grid">
+                            <div class="step-card">
+                                <span class="step-num">Langkah 1</span>
+                                <div class="step-title">Bagi Peran di Lapangan</div>
+                                <p class="step-desc">Tentukan siapa yang mencatat di HP, fotografer, pengukur maket, dan pewawancara.</p>
+                            </div>
+                            <div class="step-card">
+                                <span class="step-num">Langkah 2</span>
+                                <div class="step-title">Input Data Pengamatan</div>
+                                <p class="step-desc">Anggota yang bertugas mencatat, mulai mengisi form LKPD 1 s.d. 4 dari HP mereka.</p>
+                            </div>
+                            <div class="step-card">
+                                <span class="step-num">Langkah 3</span>
+                                <div class="step-title">Pantau Isian Teman</div>
+                                <p class="step-desc">Anggota lain bisa membaca jawaban tim dari tabel monitoring (tombol 'Lihat').</p>
+                            </div>
+                            <div class="step-card">
+                                <span class="step-num">Langkah 4</span>
+                                <div class="step-title">Kirim Laporan Bersama</div>
+                                <p class="step-desc">Jika kelompok sudah lengkap secara kolektif, klik "Kirim Laporan Resmi" ke Guru.</p>
                             </div>
                         </div>
                     </div>
 
+                    <!-- DESKRIPSI MISI KHUSUS DETIL -->
                     <div class="guide-box">
                         <h4 id="detMisiJudul">🎯 Kartu Misi: MISSION 01 — ADAPT</h4>
-                        <div id="detMisiDeskripsi">Loading instruksi panduan misi...</div>
+                        <div id="detMisiDeskripsi">Loading petunjuk misi...</div>
+                    </div>
+
+                    <!-- DAFTAR MENU LKPD DENGAN STATUS CHECKLIST OTOMATIS -->
+                    <h3 style="font-size: 17px; font-weight: 800; margin: 24px 0 12px 0; color:var(--text-dark);" id="daftarLkpdSection">📋 Modul Lembar Kerja Saya (Mandiri)</h3>
+                    
+                    <div class="hub-menu-grid">
+                        
+                        <!-- MENU LKPD 1 -->
+                        <div class="hub-menu-card" onclick="openSection('secLkpd1')">
+                            <div class="hub-menu-info">
+                                <div class="hub-menu-icon">🔬</div>
+                                <div>
+                                    <h4 class="hub-menu-title">LKPD 1: Eksplorasi Sains PP-IPTEK</h4>
+                                    <p class="hub-menu-desc">Pengamatan 3 wahana/alat peraga di Museum IPTEK</p>
+                                </div>
+                            </div>
+                            <span class="status-badge pending" id="badgeLkpd1">⏳ Belum Diisi</span>
+                        </div>
+
+                        <!-- MENU LKPD 2 -->
+                        <div class="hub-menu-card" onclick="openSection('secLkpd2')">
+                            <div class="hub-menu-info">
+                                <div class="hub-menu-icon">🏛️</div>
+                                <div>
+                                    <h4 class="hub-menu-title">LKPD 2: Arsitektur Rumah Adat</h4>
+                                    <p class="hub-menu-desc">Eksplorasi struktur & kearifan lokal anjungan daerah</p>
+                                </div>
+                            </div>
+                            <span class="status-badge pending" id="badgeLkpd2">⏳ Belum Diisi</span>
+                        </div>
+
+                        <!-- MENU LKPD 3 -->
+                        <div class="hub-menu-card" onclick="openSection('secLkpd3')">
+                            <div class="hub-menu-info">
+                                <div class="hub-menu-icon">🛠️</div>
+                                <div>
+                                    <h4 class="hub-menu-title">LKPD 3: Tantangan STEAM Proyek</h4>
+                                    <p class="hub-menu-desc">Perancangan karya prototype / maket kelompok</p>
+                                </div>
+                            </div>
+                            <span class="status-badge pending" id="badgeLkpd3">⏳ Belum Diisi</span>
+                        </div>
+
+                        <!-- MENU LKPD 4 -->
+                        <div class="hub-menu-card" onclick="openSection('secLkpd4')">
+                            <div class="hub-menu-info">
+                                <div class="hub-menu-icon">🧠</div>
+                                <div>
+                                    <h4 class="hub-menu-title">LKPD 4: Refleksi Mandiri</h4>
+                                    <p class="hub-menu-desc">Evaluasi tantangan tim & internalisasi kebudayaan</p>
+                                </div>
+                            </div>
+                            <span class="status-badge pending" id="badgeLkpd4">⏳ Belum Diisi</span>
+                        </div>
+
+                        <!-- MENU DOKUMENTASI -->
+                        <div class="hub-menu-card" onclick="openSection('secDocs')">
+                            <div class="hub-menu-info">
+                                <div class="hub-menu-icon">📸</div>
+                                <div>
+                                    <h4 class="hub-menu-title">Unggah Dokumentasi Foto</h4>
+                                    <p class="hub-menu-desc">Upload foto wahana IPTEK & Rumah Adat (Min 5 foto)</p>
+                                </div>
+                            </div>
+                            <span class="status-badge pending" id="badgeDocs">⏳ Belum Diisi</span>
+                        </div>
+
+                        <!-- MENU EKSPOR & MERGER KELOMPOK -->
+                        <div class="hub-menu-card" style="border-color: var(--accent-emerald); background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%);" onclick="openSection('secExport')">
+                            <div class="hub-menu-info">
+                                <div class="hub-menu-icon" style="background:#d1fae5; color:var(--accent-emerald);">📄</div>
+                                <div>
+                                    <h4 class="hub-menu-title" style="color:var(--accent-emerald);">Ekspor & Merger Laporan</h4>
+                                    <p class="hub-menu-desc">Cetak rangkuman dokumen PDF/Word untuk tugas kelompok</p>
+                                </div>
+                            </div>
+                            <span style="color:var(--accent-emerald); font-weight:800; font-size:18px;">➔</span>
+                        </div>
+
+                    </div>
+
+                    <!-- CARD KHUSUS SUBMIT FINAL LAPORAN KE GURU -->
+                    <div class="submit-final-card">
+                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+                            <h3 style="margin:0; font-size:18px; font-weight:800; color:#ffffff;">📤 Kirim Laporan Final Kelompok</h3>
+                            <span id="submitStatusBadge" style="background:#334155; color:#94a3b8; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:800;">🔒 Terkunci</span>
+                        </div>
+                        <p style="font-size:13.5px; opacity:0.9; margin:0 0 18px 0; line-height:1.5;">
+                            Jika kelompok Anda secara <strong style="color:#34d399;">kolektif (gabungan)</strong> telah menyelesaikan seluruh LKPD 1-4, tombol di bawah ini akan aktif untuk mengirimkan laporan resmi ke server Guru.
+                        </p>
+                        <button class="btn-submit-final" id="btnSubmitFinalLaporan" disabled onclick="submitFinalLaporanKeGuru()">
+                            <span>📬 Kirim Laporan Akhir Kelompok</span>
+                        </button>
+                    </div>
+
+                    <!-- MENU PANEL ADMIN (KHUSUS ADMIN) -->
+                    <div class="hub-menu-card item-admin" style="display:none; border-color:var(--primary); margin-top:20px;" onclick="openSection('secAdminPeserta')">
+                        <div class="hub-menu-info">
+                            <div class="hub-menu-icon">👥</div>
+                            <div>
+                                <h4 class="hub-menu-title">Admin: Kelola Data Murid</h4>
+                                <p class="hub-menu-desc">Edit data & akun murid per kelas</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="hub-menu-card item-admin" style="display:none; border-color:var(--primary); margin-top:10px;" onclick="openSection('secAdminKelompok')">
+                        <div class="hub-menu-info">
+                            <div class="hub-menu-icon">⚙️</div>
+                            <div>
+                                <h4 class="hub-menu-title">Admin: Easy Plotting Multi-Kelas</h4>
+                                <p class="hub-menu-desc">Setting lokasi anjungan & kartu misi</p>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
-                <!-- LKPD 1 (MULTI-DISIPLIN SAINS IPTEK) -->
+                <!-- LKPD 1 (ISI LENGKAP UTUH 100%) -->
                 <section class="content-section" id="secLkpd1">
+                    <button class="btn-back-hub" onclick="backToHub()">⬅️ Kembali ke Menu Utama</button>
                     <h2 class="page-title">LKPD 1: Eksplorasi Sains & Teknologi Terpadu (PP-IPTEK)</h2>
                     <p class="page-subtitle">Amati dan uji coba minimal 3 wahana/alat peraga dari cabang sains bebas (Biologi, Kimia, Matematika, Komputer/Robotika, atau Fisika) yang relevan dengan kehidupan modern.</p>
 
@@ -351,11 +670,12 @@
                         </div>
                     </div>
 
-                    <button class="btn-primary" style="max-width:240px;" onclick="saveProgress()">Simpan LKPD 1</button>
+                    <button class="btn-primary" onclick="saveProgress('lkpd1')">💾 Simpan LKPD 1</button>
                 </section>
 
-                <!-- LKPD 2 (ARSITEKTUR RUMAH ADAT & ANJUNGAN DAERAH) -->
+                <!-- LKPD 2 (ISI LENGKAP UTUH 100%) -->
                 <section class="content-section" id="secLkpd2">
+                    <button class="btn-back-hub" onclick="backToHub()">⬅️ Kembali ke Menu Utama</button>
                     <h2 class="page-title">LKPD 2: Observasi Arsitektur Rumah Adat & Anjungan Daerah</h2>
                     <p class="page-subtitle">Eksplorasi struktur rumah adat, material lokal, tata ruang, serta kearifan lokal daerah sasaran proyek.</p>
                     
@@ -399,11 +719,12 @@
                         </div>
                     </div>
 
-                    <button class="btn-primary" style="max-width:240px;" onclick="saveProgress()">Simpan LKPD 2</button>
+                    <button class="btn-primary" onclick="saveProgress('lkpd2')">💾 Simpan LKPD 2</button>
                 </section>
 
-                <!-- LKPD 3 (PROYEK AKHIR & STEAM) -->
+                <!-- LKPD 3 (ISI LENGKAP UTUH 100%) -->
                 <section class="content-section" id="secLkpd3">
+                    <button class="btn-back-hub" onclick="backToHub()">⬅️ Kembali ke Menu Utama</button>
                     <h2 class="page-title">LKPD 3: Perancangan Proyek Akhir (Pendekatan STEAM)</h2>
                     <p class="page-subtitle">Formulasikan prototype, maket rumah adat adaptif, media digital interaktif, atau karya inovasi proyek akhir kelompok.</p>
                     
@@ -453,11 +774,12 @@
                         </div>
                     </div>
 
-                    <button class="btn-primary" style="max-width:240px;" onclick="saveProgress()">Simpan LKPD 3</button>
+                    <button class="btn-primary" onclick="saveProgress('lkpd3')">💾 Simpan LKPD 3</button>
                 </section>
 
-                <!-- LKPD 4 -->
+                <!-- LKPD 4 (ISI LENGKAP UTUH 100%) -->
                 <section class="content-section" id="secLkpd4">
+                    <button class="btn-back-hub" onclick="backToHub()">⬅️ Kembali ke Menu Utama</button>
                     <h2 class="page-title">LKPD 4: Refleksi Pembelajaran & Kolaborasi Tim</h2>
                     <p class="page-subtitle">Evaluasi tantangan kerja kelompok di lapangan, pemecahan masalah, serta apresiasi terhadap kearifan nusantara.</p>
 
@@ -472,11 +794,12 @@
                         </div>
                     </div>
 
-                    <button class="btn-primary" style="max-width:240px;" onclick="saveProgress()">Simpan LKPD 4</button>
+                    <button class="btn-primary" onclick="saveProgress('lkpd4')">💾 Simpan LKPD 4</button>
                 </section>
 
-                <!-- DOKUMENTASI FOTO -->
+                <!-- DOKUMENTASI (ISI LENGKAP UTUH 100%) -->
                 <section class="content-section" id="secDocs">
+                    <button class="btn-back-hub" onclick="backToHub()">⬅️ Kembali ke Menu Utama</button>
                     <h2 class="page-title">Unggah Dokumentasi Lapangan (Minimal 5 Foto)</h2>
                     <p class="page-subtitle">Upload foto bukti pengamatan wahana IPTEK dan detail arsitektur rumah adat anjungan daerah.</p>
 
@@ -492,36 +815,38 @@
                         <div id="previewAnjungan" style="display:flex; gap:12px; margin-top:16px; flex-wrap:wrap;"></div>
                     </div>
 
-                    <button class="btn-primary" style="max-width:240px;" onclick="saveProgress()">Simpan Dokumentasi</button>
+                    <button class="btn-primary" onclick="saveProgress('docs')">💾 Simpan Dokumentasi</button>
                 </section>
 
-                <!-- EKSPOR & MERGER KELOMPOK -->
+                <!-- EKSPOR & MERGER (ISI LENGKAP UTUH 100%) -->
                 <section class="content-section" id="secExport">
-                    <h2 class="page-title">Ekspor & Merger Laporan Kelompok</h2>
+                    <button class="btn-back-hub" onclick="backToHub()">⬅️ Kembali ke Menu Utama</button>
+                    <h2 class="page-title">Buat Laporan Kelompok</h2>
                     <p class="page-subtitle">Satukan seluruh isian anggota kelompok dalam 1 kelas yang sama menjadi naskah laporan utuh siap cetak.</p>
 
                     <div class="card" style="border-left: 6px solid var(--accent-emerald);">
-                        <h3 class="card-title">🔄 Mesin Merger Multi-Kelas (Presisi per Group ID)</h3>
-                        <p style="font-size: 14.5px; color: var(--text-muted); margin-bottom: 20px;">
-                            Tekan tombol di bawah untuk menyatukan seluruh isian dari anggota <strong><span id="lblKelompokMerger">Kelas X-1 Kelompok 1 (Group ID: X1-K1)</span></strong> tanpa risiko tertukar dengan kelompok di kelas lain.
+                        <h3 class="card-title">🔄 Rekap Jurnal Kelompok</h3>
+                        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 18px;">
+                            Tekan tombol di bawah untuk menyatukan seluruh isian dari anggota <strong><span id="lblKelompokMerger">-</span></strong> tanpa risiko tertukar dengan kelompok di kelas lain.
                         </p>
-                        <button class="btn-primary" style="width: auto; background: var(--accent-emerald); padding: 12px 26px;" onclick="fetchAndMergeGroupData()">
-                            ✨ Gabungkan (Merge) Seluruh Isian Anggota Kelompok
+                        <button class="btn-primary" style="background: var(--accent-gradient);" onclick="fetchAndMergeGroupData()">
+                            ✨ Gabungkan (Merge) Seluruh Isian LKPD Anggota Kelompok
                         </button>
                     </div>
 
                     <div class="card">
-                        <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 24px;">
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px;">
                             <button class="btn-export-word" onclick="exportToWord()">📘 Unduh Laporan Word (.DOC)</button>
                             <button class="btn-export-pdf" onclick="exportToPDF()">📕 Simpan Laporan PDF (A4)</button>
                         </div>
-                        <h3 class="card-title" style="border-bottom: 2px solid var(--border-color); padding-bottom: 12px; margin-bottom: 24px;">Pratinjau Naskah Laporan Terstruktur</h3>
+                        <h3 class="card-title">Pratinjau Naskah Laporan Terstruktur</h3>
                         <div id="draftDocumentRender"></div>
                     </div>
                 </section>
 
-                <!-- ADMIN: KELOLA DATA MURID -->
+                <!-- ADMIN PESERTA (ISI LENGKAP UTUH 100%) -->
                 <section class="content-section" id="secAdminPeserta">
+                    <button class="btn-back-hub" onclick="backToHub()">⬅️ Kembali ke Menu Utama</button>
                     <h2 class="page-title">Admin Panel: Kelola & Edit Data Murid</h2>
                     <p class="page-subtitle">Pilih murid dari dropdown hasil Sinkronisasi Database Spreadsheet untuk mengedit atau menambah data baru.</p>
 
@@ -531,14 +856,10 @@
                             <div class="form-group">
                                 <label class="form-label">1. Filter Kelas Target</label>
                                 <select id="adminFilterKelas" class="form-select" onchange="populateMuridDropdown()">
-                                    <option value="X-1">Kelas X-1</option>
-                                    <option value="X-2">Kelas X-2</option>
-                                    <option value="X-3">Kelas X-3</option>
-                                    <option value="X-4">Kelas X-4</option>
-                                    <option value="X-5">Kelas X-5</option>
-                                    <option value="X-6">Kelas X-6</option>
-                                    <option value="X-7">Kelas X-7</option>
-                                    <option value="X-8">Kelas X-8</option>
+                                    <option value="X-1">Kelas X-1</option><option value="X-2">Kelas X-2</option>
+                                    <option value="X-3">Kelas X-3</option><option value="X-4">Kelas X-4</option>
+                                    <option value="X-5">Kelas X-5</option><option value="X-6">Kelas X-6</option>
+                                    <option value="X-7">Kelas X-7</option><option value="X-8">Kelas X-8</option>
                                     <option value="X-10">Kelas X-10</option>
                                 </select>
                             </div>
@@ -549,12 +870,11 @@
                                 </select>
                             </div>
                         </div>
-                        <button class="btn-primary" style="width: auto; padding: 10px 22px; font-size: 14px; background: var(--accent-emerald);" onclick="syncAdminDatabase()">
+                        <button class="btn-primary" style="background: var(--accent-gradient);" onclick="syncAdminDatabase()">
                             🔄 Sinkronkan Data Murid dari Spreadsheet
                         </button>
                     </div>
 
-                    <!-- FORM EDIT / TAMBAH MURID -->
                     <div class="card">
                         <h3 class="card-title" id="lblFormStudentTitle">➕ Tambah / Edit Data Murid</h3>
                         <form onsubmit="handleAddStudent(event)">
@@ -593,76 +913,9 @@
                                 <input type="text" id="addPass" class="form-input" placeholder="Password default murid" required>
                             </div>
                             <div style="display: flex; gap: 12px;">
-                                <button type="submit" class="btn-primary" style="width: auto; padding: 12px 28px;" id="btnAddStudentBtn">💾 Simpan Data Murid</button>
+                                <button type="submit" class="btn-primary" id="btnAddStudentBtn">💾 Simpan Data Murid</button>
                                 <button type="button" class="btn-secondary" onclick="resetFormMuridAdmin()">Batal / Reset</button>
                             </div>
-                        </form>
-                    </div>
-                </section>
-
-                <!-- ADMIN EASY PLOTTING MULTI-KELAS -->
-                <section class="content-section" id="secAdminKelompok">
-                    <h2 class="page-title">Admin: Easy Plotting Multi-Kelas (X-1 s.d. X-8 & X-10)</h2>
-                    <p class="page-subtitle">Tentukan Kelas, Kelompok, Anjungan Rumah Adat (8 Pilihan), dan Kartu Misi (6 Pilihan). Group ID unik akan dibentuk otomatis.</p>
-                    <div class="card">
-                        <form onsubmit="handleUpdatePlottingAdmin(event)">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label class="form-label">1. Pilih Kelas Target</label>
-                                    <select id="selKelasAdmin" class="form-select" onchange="updateAdminGroupIdLabel()">
-                                        <option value="X-1">Kelas X-1</option><option value="X-2">Kelas X-2</option>
-                                        <option value="X-3">Kelas X-3</option><option value="X-4">Kelas X-4</option>
-                                        <option value="X-5">Kelas X-5</option><option value="X-6">Kelas X-6</option>
-                                        <option value="X-7">Kelas X-7</option><option value="X-8">Kelas X-8</option>
-                                        <option value="X-10">Kelas X-10</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">2. Pilih Kelompok Target</label>
-                                    <select id="selKelompokAdmin" class="form-select" onchange="updateAdminGroupIdLabel()">
-                                        <option value="Kelompok 1">Kelompok 1</option><option value="Kelompok 2">Kelompok 2</option>
-                                        <option value="Kelompok 3">Kelompok 3</option><option value="Kelompok 4">Kelompok 4</option>
-                                        <option value="Kelompok 5">Kelompok 5</option><option value="Kelompok 6">Kelompok 6</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">Target Group ID Unik (Sistem): <strong id="lblAdminGroupId" style="color:var(--primary); font-size:16.5px;">X1-K1</strong></label>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">3. Pilih Anjungan & Rumah Adat Sasaran (8 Pilihan)</label>
-                                <select id="adminAnjungan" class="form-select">
-                                    <option value="Anjungan Nusa Tenggara Barat (Rumah Dalam Loka / Bale)">Anjungan Nusa Tenggara Barat (NTB)</option>
-                                    <option value="Anjungan Jawa Timur (Rumah Joglo Situbondo)">Anjungan Jawa Timur</option>
-                                    <option value="Anjungan Sulawesi Tengah (Rumah Tambi)">Anjungan Sulawesi Tengah</option>
-                                    <option value="Anjungan Sulawesi Selatan (Rumah Tongkonan / Balla Lompoa)">Anjungan Sulawesi Selatan</option>
-                                    <option value="Anjungan Bali (Candi Centar & Bale Gapura)">Anjungan Bali</option>
-                                    <option value="Anjungan Nusa Tenggara Timur (Rumah Musalaki)">Anjungan Nusa Tenggara Timur (NTT)</option>
-                                    <option value="Anjungan Yogyakarta (Bangsal Pagelaran Joglo)">Anjungan Yogyakarta</option>
-                                    <option value="Anjungan Papua (Rumah Honai & Kariwari)">Anjungan Papua</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">4. Pilih Mission Card (6 Misi Proyek)</label>
-                                <select id="selMisiAdmin" class="form-select" onchange="autoFillMisiAdmin()">
-                                    <option value="MISSION 01 — ADAPT">MISSION 01 — ADAPT (Arsitektur Adaptif & Ruang Kebudayaan)</option>
-                                    <option value="MISSION 02 — MOVE">MISSION 02 — MOVE (Mekanisme Kerja & Teknologi Tradisional)</option>
-                                    <option value="MISSION 03 — FLOW">MISSION 03 — FLOW (Aliran Udara Alami & Pengelolaan Air)</option>
-                                    <option value="MISSION 04 — FOOD">MISSION 04 — FOOD (Ketahanan Pangan & Penyimpanan Tradisional)</option>
-                                    <option value="MISSION 05 — CONNECT">MISSION 05 — CONNECT (Media Komunikasi Budaya & Teknologi)</option>
-                                    <option value="MISSION 06 — FUTURE">MISSION 06 — FUTURE (Kearifan Lokal untuk Inovasi Masa Depan)</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">Deskripsi & Indikator Pengamatan (Otomatis)</label>
-                                <textarea id="adminMisiDeskripsi" class="form-textarea" readonly style="background:#e2e8f0; font-size:13.5px;"></textarea>
-                            </div>
-
-                            <button type="submit" class="btn-primary" style="width: auto; padding: 12px 28px;" id="btnSavePlottingBtn">💾 Simpan Plotting Kelompok</button>
                         </form>
                     </div>
                 </section>
@@ -671,7 +924,18 @@
         </div>
     </div>
 
-    <!-- LOGIKA JAVASCRIPT -->
+    <!-- OVERLAY POP-UP MODAL BACA JAWABAN TEMAN -->
+    <div class="modal-overlay" id="modalViewAnswers">
+        <div class="modal-content">
+            <button class="btn-close-modal" onclick="closeModal()">✕</button>
+            <h3 id="modalMemberName" style="margin:0 0 16px 0; color:var(--primary); font-weight:800; font-size:18px;">Isian LKPD: -</h3>
+            <div id="modalMemberContent" style="font-size:14px; line-height:1.6; color:var(--text-dark);">
+                <!-- Konten jawaban akan disisipkan di sini -->
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIKA JAVASCRIPT LENGKAP UTUH & MONITORING KELOMPOK KOLEKTIF -->
     <script>
         const API_ENDPOINTS = {
             "X-1": "https://script.google.com/macros/s/AKfycbwQ4QHTdKyxSyUiKd5NjFhW9-Z4X5rRlhRnDeGgpc_S7Z9EF4KXjPW7AMfYTEeKEkdv6Q/exec",
@@ -695,6 +959,15 @@
         let fotoIptekBase64 = [];
         let fotoAnjunganBase64 = [];
         let adminCachedStudents = [];
+
+        // TRACKER CHECKLIST STATUS MANDIRI SAYA
+        let completionStatus = {
+            lkpd1: false,
+            lkpd2: false,
+            lkpd3: false,
+            lkpd4: false,
+            docs: false
+        };
 
         const MISI_DETAILS = {
             "MISSION 01 — ADAPT": {
@@ -793,21 +1066,203 @@
             }
         }
 
-        function updateAdminGroupIdLabel() {
-            const kls = document.getElementById('selKelasAdmin').value.replace(/[^0-9]/g, '');
-            const kel = document.getElementById('selKelompokAdmin').value.replace(/[^0-9]/g, '');
-            document.getElementById('lblAdminGroupId').innerText = `X${kls}-K${kel}`;
+        function openSection(secId) {
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+            const targetSidebar = Array.from(document.querySelectorAll('.sidebar-item')).find(item => {
+                return item.getAttribute('onclick') && item.getAttribute('onclick').includes(secId);
+            });
+            if (targetSidebar) targetSidebar.classList.add('active');
+
+            document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(secId).classList.add('active');
+            window.scrollTo({top: 0, behavior: 'smooth'});
+
+            if (window.innerWidth <= 992) {
+                const sidebar = document.getElementById('sidebarMenu');
+                const overlay = document.getElementById('sidebarOverlay');
+                if (sidebar) sidebar.classList.remove('mobile-open');
+                if (overlay) overlay.classList.remove('active');
+            }
+
+            if(secId === 'secExport') updateDraftPreview();
         }
 
-        function autoFillMisiAdmin() {
-            const m = document.getElementById('selMisiAdmin').value;
-            const det = MISI_DETAILS[m] || {};
-            document.getElementById('adminMisiDeskripsi').value = 
-                `Pertanyaan Utama: ${det.tanya || '-'}\n` +
-                `Apa yang Diamati: ${det.amati || '-'}\n` +
-                `Data Dikumpulkan: ${det.data || '-'}\n` +
-                `Koneksi Sains & Budaya: ${det.iptek || '-'}\n` +
-                `Tantangan STEAM Proyek: ${det.steam || '-'}`;
+        function backToHub() {
+            openSection('secHub');
+        }
+
+        function openFirstPendingLkpd() {
+            const targetElement = document.getElementById('daftarLkpdSection');
+            if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function updateChecklistUI() {
+            const updateBadge = (id, isDone) => {
+                const badge = document.getElementById(id);
+                if (badge) {
+                    if (isDone) {
+                        badge.className = "status-badge completed";
+                        badge.innerHTML = "✅ Selesai";
+                    } else {
+                        badge.className = "status-badge pending";
+                        badge.innerHTML = "⏳ Belum Diisi";
+                    }
+                }
+            };
+
+            updateBadge('badgeLkpd1', completionStatus.lkpd1);
+            updateBadge('badgeLkpd2', completionStatus.lkpd2);
+            updateBadge('badgeLkpd3', completionStatus.lkpd3);
+            updateBadge('badgeLkpd4', completionStatus.lkpd4);
+            updateBadge('badgeDocs', completionStatus.docs);
+
+            const totalTasks = 5;
+            const completedTasks = Object.values(completionStatus).filter(Boolean).length;
+            const percent = Math.round((completedTasks / totalTasks) * 100);
+
+            const fillEl = document.getElementById('progressBarFill');
+            const textEl = document.getElementById('progressPercentText');
+            if(fillEl) fillEl.style.width = `${percent}%`;
+            if(textEl) textEl.innerText = `${percent}% Selesai`;
+        }
+
+        // FUNGSI UTAMA SINKRONISASI STATUS KOLEKTIF & MODAL INTIP JAWABAN
+        async function syncGroupStatusProgress() {
+            if(!currentStudentData) return;
+            const gId = currentStudentData.groupId;
+            const targetUrl = getApiUrl(currentStudentData.kelas);
+
+            const tbody = document.getElementById('groupStatusTableBody');
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:16px;">Memperbarui status isian kelompok...</td></tr>`;
+
+            try {
+                const res = await fetch(`${targetUrl}?action=getGroupSubmissions&groupId=${encodeURIComponent(gId)}`);
+                const data = await res.json();
+
+                if (data.status === "success" && data.submissions) {
+                    mergedSubmissionsData = data.submissions;
+                    renderGroupStatusTable(data.submissions);
+                }
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red; padding:16px;">Gagal memuat status tim. Tekan tombol Refresh.</td></tr>`;
+            }
+        }
+
+        function renderGroupStatusTable(submissions) {
+            const tbody = document.getElementById('groupStatusTableBody');
+            const members = currentStudentData.groupMembers || [currentStudentData.nama];
+            
+            // Variabel Progress Kolektif (Asalkan ada SATU orang yang ngisi, kelompok dianggap sudah)
+            let groupHasLk1 = false;
+            let groupHasLk2 = false;
+            let groupHasLk3 = false;
+            let groupHasLk4 = false;
+
+            let rowsHtml = "";
+
+            members.forEach(memberNama => {
+                const sub = submissions.find(s => s.nama.trim().toLowerCase() === memberNama.trim().toLowerCase());
+                
+                const hasLk1 = sub && !!(sub.lk1_a1_nama || sub.lk1_a1_hasil);
+                const hasLk2 = sub && !!(sub.lk2_fokus || sub.lk2_data1);
+                const hasLk3 = sub && !!(sub.lk3_judul || sub.steam_s);
+                const hasLk4 = sub && !!(sub.lk4_kendala || sub.lk4_kerjasama);
+
+                if(hasLk1) groupHasLk1 = true;
+                if(hasLk2) groupHasLk2 = true;
+                if(hasLk3) groupHasLk3 = true;
+                if(hasLk4) groupHasLk4 = true;
+
+                const makePill = (isDone) => isDone ? `<span class="status-pill done">✅</span>` : `<span class="status-pill yet">-</span>`;
+                const isSelf = memberNama.trim().toLowerCase() === currentStudentData.nama.trim().toLowerCase();
+
+                // Tombol Lihat Jawaban
+                let btnLihat = `<span style="color:#94a3b8; font-size:11px;">Belum Ada</span>`;
+                if(sub && (hasLk1 || hasLk2 || hasLk3 || hasLk4)) {
+                    btnLihat = `<button class="btn-lihat-isian" onclick="viewMemberAnswers('${memberNama}')">🔍 Lihat</button>`;
+                }
+
+                rowsHtml += `
+                    <tr>
+                        <td><strong>${memberNama}</strong> ${isSelf ? '<span style="font-size:11px; color:var(--primary); font-weight:800;">(Saya)</span>' : ''}</td>
+                        <td>${makePill(hasLk1)}</td>
+                        <td>${makePill(hasLk2)}</td>
+                        <td>${makePill(hasLk3)}</td>
+                        <td>${makePill(hasLk4)}</td>
+                        <td>${btnLihat}</td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = rowsHtml;
+
+            // KONTROL AKTIVASI TOMBOL KIRIM LAPORAN KE GURU (BERBASIS KOLEKTIF)
+            const btnSubmit = document.getElementById('btnSubmitFinalLaporan');
+            const submitBadge = document.getElementById('submitStatusBadge');
+
+            if (groupHasLk1 && groupHasLk2 && groupHasLk3 && groupHasLk4) {
+                if(btnSubmit) btnSubmit.disabled = false;
+                if(submitBadge) {
+                    submitBadge.style.background = "#059669";
+                    submitBadge.style.color = "#ffffff";
+                    submitBadge.innerText = "✅ Tim Lengkap, Siap Dikirim";
+                }
+            } else {
+                if(btnSubmit) btnSubmit.disabled = true;
+                if(submitBadge) {
+                    submitBadge.style.background = "#334155";
+                    submitBadge.style.color = "#94a3b8";
+                    submitBadge.innerText = "🔒 LKPD Tim Belum Lengkap";
+                }
+            }
+        }
+
+        // FUNGSI MEMBUKA MODAL INTIP JAWABAN TEMAN
+        function viewMemberAnswers(memberNama) {
+            const sub = mergedSubmissionsData.find(s => s.nama.trim().toLowerCase() === memberNama.trim().toLowerCase());
+            if(!sub) { alert("Anggota ini belum menyimpan data apa pun."); return; }
+            
+            document.getElementById('modalMemberName').innerText = `Isian LKPD: ${sub.nama}`;
+            
+            const v = (val) => val ? val.replace(/\n/g, '<br>') : '<i style="color:#94a3b8;">(Kosong)</i>';
+
+            let html = `
+                <div style="margin-bottom:14px; padding:16px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:12px;">
+                    <h4 style="margin:0 0 10px 0; color:#1e3a8a; font-size:15px; border-bottom:1px dashed #cbd5e1; padding-bottom:6px;">🔬 LKPD 1: Eksplorasi Sains</h4>
+                    <p style="margin:4px 0;"><strong>Wahana 1:</strong> ${v(sub.lk1_a1_nama)} (${v(sub.lk1_a1_zona)})</p>
+                    <p style="margin:4px 0 10px 0; font-size:13px; color:#475569;">${v(sub.lk1_a1_hasil)}</p>
+                    <p style="margin:4px 0;"><strong>Wahana 2:</strong> ${v(sub.lk1_a2_nama)}</p>
+                    <p style="margin:4px 0 10px 0; font-size:13px; color:#475569;">${v(sub.lk1_a2_hasil)}</p>
+                    <p style="margin:4px 0;"><strong>Relevansi Kehidupan:</strong><br><span style="font-size:13.5px;">${v(sub.lk1_aplikasi)}</span></p>
+                </div>
+
+                <div style="margin-bottom:14px; padding:16px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:12px;">
+                    <h4 style="margin:0 0 10px 0; color:#1e3a8a; font-size:15px; border-bottom:1px dashed #cbd5e1; padding-bottom:6px;">🏛️ LKPD 2: Arsitektur Rumah Adat</h4>
+                    <p style="margin:4px 0;"><strong>Deskripsi Bentuk & Tata Ruang:</strong><br><span style="font-size:13.5px;">${v(sub.lk2_fokus)}</span></p>
+                    <p style="margin:8px 0 4px 0;"><strong>Data Kunci 1:</strong><br><span style="font-size:13.5px;">${v(sub.lk2_data1)}</span></p>
+                </div>
+
+                <div style="margin-bottom:14px; padding:16px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:12px;">
+                    <h4 style="margin:0 0 10px 0; color:#1e3a8a; font-size:15px; border-bottom:1px dashed #cbd5e1; padding-bottom:6px;">🛠️ LKPD 3: Tantangan STEAM</h4>
+                    <p style="margin:4px 0;"><strong>Judul Proyek:</strong> <strong style="color:#059669;">${v(sub.lk3_judul)}</strong> (${v(sub.lk3_format)})</p>
+                    <p style="margin:8px 0 4px 0;"><strong>[S] Science:</strong> ${v(sub.steam_s)}</p>
+                    <p style="margin:4px 0;"><strong>[T] Technology:</strong> ${v(sub.steam_t)}</p>
+                </div>
+
+                <div style="margin-bottom:14px; padding:16px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:12px;">
+                    <h4 style="margin:0 0 10px 0; color:#1e3a8a; font-size:15px; border-bottom:1px dashed #cbd5e1; padding-bottom:6px;">🧠 LKPD 4: Refleksi</h4>
+                    <p style="margin:4px 0;"><strong>Kendala & Solusi Lapangan:</strong><br><span style="font-size:13.5px;">${v(sub.lk4_kendala)}</span></p>
+                    <p style="margin:8px 0 4px 0;"><strong>Refleksi Kolaborasi & Budaya:</strong><br><span style="font-size:13.5px;">${v(sub.lk4_kerjasama)}</span></p>
+                </div>
+            `;
+            document.getElementById('modalMemberContent').innerHTML = html;
+            document.getElementById('modalViewAnswers').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modalViewAnswers').classList.remove('active');
         }
 
         async function handleLoginMurid(e) {
@@ -815,14 +1270,13 @@
             const u = document.getElementById('usernameMurid').value.trim();
             const p = document.getElementById('passwordMurid').value.trim();
             const btn = document.getElementById('btnLoginMurid');
-            btn.innerText = "Memeriksa Database Kelas..."; btn.disabled = true;
+            btn.innerText = "Memeriksa Database..."; btn.disabled = true;
 
             const uniqueEndpoints = [...new Set(Object.values(API_ENDPOINTS))];
             let loggedInUser = null;
 
             for (const url of uniqueEndpoints) {
                 if (!url || !url.includes("script.google.com/macros/s/")) continue;
-
                 try {
                     const formData = new URLSearchParams();
                     formData.append("action", "login");
@@ -845,12 +1299,10 @@
                             }
                         }
                     }
-                } catch (err) {
-                    console.warn("Skip endpoint error:", url);
-                }
+                } catch (err) { console.warn("Skip URL:", url); }
             }
 
-            btn.innerText = "Masuk ke Dashboard Murid"; btn.disabled = false;
+            btn.innerText = "Masuk"; btn.disabled = false;
 
             if (loggedInUser) {
                 const st = loggedInUser.user;
@@ -864,19 +1316,19 @@
                     groupId: st.groupId || "X1-K1",
                     groupMembers: st.groupMembers || [st.nama],
                     misiCode: ms.misiCode || "MISSION 01 — ADAPT",
-                    anjungan: ms.anjungan || "Anjungan Nusa Tenggara Barat (Rumah Dalam Loka)",
-                    guruPendamping: st.guruPendamping || "Nurul Faozi, S.Pd.",
-                    avatar: st.nama ? st.nama.substring(0,2).toUpperCase() : "SD"
+                    anjungan: ms.anjungan || "Anjungan NTB (Rumah Dalam Loka)",
+                    guruPendamping: st.guruPendamping || "Nurul Faozi, S.Pd."
                 };
 
                 updateUIProfile();
+                syncGroupStatusProgress(); // Ambil Data Teman Sekelompok saat Login
                 document.querySelectorAll('.item-murid').forEach(el => el.style.display = 'flex');
                 document.querySelectorAll('.item-admin').forEach(el => el.style.display = 'none');
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('dashboardScreen').classList.add('active');
-                navigate('secInfo');
+                backToHub();
             } else {
-                alert("Gagal Login: NISN atau Kata Sandi tidak ditemukan di database!");
+                alert("Gagal Login: NISN atau Password salah!");
             }
         }
 
@@ -884,21 +1336,14 @@
             const mCode = currentStudentData.misiCode;
             const det = MISI_DETAILS[mCode] || MISI_DETAILS["MISSION 01 — ADAPT"];
 
-            document.getElementById('lblName').innerText = currentStudentData.nama;
-            document.getElementById('lblKelas').innerText = `Kelas ${currentStudentData.kelas}`;
-            document.getElementById('lblMission').innerText = currentStudentData.misiCode;
-            document.getElementById('lblAvatar').innerText = currentStudentData.avatar;
-
             document.getElementById('detNama').innerText = currentStudentData.nama;
-            document.getElementById('detNisn').innerText = `${currentStudentData.nisn} / ${currentStudentData.kelas}`;
+            document.getElementById('detNisn').innerText = `${currentStudentData.nisn} (${currentStudentData.kelas})`;
             document.getElementById('detKelompok').innerText = currentStudentData.kelompok;
             document.getElementById('detGroupId').innerText = currentStudentData.groupId;
-            document.getElementById('lblKelompokMerger').innerText = `Kelas ${currentStudentData.kelas} ${currentStudentData.kelompok} (Group ID: ${currentStudentData.groupId})`;
+            document.getElementById('detGroupIdTitle').innerText = currentStudentData.groupId;
+            document.getElementById('lblKelompokMerger').innerText = `${currentStudentData.kelas} ${currentStudentData.kelompok} (Group ID: ${currentStudentData.groupId})`;
             document.getElementById('detAnjungan').innerText = currentStudentData.anjungan;
             document.getElementById('detGuru').innerText = currentStudentData.guruPendamping;
-
-            const membersList = currentStudentData.groupMembers || [currentStudentData.nama];
-            document.getElementById('detAnggotaKelompok').innerHTML = membersList.map(m => `<span class="member-badge">👤 ${m}</span>`).join('');
 
             document.getElementById('detMisiJudul').innerText = `🎯 Kartu Misi Proyek: ${currentStudentData.misiCode}`;
             document.getElementById('detMisiDeskripsi').innerHTML = `
@@ -925,19 +1370,21 @@
                     </div>
                 </div>
             `;
-
+            
             document.getElementById('lblPanduanMisiJudul').innerText = `📌 Misi Rumah Adat: ${currentStudentData.misiCode} (${currentStudentData.anjungan})`;
             document.getElementById('lblPanduanMisiText').innerHTML = `
                 <div style="margin-bottom: 8px;"><strong>Fokus Pengamatan Arsitektur:</strong> ${det.amati}</div>
                 <div><strong>Data Wajib Dikumpulkan:</strong> ${det.data}</div>
             `;
-            
+
             document.getElementById('lblData1').innerText = det.d1;
             document.getElementById('lblData2').innerText = det.d2;
             document.getElementById('lblData3').innerText = det.d3;
 
             document.getElementById('lblSteamTantanganJudul').innerText = `🛠️ Tantangan Proyek STEAM: ${currentStudentData.misiCode}`;
             document.getElementById('lblSteamTantanganText').innerText = det.steam;
+
+            updateChecklistUI();
         }
 
         function handleLoginAdmin(e) {
@@ -946,23 +1393,12 @@
             const p = document.getElementById('passwordAdmin').value.trim();
 
             if(u === "admin.guru" && p === "admin123") {
-                document.getElementById('lblName').innerText = "Administrator Guru";
-                document.getElementById('lblKelas').innerText = "Pendamping X-1 s.d X-10";
-                document.getElementById('lblMission').innerText = "ADMIN PANEL";
-                document.getElementById('lblAvatar').innerText = "ADM";
-
                 document.querySelectorAll('.item-murid').forEach(el => el.style.display = 'none');
                 document.querySelectorAll('.item-admin').forEach(el => el.style.display = 'flex');
-
-                updateAdminGroupIdLabel();
-                autoFillMisiAdmin();
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('dashboardScreen').classList.add('active');
-                navigate('secAdminPeserta');
-                syncAdminDatabase();
-            } else {
-                alert("Username atau Password Admin Guru salah!");
-            }
+                openSection('secAdminPeserta');
+            } else { alert("Password Admin Salah!"); }
         }
 
         function handleLogout() {
@@ -970,89 +1406,7 @@
             document.getElementById('loginScreen').style.display = 'flex';
         }
 
-        function navigate(secId) {
-            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
-            if(event && event.currentTarget) event.currentTarget.classList.add('active');
-            document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
-            document.getElementById(secId).classList.add('active');
-            
-            if (window.innerWidth <= 992) {
-                const sidebar = document.getElementById('sidebarMenu');
-                const overlay = document.getElementById('sidebarOverlay');
-                if (sidebar) sidebar.classList.remove('mobile-open');
-                if (overlay) overlay.classList.remove('active');
-            }
-
-            if(secId === 'secExport') updateDraftPreview();
-        }
-
-        async function syncAdminDatabase() {
-            const kls = document.getElementById('adminFilterKelas').value;
-            const targetUrl = getApiUrl(kls);
-            
-            alert(`Mengambil database murid untuk Kelas ${kls}...`);
-
-            try {
-                const res = await fetch(`${targetUrl}?action=getAllDataAdmin`);
-                const data = await res.json();
-                
-                if (data.status === "success" && data.murid) {
-                    adminCachedStudents = data.murid;
-                    populateMuridDropdown();
-                    alert(`✅ Berhasil memuat ${data.murid.length} data murid dari spreadsheet!`);
-                } else {
-                    alert("⚠️ Tidak ada data murid yang ditemukan pada database spreadsheet ini.");
-                }
-            } catch (err) {
-                alert("Gagal sinkronisasi: " + err.message);
-            }
-        }
-
-        function populateMuridDropdown() {
-            const kls = document.getElementById('adminFilterKelas').value;
-            const selectEl = document.getElementById('adminSelectMurid');
-            selectEl.innerHTML = '<option value="">-- Pilih Nama Murid --</option>';
-
-            const filtered = adminCachedStudents.filter(s => s.kelas === kls);
-            
-            if (filtered.length === 0) {
-                selectEl.innerHTML = '<option value="">(Belum ada data / Klik Sinkronkan)</option>';
-                return;
-            }
-
-            filtered.forEach(s => {
-                const opt = document.createElement('option');
-                opt.value = s.nisn;
-                opt.textContent = `${s.nama} (${s.kelompok})`;
-                selectEl.appendChild(opt);
-            });
-        }
-
-        function onSelectMuridAdmin() {
-            const selectedNisn = document.getElementById('adminSelectMurid').value;
-            if (!selectedNisn) return;
-
-            const student = adminCachedStudents.find(s => s.nisn === selectedNisn);
-            if (student) {
-                document.getElementById('addNisn').value = student.nisn;
-                document.getElementById('addNama').value = student.nama;
-                document.getElementById('addKelas').value = student.kelas;
-                document.getElementById('addKelompok').value = student.kelompok;
-                document.getElementById('addPass').value = student.pass || "123456";
-
-                document.getElementById('lblFormStudentTitle').innerText = `✏️ Edit Data Murid: ${student.nama}`;
-            }
-        }
-
-        function resetFormMuridAdmin() {
-            document.getElementById('addNisn').value = '';
-            document.getElementById('addNama').value = '';
-            document.getElementById('addPass').value = '';
-            document.getElementById('adminSelectMurid').value = '';
-            document.getElementById('lblFormStudentTitle').innerText = '➕ Tambah / Edit Data Murid';
-        }
-
-        function saveProgress() {
+        function saveProgress(type) {
             const targetUrl = getApiUrl(currentStudentData ? currentStudentData.kelas : "X-1");
             const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value.trim() : "";
 
@@ -1060,12 +1414,9 @@
                 nisn: currentStudentData ? currentStudentData.nisn : "0109575978",
                 nama: currentStudentData ? currentStudentData.nama : "MURID",
                 kelas: currentStudentData ? currentStudentData.kelas : "X-1",
-                waliKelas: `Tim Wali Kelas ${currentStudentData ? currentStudentData.kelas : 'X-1'}`,
-                guruPendamping: currentStudentData ? currentStudentData.guruPendamping : "Nurul Faozi, S.Pd.",
-                sesi: "06.30-13.30",
                 kelompok: currentStudentData ? currentStudentData.kelompok : "Kelompok 1",
                 groupId: currentStudentData ? currentStudentData.groupId : "X1-K1",
-                anjungan: currentStudentData ? currentStudentData.anjungan : "Anjungan NTB (Rumah Dalam Loka)",
+                anjungan: currentStudentData ? currentStudentData.anjungan : "Anjungan NTB",
                 misiCode: currentStudentData ? currentStudentData.misiCode : "MISSION 01 — ADAPT",
 
                 lk1_a1_nama: getVal('lk1_alat1_nama'), lk1_a1_zona: getVal('lk1_alat1_zona'), lk1_a1_hasil: getVal('lk1_alat1_hasil'), lk1_a1_konsep: getVal('lk1_alat1_konsep'),
@@ -1076,17 +1427,14 @@
                 lk2_fokus: getVal('lk2_fokus'), lk2_data1: getVal('lk2_data1'), lk2_data2: getVal('lk2_data2'), lk2_data3: getVal('lk2_data3'), lk2_koneksi: getVal('lk2_koneksi'),
                 lk3_judul: getVal('lk3_judul'), lk3_format: getVal('lk3_format'),
                 steam_s: getVal('steam_s'), steam_t: getVal('steam_t'), steam_e: getVal('steam_e'), steam_a: getVal('steam_a'), steam_m: getVal('steam_m'),
-                lk4_kendala: getVal('lk4_kendala'), lk4_kerjasama: getVal('lk4_kerjasama'),
-
-                fotoIptekCount: `${fotoIptekBase64.length} Foto`,
-                fotoAnjunganCount: `${fotoAnjunganBase64.length} Foto`
+                lk4_kendala: getVal('lk4_kendala'), lk4_kerjasama: getVal('lk4_kerjasama')
             };
 
             const formData = new URLSearchParams();
             formData.append("action", "saveLKPD");
             formData.append("data", JSON.stringify(dataObj));
 
-            alert("Mengirim laporan observasi ke Google Sheets...");
+            alert("Menyimpan data...");
 
             fetch(targetUrl, {
                 method: 'POST',
@@ -1095,29 +1443,65 @@
             })
             .then(res => res.json())
             .then(data => {
-                if(data.status === "success") alert("✅ Berhasil! " + data.message);
-                else alert("⚠️ Respon: " + data.message);
+                if(data.status === "success") {
+                    if (type) completionStatus[type] = true;
+                    updateChecklistUI();
+                    syncGroupStatusProgress(); // Perbarui status tabel anggota kelompok setelah simpan
+                    alert("✅ Tersimpan! Menampilkan centang hijau di menu utama.");
+                    backToHub();
+                } else alert("⚠️ " + data.message);
             })
-            .catch(err => alert("Gagal menyimpan ke server: " + err.message));
+            .catch(err => alert("Gagal kirim: " + err.message));
+        }
+
+        function submitFinalLaporanKeGuru() {
+            if(!confirm("Apakah Anda yakin ingin mengirim Laporan Akhir ini ke Guru Pendamping? Pastikan isian inti tim sudah mewakili seluruh bagian tugas.")) return;
+
+            const btn = document.getElementById('btnSubmitFinalLaporan');
+            btn.innerHTML = "⏳ Mengirim Laporan Resmi..."; btn.disabled = true;
+
+            const targetUrl = getApiUrl(currentStudentData ? currentStudentData.kelas : "X-1");
+            const htmlLaporanContent = generateDraftHTML();
+
+            const formData = new URLSearchParams();
+            formData.append("action", "submitFinalLaporan");
+            formData.append("groupId", currentStudentData ? currentStudentData.groupId : "X1-K1");
+            formData.append("nisn", currentStudentData ? currentStudentData.nisn : "");
+            formData.append("nama", currentStudentData ? currentStudentData.nama : "");
+            formData.append("laporanHtml", htmlLaporanContent);
+
+            fetch(targetUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.innerHTML = "✅ Laporan Berhasil Terkirim ke Guru";
+                alert("🎉 SELAMAT! Laporan Akhir Kokurikuler kelompok Anda berhasil dikirim secara resmi ke database Guru Pendamping.");
+            })
+            .catch(err => {
+                btn.innerHTML = "📬 Kirim Laporan Akhir Kelompok";
+                btn.disabled = false;
+                alert("Gagal mengirim laporan: " + err.message);
+            });
         }
 
         function fetchAndMergeGroupData() {
             const gId = currentStudentData ? currentStudentData.groupId : "X1-K1";
             const targetUrl = getApiUrl(currentStudentData ? currentStudentData.kelas : "X-1");
-            alert(`Mengambil seluruh isian anggota dengan Group ID (${gId}) dari Google Sheets...`);
+            alert(`Mengambil seluruh isian kelompok dengan Group ID (${gId})...`);
 
             fetch(`${targetUrl}?action=getGroupSubmissions&groupId=${encodeURIComponent(gId)}`)
             .then(res => res.json())
             .then(data => {
                 if(data.status === "success" && data.submissions.length > 0) {
                     mergedSubmissionsData = data.submissions;
-                    alert(`✅ Berhasil menggabungkan ${data.submissions.length} isian anggota dari Group ID (${gId})!`);
+                    alert(`✅ Berhasil menggabungkan ${data.submissions.length} isian anggota kelompok!`);
                     updateDraftPreview();
-                } else {
-                    alert(`Belum ada isian murid lain dari Group ID (${gId}) yang tersimpan di database.`);
-                }
+                } else { alert(`Belum ada anggota lain yang simpan data.`); }
             })
-            .catch(err => alert("Gagal merger data: " + err.message));
+            .catch(err => alert("Gagal merger: " + err.message));
         }
 
         function handleFotoUpload(event, targetPreviewId) {
@@ -1136,97 +1520,16 @@
                     if (targetPreviewId === 'previewAnjungan') fotoAnjunganBase64.push(base64Data);
 
                     const img = document.createElement('img');
-                    img.src = base64Data; img.style.width = '100px'; img.style.height = '100px'; img.style.objectFit = 'cover'; img.style.borderRadius = '10px'; img.style.border = '1.5px solid #cbd5e1';
+                    img.src = base64Data; img.style.width = '90px'; img.style.height = '90px'; img.style.objectFit = 'cover'; img.style.borderRadius = '10px'; img.style.border = '1.5px solid #cbd5e1';
                     previewContainer.appendChild(img);
                 };
                 reader.readAsDataURL(file);
             });
         }
 
-        function handleUpdatePlottingAdmin(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btnSavePlottingBtn');
-            btn.innerText = "Mengirim..."; btn.disabled = true;
-
-            const kls = document.getElementById('selKelasAdmin').value;
-            const kel = document.getElementById('selKelompokAdmin').value;
-            const targetUrl = getApiUrl(kls);
-
-            const klsNum = kls.replace(/[^0-9]/g, '');
-            const kelNum = kel.replace(/[^0-9]/g, '');
-            const gId = `X${klsNum}-K${kelNum}`;
-
-            const dataObj = {
-                groupId: gId,
-                kelas: kls,
-                kelompok: kel,
-                misiCode: document.getElementById('selMisiAdmin').value,
-                misiDeskripsi: document.getElementById('adminMisiDeskripsi').value,
-                anjungan: document.getElementById('adminAnjungan').value
-            };
-
-            const formData = new URLSearchParams();
-            formData.append("action", "savePlotting");
-            formData.append("data", JSON.stringify(dataObj));
-
-            fetch(targetUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData.toString()
-            })
-            .then(res => res.json())
-            .then(data => {
-                btn.innerText = "💾 Simpan Plotting Kelompok"; btn.disabled = false;
-                alert("✅ " + data.message);
-            })
-            .catch(err => {
-                btn.innerText = "💾 Simpan Plotting Kelompok"; btn.disabled = false;
-                alert("Gagal: " + err.message);
-            });
-        }
-
-        function handleAddStudent(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btnAddStudentBtn');
-            btn.innerText = "Menambahkan..."; btn.disabled = true;
-
-            const kls = document.getElementById('addKelas').value;
-            const targetUrl = getApiUrl(kls);
-
-            const dataObj = {
-                nisn: document.getElementById('addNisn').value.trim(),
-                pass: document.getElementById('addPass').value.trim(),
-                nama: document.getElementById('addNama').value.trim(),
-                kelas: kls,
-                kelompok: document.getElementById('addKelompok').value
-            };
-
-            const formData = new URLSearchParams();
-            formData.append("action", "addStudent");
-            formData.append("data", JSON.stringify(dataObj));
-
-            fetch(targetUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData.toString()
-            })
-            .then(res => res.json())
-            .then(data => {
-                btn.innerText = "💾 Simpan Data Murid"; btn.disabled = false;
-                alert("✅ " + data.message);
-                resetFormMuridAdmin();
-                syncAdminDatabase();
-            })
-            .catch(err => {
-                btn.innerText = "💾 Simpan Data Murid"; btn.disabled = false;
-                alert("Gagal: " + err.message);
-            });
-        }
-
         function generateDraftHTML() {
             const nama = currentStudentData ? currentStudentData.nama : "Murid SMAN 1 Jakarta";
             const kelas = currentStudentData ? currentStudentData.kelas : "X-10";
-            const kelompok = currentStudentData ? currentStudentData.kelompok : "Kelompok 1";
             const groupId = currentStudentData ? currentStudentData.groupId : "X10-K1";
             const anjungan = currentStudentData ? currentStudentData.anjungan : "Anjungan NTB (Rumah Dalam Loka)";
             const misi = currentStudentData ? currentStudentData.misiCode : "MISSION 01 — ADAPT";
@@ -1244,17 +1547,17 @@
                 return val ? val.replace(/\n/g, '<br>') : '<span style="color:#94a3b8; font-style:italic;">(Belum diisi)</span>';
             };
 
-            let htmlFotoIptek = fotoIptekBase64.map(src => `<img src="${src}" style="width: 150px; height: 100px; object-fit: cover; margin: 4px; border: 1px solid #cbd5e1; border-radius: 6px;">`).join('');
-            if(!htmlFotoIptek) htmlFotoIptek = '<em style="color:#94a3b8;">Tidak ada dokumentasi foto Museum IPTEK.</em>';
+            let htmlFotoIptek = fotoIptekBase64.map(src => `<img src="${src}" style="width: 140px; height: 90px; object-fit: cover; margin: 4px; border: 1px solid #cbd5e1; border-radius: 6px;">`).join('');
+            if(!htmlFotoIptek) htmlFotoIptek = '<em style="color:#94a3b8;">Tidak ada foto Museum IPTEK.</em>';
 
-            let htmlFotoAnjungan = fotoAnjunganBase64.map(src => `<img src="${src}" style="width: 150px; height: 100px; object-fit: cover; margin: 4px; border: 1px solid #cbd5e1; border-radius: 6px;">`).join('');
-            if(!htmlFotoAnjungan) htmlFotoAnjungan = '<em style="color:#94a3b8;">Tidak ada dokumentasi foto Rumah Adat / Anjungan.</em>';
+            let htmlFotoAnjungan = fotoAnjunganBase64.map(src => `<img src="${src}" style="width: 140px; height: 90px; object-fit: cover; margin: 4px; border: 1px solid #cbd5e1; border-radius: 6px;">`).join('');
+            if(!htmlFotoAnjungan) htmlFotoAnjungan = '<em style="color:#94a3b8;">Tidak ada foto Rumah Adat.</em>';
 
             let mergedContentHTML = "";
             if (mergedSubmissionsData.length > 0) {
                 mergedContentHTML = `
                     <div style="background:#eff6ff; padding:14px 18px; border-radius:10px; margin-bottom:20px; border:1px solid #bfdbfe;">
-                        <strong style="color:#2563eb;">HASIL PENGGABUNGAN (MERGER) KELOMPOK — Group ID: ${groupId} (${mergedSubmissionsData.length} Kontributor Tersimpan):</strong>
+                        <strong style="color:#2563eb;">HASIL MERGER KELOMPOK (Group ID: ${groupId}):</strong>
                         <ul style="margin:8px 0 0 20px; padding:0;">
                             ${mergedSubmissionsData.map(s => `<li><strong>${s.nama}</strong> (${s.nisn}) — ${s.kelas}</li>`).join('')}
                         </ul>
@@ -1263,14 +1566,14 @@
 
                 mergedSubmissionsData.forEach((sub, idx) => {
                     mergedContentHTML += `
-                        <div style="border:1px solid #cbd5e1; padding:16px; margin-bottom:14px; border-radius:10px; background:#fff;">
-                            <h4 style="margin:0 0 8px 0; color:#1e3e6d;">Kontributor #${idx+1}: ${sub.nama} (${sub.kelas})</h4>
+                        <div style="border:1px solid #cbd5e1; padding:14px; margin-bottom:12px; border-radius:8px; background:#fff;">
+                            <h4 style="margin:0 0 6px 0; color:#1e3e6d;">Kontributor #${idx+1}: ${sub.nama} (${sub.kelas})</h4>
                             <p style="margin:4px 0;"><strong>Deskripsi Arsitektur:</strong> ${sub.lk2_fokus || '-'}</p>
-                            <p style="margin:4px 0;"><strong>Item Data 1:</strong> ${sub.lk2_data1 || '-'}</p>
-                            <p style="margin:4px 0;"><strong>Item Data 2:</strong> ${sub.lk2_data2 || '-'}</p>
-                            <p style="margin:4px 0;"><strong>Item Data 3:</strong> ${sub.lk2_data3 || '-'}</p>
+                            <p style="margin:4px 0;"><strong>Data 1:</strong> ${sub.lk2_data1 || '-'}</p>
+                            <p style="margin:4px 0;"><strong>Data 2:</strong> ${sub.lk2_data2 || '-'}</p>
+                            <p style="margin:4px 0;"><strong>Data 3:</strong> ${sub.lk2_data3 || '-'}</p>
                             <p style="margin:4px 0;"><strong>Koneksi Sains ↔ Rumah Adat:</strong> ${sub.lk2_koneksi || '-'}</p>
-                            <p style="margin:4px 0;"><strong>Solusi STEAM Proyek (${sub.lk3_judul || 'Solusi Proyek'}):</strong> S: ${sub.steam_s || '-'} | T: ${sub.steam_t || '-'} | E: ${sub.steam_e || '-'} | A: ${sub.steam_a || '-'} | M: ${sub.steam_m || '-'}</p>
+                            <p style="margin:4px 0;"><strong>STEAM Proyek (${sub.lk3_judul || 'Solusi Proyek'}):</strong> S: ${sub.steam_s || '-'} | T: ${sub.steam_t || '-'} | E: ${sub.steam_e || '-'} | A: ${sub.steam_a || '-'} | M: ${sub.steam_m || '-'}</p>
                         </div>
                     `;
                 });
@@ -1279,7 +1582,7 @@
             return `
                 <div style="font-family: Arial, sans-serif; color: #0f172a; line-height: 1.6; font-size: 10.5pt;">
                     <div style="display: flex; align-items: center; justify-content: center; gap: 16px; border-bottom: 2.5pt solid #0f172a; padding-bottom: 12px; margin-bottom: 20px;">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_SMAN_1_Jakarta.png" style="width: 50px; height: 50px; object-fit: contain;">
+                        <img src="https://iili.io/nnSW4xR.png" style="width: 50px; height: 50px; object-fit: contain;">
                         <div style="text-align: center;">
                             <h2 style="margin: 0; font-size: 15pt; text-transform: uppercase;">LAPORAN KOMPREHENSIF EKSPLORASI LAPANGAN</h2>
                             <h4 style="margin: 2px 0 0 0; font-weight: normal; font-size: 10.5pt; color: #475569;">SMA Negeri 1 Jakarta — Program STOVIA EXPLORE NUSA (Kelas ${kelas})</h4>
@@ -1310,24 +1613,24 @@
                         </tr>
                     </table>
 
-                    ${mergedContentHTML ? `<h3 style="background:#e2e8f0; padding:6px 10px; font-size:11pt; border-left:4px solid #2563eb; margin-top:20px;">HASIL MERGER ANGGOTA KELOMPOK</h3>${mergedContentHTML}` : ''}
+                    ${mergedContentHTML ? `<h3 style="background:#e2e8f0; padding:6px 10px; font-size:11pt; border-left:4px solid #4f46e5; margin-top:20px;">HASIL MERGER ANGGOTA KELOMPOK</h3>${mergedContentHTML}` : ''}
 
-                    <h3 style="background: #e2e8f0; padding: 6px 10px; font-size: 11pt; border-left: 4px solid #2563eb; margin-top: 22px; text-transform: uppercase;">I. ISIAN LKPD 1: EKSPLORASI SAINS & TEKNOLOGI TERPADU (PP-IPTEK)</h3>
+                    <h3 style="background: #e2e8f0; padding: 6px 10px; font-size: 11pt; border-left: 4px solid #4f46e5; margin-top: 22px; text-transform: uppercase;">I. ISIAN LKPD 1: EKSPLORASI SAINS & TEKNOLOGI TERPADU (PP-IPTEK)</h3>
                     
                     <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 12px;">
-                        <h4 style="margin: 0 0 6px 0; color: #1e40af; font-size: 10pt;">Wahana/Alat 1: ${getV('lk1_alat1_nama')} [Zona: ${getV('lk1_alat1_zona')}]</h4>
+                        <h4 style="margin: 0 0 6px 0; color: #4f46e5; font-size: 10pt;">Wahana/Alat 1: ${getV('lk1_alat1_nama')} [Zona: ${getV('lk1_alat1_zona')}]</h4>
                         <p style="margin: 4px 0;"><strong>Hasil Observasi Lapangan:</strong><br>${getV('lk1_alat1_hasil')}</p>
                         <p style="margin: 4px 0;"><strong>Prinsip Ilmiah / Konsep Sains Terkait:</strong><br>${getV('lk1_alat1_konsep')}</p>
                     </div>
 
                     <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 12px;">
-                        <h4 style="margin: 0 0 6px 0; color: #1e40af; font-size: 10pt;">Wahana/Alat 2: ${getV('lk1_alat2_nama')} [Zona: ${getV('lk1_alat2_zona')}]</h4>
+                        <h4 style="margin: 0 0 6px 0; color: #4f46e5; font-size: 10pt;">Wahana/Alat 2: ${getV('lk1_alat2_nama')} [Zona: ${getV('lk1_alat2_zona')}]</h4>
                         <p style="margin: 4px 0;"><strong>Hasil Observasi Lapangan:</strong><br>${getV('lk1_alat2_hasil')}</p>
                         <p style="margin: 4px 0;"><strong>Prinsip Ilmiah / Konsep Sains Terkait:</strong><br>${getV('lk1_alat2_konsep')}</p>
                     </div>
 
                     <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 12px;">
-                        <h4 style="margin: 0 0 6px 0; color: #1e40af; font-size: 10pt;">Wahana/Alat 3: ${getV('lk1_alat3_nama')} [Zona: ${getV('lk1_alat3_zona')}]</h4>
+                        <h4 style="margin: 0 0 6px 0; color: #4f46e5; font-size: 10pt;">Wahana/Alat 3: ${getV('lk1_alat3_nama')} [Zona: ${getV('lk1_alat3_zona')}]</h4>
                         <p style="margin: 4px 0;"><strong>Hasil Observasi Lapangan:</strong><br>${getV('lk1_alat3_hasil')}</p>
                         <p style="margin: 4px 0;"><strong>Prinsip Ilmiah / Konsep Sains Terkait:</strong><br>${getV('lk1_alat3_konsep')}</p>
                     </div>
@@ -1336,7 +1639,7 @@
                         <strong>Relevansi Inovasi bagi Kehidupan Modern:</strong><br>${getV('lk1_aplikasi')}
                     </div>
 
-                    <h3 style="background: #e2e8f0; padding: 6px 10px; font-size: 11pt; border-left: 4px solid #2563eb; margin-top: 22px; text-transform: uppercase;">II. ISIAN LKPD 2: OBSERVASI ARSITEKTUR RUMAH ADAT (${anjungan})</h3>
+                    <h3 style="background: #e2e8f0; padding: 6px 10px; font-size: 11pt; border-left: 4px solid #4f46e5; margin-top: 22px; text-transform: uppercase;">II. ISIAN LKPD 2: OBSERVASI ARSITEKTUR RUMAH ADAT (${anjungan})</h3>
                     
                     <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 16px;">
                         <p style="margin: 4px 0;"><strong>Deskripsi Arsitektur & Struktur Bangunan:</strong><br>${getV('lk2_fokus')}</p>
@@ -1346,10 +1649,10 @@
                         <p style="margin: 6px 0 4px 0;"><strong>Integrasi Kebudayaan ↔ Teknologi Modern:</strong><br>${getV('lk2_koneksi')}</p>
                     </div>
 
-                    <h3 style="background: #e2e8f0; padding: 6px 10px; font-size: 11pt; border-left: 4px solid #2563eb; margin-top: 22px; text-transform: uppercase;">III. ISIAN LKPD 3: RANCANGAN PROYEK AKHIR (STEAM)</h3>
+                    <h3 style="background: #e2e8f0; padding: 6px 10px; font-size: 11pt; border-left: 4px solid #4f46e5; margin-top: 22px; text-transform: uppercase;">III. ISIAN LKPD 3: RANCANGAN PROYEK AKHIR (STEAM)</h3>
                     
                     <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 16px;">
-                        <p style="margin: 4px 0;"><strong>Judul Prototype / Karya Proyek:</strong> <span style="font-weight:bold; color:#2563eb;">${getV('lk3_judul')}</span></p>
+                        <p style="margin: 4px 0;"><strong>Judul Prototype / Karya Proyek:</strong> <span style="font-weight:bold; color:#4f46e5;">${getV('lk3_judul')}</span></p>
                         <p style="margin: 4px 0 10px 0;"><strong>Format Produk Final:</strong> ${getV('lk3_format')}</p>
                         
                         <table style="width: 100%; border-collapse: collapse; border: 1px solid #cbd5e1; font-size: 9.5pt;">
@@ -1361,50 +1664,108 @@
                         </table>
                     </div>
 
-                    <h3 style="background: #e2e8f0; padding: 6px 10px; font-size: 11pt; border-left: 4px solid #2563eb; margin-top: 22px; text-transform: uppercase;">IV. ISIAN LKPD 4: REFLEKSI MANDIRI</h3>
+                    <h3 style="background: #e2e8f0; padding: 6px 10px; font-size: 11pt; border-left: 4px solid #4f46e5; margin-top: 22px; text-transform: uppercase;">IV. ISIAN LKPD 4: REFLEKSI MANDIRI</h3>
                     
                     <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 16px;">
                         <p style="margin: 4px 0;"><strong>Kendala Utama Lapangan & Solusi:</strong><br>${getV('lk4_kendala')}</p>
                         <p style="margin: 8px 0 4px 0;"><strong>Refleksi Kolaborasi & Wawasan Kebudayaan:</strong><br>${getV('lk4_kerjasama')}</p>
                     </div>
 
-                    <h3 style="background: #e2e8f0; padding: 6px 10px; font-size: 11pt; border-left: 4px solid #2563eb; margin-top: 22px; text-transform: uppercase;">V. DOKUMENTASI LAPANGAN</h3>
+                    <h3 style="background: #e2e8f0; padding: 6px 10px; font-size: 11pt; border-left: 4px solid #4f46e5; margin-top: 22px; text-transform: uppercase;">V. DOKUMENTASI LAPANGAN</h3>
                     <p style="margin:4px 0 6px 0;"><strong>Observasi Museum IPTEK:</strong></p><div>${htmlFotoIptek}</div>
                     <p style="margin: 12px 0 6px 0;"><strong>Observasi Arsitektur Rumah Adat (${anjungan}):</strong></p><div>${htmlFotoAnjungan}</div>
                 </div>
             `;
         }
 
-        function updateDraftPreview() {
-            document.getElementById('draftDocumentRender').innerHTML = generateDraftHTML();
-        }
+        function updateDraftPreview() { document.getElementById('draftDocumentRender').innerHTML = generateDraftHTML(); }
 
         function exportToWord() {
             const bodyContent = generateDraftHTML();
-            const fullWordHTML = `
-                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-                <head><meta charset='utf-8'><title>Laporan Kelompok</title></head>
-                <body style="font-family: Arial, sans-serif; padding: 20px;">${bodyContent}</body>
-                </html>
-            `;
-            const blob = new Blob(['\ufeff' + fullWordHTML], { type: 'application/msword;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
+            const blob = new Blob(['\ufeff' + bodyContent], { type: 'application/msword' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
             a.download = `Laporan_STOVIA_${currentStudentData ? currentStudentData.groupId : 'Kelompok'}.doc`;
-            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+            a.click();
         }
 
         function exportToPDF() {
             const element = document.getElementById('draftDocumentRender');
-            const opt = {
-                margin: [12, 12, 12, 12],
-                filename: `Laporan_STOVIA_${currentStudentData ? currentStudentData.groupId : 'Kelompok'}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            html2pdf().set(opt).from(element).save();
+            html2pdf().set({ margin: 10, filename: `Laporan_${currentStudentData ? currentStudentData.groupId : 'Kelompok'}.pdf` }).from(element).save();
+        }
+
+        // LOGIKA ADMIN GURU
+        function updateAdminGroupIdLabel() {
+            const kls = document.getElementById('selKelasAdmin').value.replace(/[^0-9]/g, '');
+            const kel = document.getElementById('selKelompokAdmin').value.replace(/[^0-9]/g, '');
+            document.getElementById('lblAdminGroupId').innerText = `X${kls}-K${kel}`;
+        }
+
+        function autoFillMisiAdmin() {
+            const m = document.getElementById('selMisiAdmin').value;
+            const det = MISI_DETAILS[m] || {};
+            document.getElementById('adminMisiDeskripsi').value = 
+                `Pertanyaan Utama: ${det.tanya || '-'}\n` +
+                `Apa yang Diamati: ${det.amati || '-'}\n` +
+                `Data Dikumpulkan: ${det.data || '-'}\n` +
+                `Koneksi Sains & Budaya: ${det.iptek || '-'}\n` +
+                `Tantangan STEAM Proyek: ${det.steam || '-'}`;
+        }
+
+        async function syncAdminDatabase() {
+            const kls = document.getElementById('adminFilterKelas').value;
+            alert(`Mengambil database murid untuk Kelas ${kls}...`);
+            try {
+                const res = await fetch(`${getApiUrl(kls)}?action=getAllDataAdmin`);
+                const data = await res.json();
+                if (data.status === "success" && data.murid) {
+                    adminCachedStudents = data.murid; populateMuridDropdown();
+                    alert(`✅ Sukses memuat ${data.murid.length} murid!`);
+                }
+            } catch (err) { alert("Gagal: " + err.message); }
+        }
+
+        function populateMuridDropdown() {
+            const kls = document.getElementById('adminFilterKelas').value;
+            const selectEl = document.getElementById('adminSelectMurid');
+            selectEl.innerHTML = '<option value="">-- Pilih Murid --</option>';
+            adminCachedStudents.filter(s => s.kelas === kls).forEach(s => {
+                const opt = document.createElement('option'); opt.value = s.nisn; opt.textContent = `${s.nama} (${s.kelompok})`; selectEl.appendChild(opt);
+            });
+        }
+
+        function onSelectMuridAdmin() {
+            const s = adminCachedStudents.find(s => s.nisn === document.getElementById('adminSelectMurid').value);
+            if (s) {
+                document.getElementById('addNisn').value = s.nisn; document.getElementById('addNama').value = s.nama;
+                document.getElementById('addKelas').value = s.kelas; document.getElementById('addKelompok').value = s.kelompok;
+                document.getElementById('addPass').value = s.pass || "123456";
+                document.getElementById('lblFormStudentTitle').innerText = `✏️ Edit Data Murid: ${s.nama}`;
+            }
+        }
+
+        function resetFormMuridAdmin() {
+            document.getElementById('addNisn').value = ''; document.getElementById('addNama').value = ''; document.getElementById('addPass').value = '';
+            document.getElementById('adminSelectMurid').value = ''; document.getElementById('lblFormStudentTitle').innerText = '➕ Tambah / Edit Data Murid';
+        }
+
+        function handleUpdatePlottingAdmin(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSavePlottingBtn'); btn.innerText = "Mengirim..."; btn.disabled = true;
+            const kls = document.getElementById('selKelasAdmin').value;
+            const dataObj = { groupId: document.getElementById('lblAdminGroupId').innerText, kelas: kls, kelompok: document.getElementById('selKelompokAdmin').value, misiCode: document.getElementById('selMisiAdmin').value, misiDeskripsi: document.getElementById('adminMisiDeskripsi').value, anjungan: document.getElementById('adminAnjungan').value };
+            const formData = new URLSearchParams(); formData.append("action", "savePlotting"); formData.append("data", JSON.stringify(dataObj));
+            fetch(getApiUrl(kls), { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: formData.toString() })
+            .then(res => res.json()).then(data => { btn.innerText = "💾 Simpan Plotting Kelompok"; btn.disabled = false; alert("✅ " + data.message); });
+        }
+
+        function handleAddStudent(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnAddStudentBtn'); btn.innerText = "Menambahkan..."; btn.disabled = true;
+            const kls = document.getElementById('addKelas').value;
+            const dataObj = { nisn: document.getElementById('addNisn').value, pass: document.getElementById('addPass').value, nama: document.getElementById('addNama').value, kelas: kls, kelompok: document.getElementById('addKelompok').value };
+            const formData = new URLSearchParams(); formData.append("action", "addStudent"); formData.append("data", JSON.stringify(dataObj));
+            fetch(getApiUrl(kls), { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: formData.toString() })
+            .then(res => res.json()).then(data => { btn.innerText = "💾 Simpan Data Murid"; btn.disabled = false; alert("✅ " + data.message); resetFormMuridAdmin(); syncAdminDatabase(); });
         }
     </script>
 </body>
