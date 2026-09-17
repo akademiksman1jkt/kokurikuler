@@ -1015,6 +1015,7 @@
                         </div>
                     </div>
                 </section>
+                <!-- SECTION ADMIN: KELOLA DATA MURID -->
                 <section class="content-section" id="secAdminPeserta">
                     <button class="btn-back-hub" onclick="backToHub()">⬅️ Kembali ke Menu Utama</button>
                     <h2 class="page-title">Admin Panel: Kelola & Edit Data Murid</h2>
@@ -1090,107 +1091,78 @@
                     </div>
                 </section>
 
+                <!-- SECTION ADMIN: PLOTTING KELAS -->
+                <section class="content-section" id="secAdminKelompok">
+                    <button class="btn-back-hub" onclick="backToHub()">⬅️ Kembali ke Menu Utama</button>
+                    <h2 class="page-title">⚙️ Plotting Kelas & Misi</h2>
+                    <p class="page-subtitle">Atur penugasan anjungan daerah dan kartu misi untuk setiap kelompok per kelas.</p>
+
+                    <div class="card" style="border-left: 6px solid var(--primary);">
+                        <h3 class="card-title">Setting Lokasi Anjungan & Misi</h3>
+                        <form onsubmit="handleUpdatePlottingAdmin(event)">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Pilih Kelas Target</label>
+                                    <select id="selKelasAdmin" class="form-select" onchange="updateAdminGroupIdLabel()">
+                                        <option value="X-1">Kelas X-1</option>
+                                        <option value="X-2">Kelas X-2</option>
+                                        <option value="X-3">Kelas X-3</option>
+                                        <option value="X-4">Kelas X-4</option>
+                                        <option value="X-5">Kelas X-5</option>
+                                        <option value="X-6">Kelas X-6</option>
+                                        <option value="X-7">Kelas X-7</option>
+                                        <option value="X-8">Kelas X-8</option>
+                                        <option value="X-10">Kelas X-10</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Pilih Kelompok</label>
+                                    <select id="selKelompokAdmin" class="form-select" onchange="updateAdminGroupIdLabel()">
+                                        <option value="Kelompok 1">Kelompok 1</option>
+                                        <option value="Kelompok 2">Kelompok 2</option>
+                                        <option value="Kelompok 3">Kelompok 3</option>
+                                        <option value="Kelompok 4">Kelompok 4</option>
+                                        <option value="Kelompok 5">Kelompok 5</option>
+                                        <option value="Kelompok 6">Kelompok 6</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group" style="background:#e0e7ff; padding:12px 16px; border-radius:12px; margin-bottom:16px;">
+                                <span style="font-size:12px; color:var(--primary); font-weight:700;">GROUP ID:</span><br>
+                                <strong id="lblAdminGroupId" style="font-size:18px; color:var(--text-dark);">X1-K1</strong>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Pilih Misi Proyek</label>
+                                <select id="selMisiAdmin" class="form-select" onchange="autoFillMisiAdmin()">
+                                    <option value="MISSION 01 — ADAPT">MISSION 01 — ADAPT</option>
+                                    <option value="MISSION 02 — MOVE">MISSION 02 — MOVE</option>
+                                    <option value="MISSION 03 — FLOW">MISSION 03 — FLOW</option>
+                                    <option value="MISSION 04 — FOOD">MISSION 04 — FOOD</option>
+                                    <option value="MISSION 05 — CONNECT">MISSION 05 — CONNECT</option>
+                                    <option value="MISSION 06 — FUTURE">MISSION 06 — FUTURE</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Target Anjungan & Rumah Adat</label>
+                                <input type="text" id="adminAnjungan" class="form-input" placeholder="Contoh: Anjungan NTB (Rumah Dalam Loka)" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Deskripsi Misi</label>
+                                <textarea id="adminMisiDeskripsi" class="form-textarea" style="min-height:100px;"></textarea>
+                            </div>
+
+                            <button type="submit" class="btn-primary" id="btnSavePlottingBtn">💾 Simpan Plotting Kelas</button>
+                        </form>
+                    </div>
+                </section>
+
             </main>
         </div>
     </div>
-
-    <!-- OVERLAY POP-UP MODAL BACA JAWABAN TEMAN -->
-    <div class="modal-overlay" id="modalViewAnswers">
-        <div class="modal-content">
-            <button class="btn-close-modal" onclick="closeModal()">✕</button>
-            <h3 id="modalMemberName" style="margin:0 0 16px 0; color:var(--primary); font-weight:800; font-size:18px;">Isian LKPD: -</h3>
-            <div id="modalMemberContent" style="font-size:14px; line-height:1.6; color:var(--text-dark);">
-                <!-- Konten jawaban akan disisipkan di sini -->
-            </div>
-        </div>
-    </div>
-
-    <!-- CONTAINER POP-UP NOTIFIKASI CUSTOM -->
-    <div id="customToast" class="custom-toast">
-        <span id="toastIcon">🔔</span>
-        <span id="toastMessage">Pesan notifikasi...</span>
-    </div>
-
-    <!-- CONTAINER KONFIRMASI CUSTOM -->
-    <div id="customConfirmOverlay" class="custom-dialog-overlay">
-        <div class="custom-dialog-box">
-            <div style="font-size: 40px; margin-bottom: 8px;">❓</div>
-            <h3 id="confirmTitle" style="margin: 0 0 8px 0; font-size: 17px;">Konfirmasi Action</h3>
-            <p id="confirmMessage" style="font-size: 13.5px; color: var(--text-muted); margin: 0 0 20px 0;">Apakah Anda yakin?</p>
-            <div style="display: flex; gap: 10px; justify-content: center;">
-                <button id="btnConfirmCancel" class="btn-secondary" style="flex:1;">Batal</button>
-                <button id="btnConfirmOk" class="btn-primary" style="flex:1;">Ya, Lanjutkan</button>
-            </div>
-        </div>
-    </div>
-<!-- HALAMAN TARGET PLOTTING KELAS -->
-<section class="content-section" id="secAdminKelompok">
-    <button class="btn-back-hub" onclick="backToHub()">⬅️ Kembali ke Menu Utama</button>
-    <h2 class="page-title">⚙️ Plotting Kelas</h2>
-    <p class="page-subtitle">Setting lokasi anjungan & misi untuk kelompok kelas.</p>
-
-    <div class="card" style="border-left: 6px solid var(--primary);">
-        <h3 class="card-title">Form Plotting Kelas</h3>
-        <form onsubmit="handleUpdatePlottingAdmin(event)">
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Pilih Kelas Target</label>
-                    <select id="selKelasAdmin" class="form-select" onchange="updateAdminGroupIdLabel()">
-                        <option value="X-1">Kelas X-1</option>
-                        <option value="X-2">Kelas X-2</option>
-                        <option value="X-3">Kelas X-3</option>
-                        <option value="X-4">Kelas X-4</option>
-                        <option value="X-5">Kelas X-5</option>
-                        <option value="X-6">Kelas X-6</option>
-                        <option value="X-7">Kelas X-7</option>
-                        <option value="X-8">Kelas X-8</option>
-                        <option value="X-10">Kelas X-10</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Pilih Kelompok</label>
-                    <select id="selKelompokAdmin" class="form-select" onchange="updateAdminGroupIdLabel()">
-                        <option value="Kelompok 1">Kelompok 1</option>
-                        <option value="Kelompok 2">Kelompok 2</option>
-                        <option value="Kelompok 3">Kelompok 3</option>
-                        <option value="Kelompok 4">Kelompok 4</option>
-                        <option value="Kelompok 5">Kelompok 5</option>
-                        <option value="Kelompok 6">Kelompok 6</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="form-group" style="background:#e0e7ff; padding:12px 16px; border-radius:12px; margin-bottom:16px;">
-                <span style="font-size:12px; color:var(--primary); font-weight:700;">GROUP ID:</span><br>
-                <strong id="lblAdminGroupId" style="font-size:18px; color:var(--text-dark);">X1-K1</strong>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Pilih Misi Proyek</label>
-                <select id="selMisiAdmin" class="form-select" onchange="autoFillMisiAdmin()">
-                    <option value="MISSION 01 — ADAPT">MISSION 01 — ADAPT</option>
-                    <option value="MISSION 02 — MOVE">MISSION 02 — MOVE</option>
-                    <option value="MISSION 03 — FLOW">MISSION 03 — FLOW</option>
-                    <option value="MISSION 04 — FOOD">MISSION 04 — FOOD</option>
-                    <option value="MISSION 05 — CONNECT">MISSION 05 — CONNECT</option>
-                    <option value="MISSION 06 — FUTURE">MISSION 06 — FUTURE</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Target Anjungan & Rumah Adat</label>
-                <input type="text" id="adminAnjungan" class="form-input" placeholder="Contoh: Anjungan NTB (Rumah Dalam Loka)" required>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Deskripsi Misi</label>
-                <textarea id="adminMisiDeskripsi" class="form-textarea" style="min-height:100px;"></textarea>
-            </div>
-
-            <button type="submit" class="btn-primary" id="btnSavePlottingBtn">💾 Simpan Plotting Kelas</button>
-        </form>
-    </div>
-</section>
     <!-- LOGIKA JAVASCRIPT LENGKAP UTUH & MONITORING KELOMPOK KOLEKTIF -->
     <script>
         const API_ENDPOINTS = {
