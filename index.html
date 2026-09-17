@@ -379,7 +379,7 @@
             </form>
 
             <div style="margin-top:22px; text-align:center; padding-top:16px; border-top: 1px dashed var(--border-color);">
-                <button class="btn-secondary" id="btnSwitchAuth" onclick="toggleAuthMode()">🔒 Masuk sebagai Admin Guru</button>
+                <button class="btn-secondary" id="btnSwitchAuth" onclick="toggleAuthMode()">🔒 Admin</button>
             </div>
         </div>
     </div>
@@ -417,6 +417,7 @@
                 <div class="sidebar-item item-murid" onclick="openSection('secLkpd4')">🧠 LKPD 4: Refleksi Mandiri</div>
                 <div class="sidebar-item item-murid" onclick="openSection('secDocs')">📸 Unggah Dokumentasi</div>
                 <div class="sidebar-item item-murid" onclick="openSection('secExport')">📄 Buat Laporan Jurnal Kelompok</div>
+                <div class="sidebar-item item-admin" style="display:none;" onclick="openSection('secAdminLaporan')">📥 Cek Laporan Masuk</div>
                 
                 <div class="sidebar-item item-admin" style="display:none;" onclick="openSection('secAdminPeserta')">👥 Kelola Data Murid</div>
                 <div class="sidebar-item item-admin" style="display:none;" onclick="openSection('secAdminKelompok')">⚙️ Easy Plotting Admin</div>
@@ -646,8 +647,8 @@
                         <div class="hub-menu-info">
                             <div class="hub-menu-icon">⚙️</div>
                             <div>
-                                <h4 class="hub-menu-title">Admin: Easy Plotting Multi-Kelas</h4>
-                                <p class="hub-menu-desc">Setting lokasi anjungan & kartu misi</p>
+                                <h4 class="hub-menu-title">Admin: Plotting Kelas</h4>
+                                <p class="hub-menu-desc">Setting lokasi anjungan & misi</p>
                             </div>
                         </div>
                     </div>
@@ -935,6 +936,85 @@
                 </section>
 
                 <!-- ADMIN PESERTA (ISI LENGKAP UTUH 100%) -->
+                <!-- SECTION ADMIN: CEK LAPORAN MASUK -->
+                <section class="content-section" id="secAdminLaporan">
+                    <button class="btn-back-hub" onclick="backToHub()">⬅️ Kembali ke Menu Utama</button>
+                    <h2 class="page-title">Admin Panel: Cek & Verifikasi Laporan Murid</h2>
+                    <p class="page-subtitle">Pantau seluruh laporan akhir kelompok yang telah dikirim oleh murid per kelas.</p>
+
+                    <!-- KONTROL FILTER KELAS -->
+                    <div class="card" style="border-left: 6px solid var(--primary);">
+                        <h3 class="card-title">🔍 Filter Laporan Kelas</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Pilih Kelas</label>
+                                <select id="adminLaporanFilterKelas" class="form-select" onchange="fetchAdminSubmittedReports()">
+                                    <option value="X-1">Kelas X-1</option>
+                                    <option value="X-2">Kelas X-2</option>
+                                    <option value="X-3">Kelas X-3</option>
+                                    <option value="X-4">Kelas X-4</option>
+                                    <option value="X-5">Kelas X-5</option>
+                                    <option value="X-6">Kelas X-6</option>
+                                    <option value="X-7">Kelas X-7</option>
+                                    <option value="X-8">Kelas X-8</option>
+                                    <option value="X-10">Kelas X-10</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="display: flex; align-items: flex-end;">
+                                <button class="btn-primary" onclick="fetchAdminSubmittedReports()" style="height: 48px;">
+                                    🔄 Muat Ulang Laporan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TABEL DAFTAR LAPORAN MASUK -->
+                    <div class="card">
+                        <h3 class="card-title">📥 Daftar Laporan Terkirim</h3>
+                        <div style="overflow-x: auto;">
+                            <table class="group-status-table">
+                                <thead>
+                                    <tr>
+                                        <th>Group ID</th>
+                                        <th>Pengirim / Waktu</th>
+                                        <th>Status</th>
+                                        <th>Aksi Guru</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminReportsTableBody">
+                                    <tr>
+                                        <td colspan="4" style="text-align:center; color:var(--text-muted); padding:16px;">
+                                            Silakan pilih kelas untuk memuat daftar laporan.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- AREA PREVIEW LAPORAN TERPILIH -->
+                    <div class="hub-menu-card item-admin" style="display:none; border-color:var(--accent-emerald); margin-top:10px;" onclick="openSection('secAdminLaporan')">
+    <div class="hub-menu-info">
+        <div class="hub-menu-icon" style="background:#d1fae5; color:var(--accent-emerald);">📥</div>
+        <div>
+            <h4 class="hub-menu-title">Admin: Cek Laporan Masuk</h4>
+            <p class="hub-menu-desc">Koreksi, unduh PDF/Word, dan verifikasi laporan kelompok murid</p>
+        </div>
+    </div>
+</div>
+                    <div class="card" id="adminReportPreviewCard" style="display: none;">
+                        <div class="card-title">
+                            <span id="adminPreviewTitle">👁️ Pratinjau Laporan Kelompok</span>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn-primary" onclick="downloadAdminReportPDF()" style="background: #ef4444; padding: 6px 14px; font-size: 12px;">📄 Unduh PDF</button>
+                                <button class="btn-primary" onclick="downloadAdminReportWord()" style="background: #2563eb; padding: 6px 14px; font-size: 12px;">📝 Unduh Word</button>
+                            </div>
+                        </div>
+                        <div id="adminReportRenderArea" style="background: #ffffff; padding: 20px; border: 1px solid var(--border-color); border-radius: 12px;">
+                            <!-- Konten HTML Laporan Terkirim Ditinggalkan di sini -->
+                        </div>
+                    </div>
+                </section>
                 <section class="content-section" id="secAdminPeserta">
                     <button class="btn-back-hub" onclick="backToHub()">⬅️ Kembali ke Menu Utama</button>
                     <h2 class="page-title">Admin Panel: Kelola & Edit Data Murid</h2>
@@ -2360,6 +2440,134 @@ async function saveGroupPhotosServer() {
 
             btnOk.addEventListener('click', handleOk);
             btnCancel.addEventListener('click', handleCancel);
+        }
+    let adminCachedReports = [];
+        let currentAdminSelectedReport = null;
+
+        // 1. Mengambil Daftar Laporan Terkirim dari Server Apps Script
+        async function fetchAdminSubmittedReports() {
+            const kls = document.getElementById('adminLaporanFilterKelas').value;
+            const tbody = document.getElementById('adminReportsTableBody');
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:16px;">Memuat laporan terkirim untuk Kelas ${kls}...</td></tr>`;
+            
+            document.getElementById('adminReportPreviewCard').style.display = 'none';
+
+            try {
+                const targetUrl = getApiUrl(kls);
+                const res = await fetch(`${targetUrl}?action=getSubmittedReports&kelas=${encodeURIComponent(kls)}`);
+                const data = await res.json();
+
+                if (data.status === "success" && data.reports) {
+                    adminCachedReports = data.reports;
+                    renderAdminReportsTable(data.reports);
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:16px;">Belum ada kelompok di Kelas ${kls} yang mengirimkan laporan final.</td></tr>`;
+                }
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#ef4444; padding:16px;">Gagal mengambil data laporan. Pastikan fungsi Google Apps Script terpasang.</td></tr>`;
+            }
+        }
+
+        // 2. Merender Tabel Daftar Laporan Masuk
+        function renderAdminReportsTable(reports) {
+            const tbody = document.getElementById('adminReportsTableBody');
+            const targetKelas = document.getElementById('adminLaporanFilterKelas').value;
+
+            // Daftar standar Kelompok 1 sampai 6
+            const daftarKelompok = [
+                "Kelompok 1", "Kelompok 2", "Kelompok 3", 
+                "Kelompok 4", "Kelompok 5", "Kelompok 6"
+            ];
+
+            let htmlRows = "";
+
+            daftarKelompok.forEach(namaKelompok => {
+                // Cari apakah kelompok ini sudah pernah kirim laporan di database
+                const report = reports.find(r => 
+                    r.groupId && r.groupId.toLowerCase().includes(namaKelompok.toLowerCase().replace(' ', '')) ||
+                    r.groupId && r.groupId.endsWith(`-K${namaKelompok.replace('Kelompok ', '')}`)
+                );
+
+                if (report) {
+                    // JIKA SUDAH KIRIM
+                    htmlRows += `
+                        <tr>
+                            <td><strong style="color:var(--primary);">${report.groupId}</strong><br><small style="color:var(--text-muted);">${namaKelompok}</small></td>
+                            <td style="text-align:left;">
+                                <strong>${report.nama}</strong> (${report.nisn})<br>
+                                <small style="color:var(--text-muted);">${report.timestamp || 'Terkirim'}</small>
+                            </td>
+                            <td><span class="status-pill done">✅ Sudah Kirim</span></td>
+                            <td>
+                                <button class="btn-lihat-isian" onclick="previewAdminReportByData('${encodeURIComponent(JSON.stringify(report))}')">👁️ Buka Laporan</button>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    // JIKA BELUM KIRIM
+                    const klsNum = targetKelas.replace(/[^0-9]/g, '');
+                    const kelNum = namaKelompok.replace(/[^0-9]/g, '');
+                    const expectedGroupId = `X${klsNum}-K${kelNum}`;
+
+                    htmlRows += `
+                        <tr style="background: #fafafa;">
+                            <td><strong style="color:var(--text-muted);">${expectedGroupId}</strong><br><small style="color:var(--text-muted);">${namaKelompok}</small></td>
+                            <td style="text-align:left; color:var(--text-muted); font-style:italic;">Belum ada pengirim</td>
+                            <td><span class="status-pill yet">⏳ Belum Kirim</span></td>
+                            <td><span style="color:var(--text-muted); font-size:12px;">-</span></td>
+                        </tr>
+                    `;
+                }
+            });
+
+            tbody.innerHTML = htmlRows;
+        }
+
+        // Fungsi Pembantu Buka Laporan dari Tombol Rekap
+        function previewAdminReportByData(jsonStr) {
+            const rep = JSON.parse(decodeURIComponent(jsonStr));
+            currentAdminSelectedReport = rep;
+            
+            document.getElementById('adminPreviewTitle').innerText = `👁️ Laporan Kelompok ${rep.groupId} (${rep.nama})`;
+            document.getElementById('adminReportRenderArea').innerHTML = rep.laporanHtml || `<p style="color:red;">Format laporan tidak valid atau kosong.</p>`;
+            document.getElementById('adminReportPreviewCard').style.display = 'block';
+            document.getElementById('adminReportPreviewCard').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 3. Menampilkan Pratinjau Laporan Murid
+        function previewAdminReport(index) {
+            const rep = adminCachedReports[index];
+            if (!rep) return;
+
+            currentAdminSelectedReport = rep;
+            
+            document.getElementById('adminPreviewTitle').innerText = `👁️ Laporan Kelompok ${rep.groupId} (${rep.nama})`;
+            document.getElementById('adminReportRenderArea').innerHTML = rep.laporanHtml || `<p style="color:red;">Format laporan tidak valid atau kosong.</p>`;
+            document.getElementById('adminReportPreviewCard').style.display = 'block';
+
+            document.getElementById('adminReportPreviewCard').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 4. Unduh PDF Laporan Terpilih di Panel Admin
+        function downloadAdminReportPDF() {
+            if (!currentAdminSelectedReport) return;
+            const element = document.getElementById('adminReportRenderArea');
+            html2pdf().set({ 
+                margin: 10, 
+                filename: `Laporan_Resmi_${currentAdminSelectedReport.groupId}.pdf` 
+            }).from(element).save();
+        }
+
+        // 5. Unduh Word Laporan Terpilih di Panel Admin
+        function downloadAdminReportWord() {
+            if (!currentAdminSelectedReport) return;
+            const bodyContent = document.getElementById('adminReportRenderArea').innerHTML;
+            const blob = new Blob(['\ufeff' + bodyContent], { type: 'application/msword' });
+            const a = document.createElement('a'); 
+            a.href = URL.createObjectURL(blob);
+            a.download = `Laporan_Resmi_${currentAdminSelectedReport.groupId}.doc`;
+            a.click();
         }
     </script>
 </body>
