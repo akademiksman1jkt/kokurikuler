@@ -233,8 +233,22 @@
             border-radius: 20px;
             padding: 24px;
             margin-top: 24px;
-            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.25);
+            box-shadow: 0 -10px 25px rgba(15, 23, 42, 0.3);
+            position: sticky;
+            bottom: 16px;
+            z-index: 99;
+            transition: all 0.3s ease;
         }
+        .submit-final-card.ready-to-submit {
+    border: 2px solid #10b981 !important;
+    animation: cardGlow 2s infinite;
+}
+
+@keyframes cardGlow {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+    70% { box-shadow: 0 0 0 16px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
         .btn-submit-final {
             width: 100%;
             background: var(--accent-gradient);
@@ -618,19 +632,26 @@
 
                     </div>
 
-                    <!-- CARD KHUSUS SUBMIT FINAL LAPORAN KE GURU -->
-                    <div class="submit-final-card">
-                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-                            <h3 style="margin:0; font-size:18px; font-weight:800; color:#ffffff;">📤 Kirim Laporan Final Kelompok</h3>
-                            <span id="submitStatusBadge" style="background:#334155; color:#94a3b8; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:800;">🔒 Terkunci</span>
-                        </div>
-                        <p style="font-size:13.5px; opacity:0.9; margin:0 0 18px 0; line-height:1.5;">
-                            Jika kelompok Anda secara <strong style="color:#34d399;">kolektif (gabungan)</strong> telah menyelesaikan seluruh LKPD 1-4, tombol di bawah ini akan aktif untuk mengirimkan laporan resmi ke server Guru.
-                        </p>
-                        <button class="btn-submit-final" id="btnSubmitFinalLaporan" disabled onclick="submitFinalLaporanKeGuru()">
-                            <span>📬 Kirim Laporan Akhir Kelompok</span>
-                        </button>
-                    </div>
+                    <!-- CARD KHUSUS SUBMIT FINAL LAPORAN KE GURU (VERSI HIGHLIGHT & STICKY) -->
+<div class="submit-final-card" id="cardSubmitFinal">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+        <h3 style="margin:0; font-size:18px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:8px;">
+            📬 Kirim Laporan Final Kelompok
+        </h3>
+        <span id="submitStatusBadge" style="background:#334155; color:#94a3b8; padding:5px 14px; border-radius:20px; font-size:12px; font-weight:800; border:1px solid #475569;">
+            🔒 LKPD Belum Lengkap
+        </span>
+    </div>
+    
+    <p style="font-size:13.5px; opacity:0.95; margin:0 0 18px 0; line-height:1.6; color:#e2e8f0;">
+        Jika kelompok Anda secara <strong style="color:#34d399;">kolektif (gabungan)</strong> telah menyelesaikan seluruh LKPD 1-4, tombol di bawah ini akan aktif untuk mengirimkan laporan resmi ke server Guru.
+    </p>
+
+    <!-- TOMBOL KIRIM UTAMA -->
+    <button class="btn-submit-final" id="btnSubmitFinalLaporan" disabled onclick="submitFinalLaporanKeGuru()">
+        🚀 KIRIM LAPORAN AKHIR KELOMPOK
+    </button>
+</div>
 
                     <!-- MENU PANEL ADMIN (KHUSUS ADMIN) -->
                     <div class="hub-menu-card item-admin" style="display:none; border-color:var(--primary); margin-top:20px;" onclick="openSection('secAdminPeserta')">
@@ -2513,12 +2534,11 @@ async function saveGroupPhotosServer() {
             }
         }
 
-        // GANTI FUNGSI INI DI INDEX.HTML ANDA:
-function renderAdminReportsTable(reports) {
+        function renderAdminReportsTable(reports) {
     const tbody = document.getElementById('adminReportsTableBody');
     const targetKelas = document.getElementById('adminLaporanFilterKelas').value;
 
-    // Ambil angka kelas saja (Contoh: "X-4" -> "4" -> targetGroupIdPrefix "X4-K")
+    // Ambil angka kelas saja (Contoh: "X-4" -> "4")
     const klsNum = targetKelas.replace(/[^0-9]/g, '');
 
     const daftarKelompok = [
@@ -2530,19 +2550,28 @@ function renderAdminReportsTable(reports) {
 
     daftarKelompok.forEach(namaKelompok => {
         const kelNum = namaKelompok.replace(/[^0-9]/g, '');
-        // Bentuk GroupID unik yang presisi, misal: "X4-K2"
         const expectedGroupId = `X${klsNum}-K${kelNum}`;
 
-        // PERBAIKAN BUG: Match secara presisi berdasarkan Group ID lengkap
+        // Cari data laporan spesifik per Group ID
         const report = reports.find(r => 
             r.groupId && r.groupId.trim().toUpperCase() === expectedGroupId.toUpperCase()
         );
 
-        if (report) {
-            // JIKA SUDAH KIRIM
+        // PENGECEKAN KETAT: Cek apakah laporan resmi sudah benar-benar dikirim/ada isinya
+        const isSubmitted = report && (
+            (report.laporanHtmlBase64 && report.laporanHtmlBase64.length > 50) || 
+            (report.laporanHtml && report.laporanHtml.length > 50) ||
+            (report.timestamp && report.timestamp !== "Gabungan Isian" && report.timestamp !== "Belum Kirim")
+        );
+
+        if (isSubmitted) {
+            // STATUS 1: JIKA SISWA SUDAH KLIK KIRIM LAPORAN
             htmlRows += `
                 <tr>
-                    <td><strong style="color:var(--primary);">${report.groupId}</strong><br><small style="color:var(--text-muted);">${namaKelompok}</small></td>
+                    <td>
+                        <strong style="color:var(--primary);">${report.groupId}</strong><br>
+                        <small style="color:var(--text-muted);">${namaKelompok}</small>
+                    </td>
                     <td style="text-align:left;">
                         <strong>${report.nama}</strong> (${report.nisn})<br>
                         <small style="color:var(--text-muted);">${report.timestamp || 'Terkirim'}</small>
@@ -2554,13 +2583,30 @@ function renderAdminReportsTable(reports) {
                 </tr>
             `;
         } else {
-            // JIKA BELUM KIRIM
+            // STATUS 2: JIKA SISWA BELUM KLIK KIRIM LAPORAN
+            const pengirimNama = (report && report.nama) ? report.nama : "Belum ada pengirim";
+            const pengirimNisn = (report && report.nisn) ? `(${report.nisn})` : "";
+
             htmlRows += `
-                <tr style="background: #fafafa;">
-                    <td><strong style="color:var(--text-muted);">${expectedGroupId}</strong><br><small style="color:var(--text-muted);">${namaKelompok}</small></td>
-                    <td style="text-align:left; color:var(--text-muted); font-style:italic;">Belum ada pengirim</td>
-                    <td><span class="status-pill yet">⏳ Belum Kirim</span></td>
-                    <td><span style="color:var(--text-muted); font-size:12px;">-</span></td>
+                <tr style="background: #fff5f5;">
+                    <td>
+                        <strong style="color:#dc2626;">${expectedGroupId}</strong><br>
+                        <small style="color:var(--text-muted);">${namaKelompok}</small>
+                    </td>
+                    <td style="text-align:left; color:#991b1b;">
+                        <em>${pengirimNama} ${pengirimNisn}</em><br>
+                        <small style="color:#ef4444;">(Siswa belum klik Kirim Laporan Final)</small>
+                    </td>
+                    <td>
+                        <span class="status-pill" style="background:#fee2e2; color:#dc2626; border:1px solid #fecaca;">
+                            ⏳ Belum Kirim Laporan
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn-secondary" style="padding:4px 8px; font-size:11px; cursor:not-allowed; opacity:0.6;" disabled>
+                            🔒 Belum Ada Laporan
+                        </button>
+                    </td>
                 </tr>
             `;
         }
