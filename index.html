@@ -956,7 +956,6 @@
                     </div>
                 </section>
 
-                <!-- ADMIN PESERTA (ISI LENGKAP UTUH 100%) -->
                 <!-- SECTION ADMIN: CEK LAPORAN MASUK -->
                 <section class="content-section" id="secAdminLaporan">
                     <button class="btn-back-hub" onclick="backToHub()">⬅️ Kembali ke Menu Utama</button>
@@ -969,7 +968,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label class="form-label">Pilih Kelas</label>
-                                <select id="adminLaporanFilterKelas" class="form-select" onchange="fetchAdminSubmittedReports()">
+                                <select id="adminLaporanFilterKelas" class="form-select" onchange="fetchAdminSubmittedReports(); fetchAdminProgressRealtime();">
                                     <option value="X-1">Kelas X-1</option>
                                     <option value="X-2">Kelas X-2</option>
                                     <option value="X-3">Kelas X-3</option>
@@ -989,6 +988,40 @@
                         </div>
                     </div>
 
+                    <!-- 1. TABEL MONITORING PROGRES & FOTO REAL-TIME (LANGKAH 2) -->
+<div class="card" style="border-left: 6px solid #0284c7; margin-bottom: 24px;">
+    <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+        <span>📊 Progres Pengerjaan & Dokumentasi Kelompok</span>
+        <button class="btn-secondary" style="font-size: 12px; padding: 6px 12px;" onclick="fetchAdminProgressRealtime()">🔄 Refresh Progres</button>
+    </div>
+    <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+        Pantau kelengkapan LKPD 1-4 dan jumlah foto yang diunggah kelompok sebelum dikirim resmi.
+    </p>
+
+    <div style="overflow-x: auto;">
+        <table class="group-status-table">
+            <thead>
+                <tr>
+                    <th>Group ID</th>
+                    <th>Kontributor</th>
+                    <th>LKPD 1</th>
+                    <th>LKPD 2</th>
+                    <th>LKPD 3</th>
+                    <th>LKPD 4</th>
+                    <th>Foto</th>
+                    <th>Status Tim</th>
+                </tr>
+            </thead>
+            <tbody id="adminProgressTableBody">
+                <tr>
+                    <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 16px;">
+                        Pilih kelas untuk memuat progres kelompok.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
                     <!-- TABEL DAFTAR LAPORAN MASUK -->
                     <div class="card">
                         <h3 class="card-title">📥 Daftar Laporan Terkirim</h3>
@@ -2615,30 +2648,46 @@ async function saveGroupPhotosServer() {
     tbody.innerHTML = htmlRows;
 }
 
-        // Fungsi Pembantu Buka Laporan dari Tombol Rekap
-        function previewAdminReportByData(jsonStr) {
-    const rep = JSON.parse(decodeURIComponent(jsonStr));
-    currentAdminSelectedReport = rep;
-    
-    document.getElementById('adminPreviewTitle').innerText = `👁️ Laporan Kelompok ${rep.groupId} (${rep.nama})`;
-    
-    // PERBAIKAN: Ambil data dari laporanHtmlBase64 dan decode menggunakan atob()
-    let htmlContent = "";
-    if (rep.laporanHtmlBase64) {
-        try {
-            htmlContent = atob(rep.laporanHtmlBase64); // Decode Base64 ke String HTML
-        } catch(e) {
-            htmlContent = `<p style="color:red;">Gagal membaca format laporan (Error Decode Base64).</p>`;
+        function decodeBase64Utf8(base64Str) {
+    try {
+        const binaryString = atob(base64Str);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
         }
-    } else if (rep.laporanHtml) {
-        htmlContent = rep.laporanHtml; // Fallback jika tidak dalam bentuk Base64
-    } else {
-        htmlContent = `<p style="color:red;">Format laporan tidak valid atau kosong.</p>`;
+        return new TextDecoder('utf-8').decode(bytes);
+    } catch (e) {
+        console.error("Gagal decode UTF-8:", e);
+        return atob(base64Str); // Fallback
     }
+}
 
-    document.getElementById('adminReportRenderArea').innerHTML = htmlContent;
-    document.getElementById('adminReportPreviewCard').style.display = 'block';
-    document.getElementById('adminReportPreviewCard').scrollIntoView({ behavior: 'smooth' });
+// PERBARUI FUNGSI PREVIEW ADMIN
+function previewAdminReportByData(jsonStr) {
+    try {
+        const rep = JSON.parse(decodeURIComponent(jsonStr));
+        currentAdminSelectedReport = rep;
+        
+        document.getElementById('adminPreviewTitle').innerText = `👁️ Laporan Kelompok ${rep.groupId} (${rep.nama})`;
+        
+        let htmlContent = "";
+
+        if (rep.laporanHtmlBase64) {
+            // Gunakan fungsi decode UTF-8 yang baru
+            htmlContent = decodeBase64Utf8(rep.laporanHtmlBase64);
+        } else if (rep.laporanHtml) {
+            htmlContent = rep.laporanHtml;
+        } else {
+            htmlContent = `<p style="color:red; text-align:center;">Format laporan tidak valid atau kosong.</p>`;
+        }
+
+        document.getElementById('adminReportRenderArea').innerHTML = htmlContent;
+        document.getElementById('adminReportPreviewCard').style.display = 'block';
+        document.getElementById('adminReportPreviewCard').scrollIntoView({ behavior: 'smooth' });
+
+    } catch (err) {
+        alert("Gagal membuka laporan: " + err.message);
+    }
 }
 
 // LAKUKAN HAL YANG SAMA UNTUK FUNGSI INI
@@ -2748,6 +2797,65 @@ function downloadAdminReportWord() {
     URL.revokeObjectURL(a.href);
 
     showToast("✅ File Word laporan berhasil diunduh!", "success");
+}
+    // MEMANGGIL DATA PROGRES + FOTO DARI BACKEND
+async function fetchAdminProgressRealtime() {
+    const kls = document.getElementById('adminLaporanFilterKelas').value;
+    const tbody = document.getElementById('adminProgressTableBody');
+    if (!kls) return;
+
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:16px;">Memuat progres & foto Kelas ${kls}...</td></tr>`;
+
+    try {
+        const targetUrl = getApiUrl(kls);
+        const res = await fetch(`${targetUrl}?action=getGroupProgressAdmin&kelas=${encodeURIComponent(kls)}`);
+        const data = await res.json();
+
+        if (data.status === "success" && data.progress) {
+            renderAdminProgressTable(data.progress, kls);
+        }
+    } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:red; padding:16px;">Gagal mengambil data progres.</td></tr>`;
+    }
+}
+
+// RENDERING DOKUMENTASI & KELENGKAPAN KE TABEL ADMIN
+function renderAdminProgressTable(progressMap, targetKelas) {
+    const tbody = document.getElementById('adminProgressTableBody');
+    const klsNum = targetKelas.replace(/[^0-9]/g, '');
+    const daftarKelompok = ["Kelompok 1", "Kelompok 2", "Kelompok 3", "Kelompok 4", "Kelompok 5", "Kelompok 6"];
+
+    let html = "";
+
+    daftarKelompok.forEach(namaKel => {
+        const kelNum = namaKel.replace(/[^0-9]/g, '');
+        const gId = `X${klsNum}-K${kelNum}`;
+        const p = progressMap[gId] || { lk1: false, lk2: false, lk3: false, lk4: false, photosCount: 0, contributors: [] };
+
+        const pill = (isDone) => isDone ? `<span class="status-pill done">✅</span>` : `<span class="status-pill yet">-</span>`;
+        const contributorsText = p.contributors.length > 0 ? p.contributors.join(", ") : "<em style='color:#94a3b8;'>Belum ada isian</em>";
+
+        // Cek syarat lengkap LKPD 1-4 dan minimal 5 foto
+        const isFullyDone = p.lk1 && p.lk2 && p.lk3 && p.lk4 && p.photosCount >= 5;
+        const totalStatus = isFullyDone 
+            ? `<span style="color:#059669; font-weight:800; font-size:12px;">✅ Siap Kirim</span>` 
+            : `<span style="color:#d97706; font-weight:700; font-size:12px;">⏳ Sedang Mencicil</span>`;
+
+        html += `
+            <tr>
+                <td><strong>${gId}</strong><br><small style="color:var(--text-muted);">${namaKel}</small></td>
+                <td style="text-align:left; font-size:12px; max-width:200px;">${contributorsText}</td>
+                <td>${pill(p.lk1)}</td>
+                <td>${pill(p.lk2)}</td>
+                <td>${pill(p.lk3)}</td>
+                <td>${pill(p.lk4)}</td>
+                <td><strong>📷 ${p.photosCount}/5</strong></td>
+                <td>${totalStatus}</td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = html;
 }
     </script>
 </body>
