@@ -2513,106 +2513,196 @@ async function saveGroupPhotosServer() {
             }
         }
 
-        // 2. Merender Tabel Daftar Laporan Masuk
-        function renderAdminReportsTable(reports) {
-            const tbody = document.getElementById('adminReportsTableBody');
-            const targetKelas = document.getElementById('adminLaporanFilterKelas').value;
+        // GANTI FUNGSI INI DI INDEX.HTML ANDA:
+function renderAdminReportsTable(reports) {
+    const tbody = document.getElementById('adminReportsTableBody');
+    const targetKelas = document.getElementById('adminLaporanFilterKelas').value;
 
-            // Daftar standar Kelompok 1 sampai 6
-            const daftarKelompok = [
-                "Kelompok 1", "Kelompok 2", "Kelompok 3", 
-                "Kelompok 4", "Kelompok 5", "Kelompok 6"
-            ];
+    // Ambil angka kelas saja (Contoh: "X-4" -> "4" -> targetGroupIdPrefix "X4-K")
+    const klsNum = targetKelas.replace(/[^0-9]/g, '');
 
-            let htmlRows = "";
+    const daftarKelompok = [
+        "Kelompok 1", "Kelompok 2", "Kelompok 3", 
+        "Kelompok 4", "Kelompok 5", "Kelompok 6"
+    ];
 
-            daftarKelompok.forEach(namaKelompok => {
-                // Cari apakah kelompok ini sudah pernah kirim laporan di database
-                const report = reports.find(r => 
-                    r.groupId && r.groupId.toLowerCase().includes(namaKelompok.toLowerCase().replace(' ', '')) ||
-                    r.groupId && r.groupId.endsWith(`-K${namaKelompok.replace('Kelompok ', '')}`)
-                );
+    let htmlRows = "";
 
-                if (report) {
-                    // JIKA SUDAH KIRIM
-                    htmlRows += `
-                        <tr>
-                            <td><strong style="color:var(--primary);">${report.groupId}</strong><br><small style="color:var(--text-muted);">${namaKelompok}</small></td>
-                            <td style="text-align:left;">
-                                <strong>${report.nama}</strong> (${report.nisn})<br>
-                                <small style="color:var(--text-muted);">${report.timestamp || 'Terkirim'}</small>
-                            </td>
-                            <td><span class="status-pill done">✅ Sudah Kirim</span></td>
-                            <td>
-                                <button class="btn-lihat-isian" onclick="previewAdminReportByData('${encodeURIComponent(JSON.stringify(report))}')">👁️ Buka Laporan</button>
-                            </td>
-                        </tr>
-                    `;
-                } else {
-                    // JIKA BELUM KIRIM
-                    const klsNum = targetKelas.replace(/[^0-9]/g, '');
-                    const kelNum = namaKelompok.replace(/[^0-9]/g, '');
-                    const expectedGroupId = `X${klsNum}-K${kelNum}`;
+    daftarKelompok.forEach(namaKelompok => {
+        const kelNum = namaKelompok.replace(/[^0-9]/g, '');
+        // Bentuk GroupID unik yang presisi, misal: "X4-K2"
+        const expectedGroupId = `X${klsNum}-K${kelNum}`;
 
-                    htmlRows += `
-                        <tr style="background: #fafafa;">
-                            <td><strong style="color:var(--text-muted);">${expectedGroupId}</strong><br><small style="color:var(--text-muted);">${namaKelompok}</small></td>
-                            <td style="text-align:left; color:var(--text-muted); font-style:italic;">Belum ada pengirim</td>
-                            <td><span class="status-pill yet">⏳ Belum Kirim</span></td>
-                            <td><span style="color:var(--text-muted); font-size:12px;">-</span></td>
-                        </tr>
-                    `;
-                }
-            });
+        // PERBAIKAN BUG: Match secara presisi berdasarkan Group ID lengkap
+        const report = reports.find(r => 
+            r.groupId && r.groupId.trim().toUpperCase() === expectedGroupId.toUpperCase()
+        );
 
-            tbody.innerHTML = htmlRows;
+        if (report) {
+            // JIKA SUDAH KIRIM
+            htmlRows += `
+                <tr>
+                    <td><strong style="color:var(--primary);">${report.groupId}</strong><br><small style="color:var(--text-muted);">${namaKelompok}</small></td>
+                    <td style="text-align:left;">
+                        <strong>${report.nama}</strong> (${report.nisn})<br>
+                        <small style="color:var(--text-muted);">${report.timestamp || 'Terkirim'}</small>
+                    </td>
+                    <td><span class="status-pill done">✅ Sudah Kirim</span></td>
+                    <td>
+                        <button class="btn-lihat-isian" onclick="previewAdminReportByData('${encodeURIComponent(JSON.stringify(report))}')">👁️ Buka Laporan</button>
+                    </td>
+                </tr>
+            `;
+        } else {
+            // JIKA BELUM KIRIM
+            htmlRows += `
+                <tr style="background: #fafafa;">
+                    <td><strong style="color:var(--text-muted);">${expectedGroupId}</strong><br><small style="color:var(--text-muted);">${namaKelompok}</small></td>
+                    <td style="text-align:left; color:var(--text-muted); font-style:italic;">Belum ada pengirim</td>
+                    <td><span class="status-pill yet">⏳ Belum Kirim</span></td>
+                    <td><span style="color:var(--text-muted); font-size:12px;">-</span></td>
+                </tr>
+            `;
         }
+    });
+
+    tbody.innerHTML = htmlRows;
+}
 
         // Fungsi Pembantu Buka Laporan dari Tombol Rekap
         function previewAdminReportByData(jsonStr) {
-            const rep = JSON.parse(decodeURIComponent(jsonStr));
-            currentAdminSelectedReport = rep;
-            
-            document.getElementById('adminPreviewTitle').innerText = `👁️ Laporan Kelompok ${rep.groupId} (${rep.nama})`;
-            document.getElementById('adminReportRenderArea').innerHTML = rep.laporanHtml || `<p style="color:red;">Format laporan tidak valid atau kosong.</p>`;
-            document.getElementById('adminReportPreviewCard').style.display = 'block';
-            document.getElementById('adminReportPreviewCard').scrollIntoView({ behavior: 'smooth' });
+    const rep = JSON.parse(decodeURIComponent(jsonStr));
+    currentAdminSelectedReport = rep;
+    
+    document.getElementById('adminPreviewTitle').innerText = `👁️ Laporan Kelompok ${rep.groupId} (${rep.nama})`;
+    
+    // PERBAIKAN: Ambil data dari laporanHtmlBase64 dan decode menggunakan atob()
+    let htmlContent = "";
+    if (rep.laporanHtmlBase64) {
+        try {
+            htmlContent = atob(rep.laporanHtmlBase64); // Decode Base64 ke String HTML
+        } catch(e) {
+            htmlContent = `<p style="color:red;">Gagal membaca format laporan (Error Decode Base64).</p>`;
         }
+    } else if (rep.laporanHtml) {
+        htmlContent = rep.laporanHtml; // Fallback jika tidak dalam bentuk Base64
+    } else {
+        htmlContent = `<p style="color:red;">Format laporan tidak valid atau kosong.</p>`;
+    }
 
-        // 3. Menampilkan Pratinjau Laporan Murid
-        function previewAdminReport(index) {
-            const rep = adminCachedReports[index];
-            if (!rep) return;
+    document.getElementById('adminReportRenderArea').innerHTML = htmlContent;
+    document.getElementById('adminReportPreviewCard').style.display = 'block';
+    document.getElementById('adminReportPreviewCard').scrollIntoView({ behavior: 'smooth' });
+}
 
-            currentAdminSelectedReport = rep;
-            
-            document.getElementById('adminPreviewTitle').innerText = `👁️ Laporan Kelompok ${rep.groupId} (${rep.nama})`;
-            document.getElementById('adminReportRenderArea').innerHTML = rep.laporanHtml || `<p style="color:red;">Format laporan tidak valid atau kosong.</p>`;
-            document.getElementById('adminReportPreviewCard').style.display = 'block';
+// LAKUKAN HAL YANG SAMA UNTUK FUNGSI INI
+function previewAdminReport(index) {
+    const rep = adminCachedReports[index];
+    if (!rep) return;
 
-            document.getElementById('adminReportPreviewCard').scrollIntoView({ behavior: 'smooth' });
+    currentAdminSelectedReport = rep;
+    
+    document.getElementById('adminPreviewTitle').innerText = `👁️ Laporan Kelompok ${rep.groupId} (${rep.nama})`;
+    
+    // PERBAIKAN: Decode Base64 
+    let htmlContent = "";
+    if (rep.laporanHtmlBase64) {
+        try {
+            htmlContent = atob(rep.laporanHtmlBase64);
+        } catch(e) {
+            htmlContent = `<p style="color:red;">Gagal membaca format laporan (Error Decode Base64).</p>`;
         }
+    } else if (rep.laporanHtml) {
+        htmlContent = rep.laporanHtml;
+    } else {
+        htmlContent = `<p style="color:red;">Format laporan tidak valid atau kosong.</p>`;
+    }
 
-        // 4. Unduh PDF Laporan Terpilih di Panel Admin
-        function downloadAdminReportPDF() {
-            if (!currentAdminSelectedReport) return;
-            const element = document.getElementById('adminReportRenderArea');
-            html2pdf().set({ 
-                margin: 10, 
-                filename: `Laporan_Resmi_${currentAdminSelectedReport.groupId}.pdf` 
-            }).from(element).save();
-        }
+    document.getElementById('adminReportRenderArea').innerHTML = htmlContent;
+    document.getElementById('adminReportPreviewCard').style.display = 'block';
+    document.getElementById('adminReportPreviewCard').scrollIntoView({ behavior: 'smooth' });
+}
 
-        // 5. Unduh Word Laporan Terpilih di Panel Admin
-        function downloadAdminReportWord() {
-            if (!currentAdminSelectedReport) return;
-            const bodyContent = document.getElementById('adminReportRenderArea').innerHTML;
-            const blob = new Blob(['\ufeff' + bodyContent], { type: 'application/msword' });
-            const a = document.createElement('a'); 
-            a.href = URL.createObjectURL(blob);
-            a.download = `Laporan_Resmi_${currentAdminSelectedReport.groupId}.doc`;
-            a.click();
-        }
+        // 4. Unduh PDF Laporan Terpilih di Panel Admin (Diperbaiki)
+function downloadAdminReportPDF() {
+    if (!currentAdminSelectedReport) {
+        showToast("⚠️ Silakan pilih dan buka laporan kelompok terlebih dahulu!", "error");
+        return;
+    }
+    
+    const element = document.getElementById('adminReportRenderArea');
+    if (!element || !element.innerText.trim()) {
+        showToast("⚠️ Isi laporan kosong atau tidak valid!", "error");
+        return;
+    }
+
+    const gId = currentAdminSelectedReport.groupId || "Kelompok";
+    const nama = (currentAdminSelectedReport.nama || "Murid").replace(/[^a-zA-Z0-9]/g, "_");
+
+    showToast("⏳ Mengunduh file PDF laporan...", "info");
+
+    const opt = {
+        margin: [10, 10, 10, 10],
+        filename: `Laporan_Resmi_${gId}_${nama}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).save().then(() => {
+        showToast("✅ File PDF laporan berhasil diunduh!", "success");
+    }).catch(err => {
+        showToast("Gagal mengunduh PDF: " + err.message, "error");
+    });
+}
+
+// 5. Unduh Word Laporan Terpilih di Panel Admin (Diperbaiki)
+function downloadAdminReportWord() {
+    if (!currentAdminSelectedReport) {
+        showToast("⚠️ Silakan pilih dan buka laporan kelompok terlebih dahulu!", "error");
+        return;
+    }
+
+    const element = document.getElementById('adminReportRenderArea');
+    if (!element || !element.innerText.trim()) {
+        showToast("⚠️ Isi laporan kosong atau tidak valid!", "error");
+        return;
+    }
+
+    const bodyContent = element.innerHTML;
+    const gId = currentAdminSelectedReport.groupId || "Kelompok";
+    const nama = (currentAdminSelectedReport.nama || "Murid").replace(/[^a-zA-Z0-9]/g, "_");
+
+    // Menambahkan styling dasar HTML agar format saat dibuka di MS Word tetap rapi
+    const htmlHeader = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head>
+            <meta charset='utf-8'>
+            <title>Laporan Resmi</title>
+            <style>
+                body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.5; color: #1e293b; }
+                table { border-collapse: collapse; width: 100%; margin-bottom: 15px; }
+                td, th { border: 1px solid #cbd5e1; padding: 6px 10px; font-size: 10pt; }
+                h2, h3, h4 { color: #0284c7; }
+            </style>
+        </head>
+        <body>
+    `;
+    const htmlFooter = "</body></html>";
+
+    const fullContent = htmlHeader + bodyContent + htmlFooter;
+    const blob = new Blob(['\ufeff' + fullContent], { type: 'application/msword' });
+    
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `Laporan_Resmi_${gId}_${nama}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+
+    showToast("✅ File Word laporan berhasil diunduh!", "success");
+}
     </script>
 </body>
 </html>
