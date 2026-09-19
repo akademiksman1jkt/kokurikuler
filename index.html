@@ -2041,7 +2041,7 @@ function applyAnswersToForm(mySub) {
 
     const setuju = await showCustomConfirm(
         "Kirim Laporan Final?", 
-        "Laporan kelompok akan dikirimkan. Pastikan seluruh isian sudah benar!", 
+        "Laporan resmi kelompok akan dikirimkan ke guru pendamping. Pastikan seluruh isian sudah benar!", 
         "🚀"
     );
 
@@ -2057,7 +2057,8 @@ function applyAnswersToForm(mySub) {
         const htmlContent = generateDraftHTML();
         const targetUrl = getApiUrl(currentStudentData.kelas);
 
-        const payload = {
+        // 🟢 BUNGKUS PAYLOAD DALAM BENTUK STRUKTUR JSON MURNI
+        const payloadData = {
             action: "submitFinalLaporan",
             groupId: currentStudentData.groupId,
             nisn: currentStudentData.nisn,
@@ -2068,15 +2069,16 @@ function applyAnswersToForm(mySub) {
         const res = await fetch(targetUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payloadData)
         });
 
         const result = await res.json();
 
         if (result.status === "success") {
-            showToast("🚀 Laporan kelompok berhasil dikirim!", "success");
+            showToast("🚀 Laporan kelompok berhasil dikirim ke server!", "success");
             if (btn) {
                 btn.disabled = true;
+                btn.style.background = "#059669";
                 btn.innerHTML = `✅ Laporan Terkirim`;
             }
         } else {
@@ -2087,6 +2089,7 @@ function applyAnswersToForm(mySub) {
             }
         }
     } catch (err) {
+        console.error("Error submit report:", err);
         showToast("Terjadi kesalahan jaringan saat mengirim laporan.", "error");
         if (btn) {
             btn.disabled = false;
