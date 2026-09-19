@@ -2050,7 +2050,7 @@ function applyAnswersToForm(mySub) {
     const setuju = await showCustomConfirm(
         isRevisi ? "Kirim Revisi Laporan?" : "Kirim Laporan Final?", 
         isRevisi 
-            ? "Laporan terbaru akan menggantikan laporan kelompok sebelumnya. Lanjutkan?" 
+            ? "Laporan terbaru akan digantikan di server. Lanjutkan?" 
             : "Laporan kelompok akan dikirimkan. Pastikan seluruh isian sudah benar!", 
         "🚀"
     );
@@ -2059,80 +2059,42 @@ function applyAnswersToForm(mySub) {
 
     if (btn) {
         btn.disabled = true;
-        btn.innerHTML = `⌛ Mengirim Laporan...`;
+        btn.innerHTML = `⌛ Memproses Laporan di Server...`;
     }
 
     try {
         const targetUrl = getApiUrl(currentStudentData.kelas);
-        const gId = currentStudentData.groupId;
 
-        // 1. Ambil data submissions dari server
-        let groupSubmissions = [];
-        try {
-            const resSub = await fetch(`${targetUrl}?action=getGroupSubmissions&groupId=${encodeURIComponent(gId)}`);
-            const dataSub = await resSub.json();
-            if (dataSub.status === "success" && dataSub.submissions) {
-                groupSubmissions = dataSub.submissions;
-            }
-        } catch (e) {
-            console.warn("Gagal tarik submissions:", e);
-        }
+        // SKEMA BARU: Payload sangat ringan, HTML akan disusun penuh oleh Apps Script
+        const payload = {
+            action: "submitFinalLaporan",
+            groupId: currentStudentData.groupId || "",
+            nisn: currentStudentData.nisn || "",
+            nama: currentStudentData.nama || "",
+            kelas: currentStudentData.kelas || ""
+        };
 
-        // 2. Generate string HTML dengan try-catch aman
-        let htmlContent = "";
-        try {
-            htmlContent = generateDraftHTML(groupSubmissions, typeof currentGroupPhotos !== 'undefined' ? currentGroupPhotos : []);
-        } catch (errHtml) {
-            console.error("Error generateDraftHTML:", errHtml);
-        }
-
-        // 🟢 PENGAMAN UTAMA: Pastikan HTML tidak kosong
-        if (!htmlContent || typeof htmlContent !== 'string' || htmlContent.trim().length < 20) {
-            let listAnggota = (currentStudentData.groupMembers || [currentStudentData.nama]).join(", ");
-            htmlContent = `
-                <div style="font-family: Arial, sans-serif; padding: 20px; line-height: 1.6;">
-                    <h2 style="color: #1e3a8a; border-bottom: 2px solid #1e3a8a; padding-bottom: 5px;">LAPORAN KOKURIKULER KELOMPOK ${gId}</h2>
-                    <p><strong>Pengirim Laporan:</strong> ${currentStudentData.nama} (${currentStudentData.nisn})</p>
-                    <p><strong>Kelas / Kelompok:</strong> ${currentStudentData.kelas} / ${currentStudentData.kelompok}</p>
-                    <p><strong>Anggota Tim:</strong> ${listAnggota}</p>
-                    <hr style="border: 0; border-top: 1px solid #ccc; margin: 15px 0;">
-                    <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px;">
-                        <h3 style="margin-top: 0;">Status Isian LKPD</h3>
-                        <p>Laporan resmi kelompok telah berhasil dikirimkan ke server pada ${new Date().toLocaleString('id-ID')}.</p>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Encode ke Base64 agar aman dari batasan karakter form
-        const base64Html = btoa(unescape(encodeURIComponent(htmlContent)));
-
-        // 3. Susun FormData
-        const formData = new URLSearchParams();
-        formData.append("action", "submitFinalLaporan");
-        formData.append("groupId", currentStudentData.groupId || "");
-        formData.append("nisn", currentStudentData.nisn || "");
-        formData.append("nama", currentStudentData.nama || "");
-        formData.append("kelas", currentStudentData.kelas || "");
-        formData.append("laporanHtmlBase64", base64Html);
-
-        // 4. Kirim ke Apps Script
-        await fetch(targetUrl, {
+        // Kirim via POST JSON murni
+        const res = await fetch(targetUrl, {
             method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: formData.toString()
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
         });
 
-        showToast("✅ " + (isRevisi ? "Revisi laporan berhasil dikirim!" : "Laporan berhasil dikirim!"), "success");
-        
-        if (typeof checkGroupSubmittedStatus === "function") {
-            setTimeout(() => { checkGroupSubmittedStatus(); }, 1200);
+        const resData = await res.json();
+
+        if (resData.status === "success") {
+            showToast("✅ " + (isRevisi ? "Revisi laporan berhasil menimpa data lama!" : "Laporan berhasil dikirim!"), "success");
+            if (typeof checkGroupSubmittedStatus === "function") {
+                setTimeout(() => { checkGroupSubmittedStatus(); }, 1000);
+            }
+        } else {
+            showToast("⚠️ Server: " + (resData.message || "Gagal memproses laporan"), "error");
         }
 
     } catch (err) {
         console.error("Error submit report:", err);
-        showToast("⚠️ Terjadi kesalahan pengiriman. Periksa koneksi Anda.", "error");
+        showToast("⚠️ Terjadi kesalahan koneksi. Silakan coba lagi.", "error");
     } finally {
         if (btn) {
             btn.disabled = false;
