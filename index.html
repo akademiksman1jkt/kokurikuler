@@ -3000,20 +3000,24 @@ async function previewAdminReportByData(jsonStr) {
             htmlContent = `<p style="color:red; text-align:center;">Format laporan tidak valid atau kosong.</p>`;
         }
 
+        // Render hanya teks laporan utama di area dokumen utama
         const renderArea = document.getElementById('adminReportRenderArea');
+        renderArea.innerHTML = `<div id="pdfTextOnlyContainer">${htmlContent}</div>`;
         
-        // 1. Render Teks Laporan Utama
-        renderArea.innerHTML = htmlContent;
         document.getElementById('adminReportPreviewCard').style.display = 'block';
         document.getElementById('adminReportPreviewCard').scrollIntoView({ behavior: 'smooth' });
 
-        // 2. Ambil Foto Secara Terpisah & Sisipkan di Bawah Tanpa Merusak Teks Laporan
+        // Tarik foto dan masukkan ke wadah terpisah DILUAR kontainer cetak PDF
         try {
             const kls = document.getElementById('adminLaporanFilterKelas') ? document.getElementById('adminLaporanFilterKelas').value : (rep.kelas || "");
             const targetUrl = getApiUrl(kls);
             const resPhoto = await fetch(`${targetUrl}?action=getGroupPhotos&groupId=${encodeURIComponent(rep.groupId)}`);
             const dataPhoto = await resPhoto.json();
             
+            // Hapus blok foto terpisah lama jika ada
+            const oldPhotoBlock = document.getElementById('separateAdminPhotoCard');
+            if (oldPhotoBlock) oldPhotoBlock.remove();
+
             if (dataPhoto.status === "success" && dataPhoto.photos) {
                 let photosList = Array.isArray(dataPhoto.photos) ? dataPhoto.photos : [];
                 if (typeof dataPhoto.photos === 'string') {
@@ -3030,9 +3034,7 @@ async function previewAdminReportByData(jsonStr) {
                         if (imgSrc) {
                             photosGridHtml += `
                                 <div style="flex: 1 1 calc(33.333% - 10px); max-width: calc(33.333% - 10px); box-sizing: border-box; text-align: center; border: 1px solid #cbd5e1; padding: 6px; border-radius: 6px; background: #f8fafc;">
-                                    <img src="${imgSrc}" 
-                                         style="width: 100%; height: 110px; object-fit: cover; border-radius: 4px; display: block;" 
-                                         alt="Dokumentasi ${index + 1}" />
+                                    <img src="${imgSrc}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 4px; display: block;" alt="Dokumentasi ${index + 1}" />
                                     <span style="font-size: 10px; color: #475569; display: block; margin-top: 4px; font-weight: bold;">Dokumentasi #${index + 1}</span>
                                 </div>
                             `;
@@ -3041,23 +3043,18 @@ async function previewAdminReportByData(jsonStr) {
                     
                     photosGridHtml += `</div>`;
 
-                    // Hapus blok foto lama jika ada
-                    const oldHeader = Array.from(renderArea.querySelectorAll('h4')).find(h => h.innerText.includes("VI. DOKUMENTASI"));
-                    if (oldHeader) {
-                        if (oldHeader.nextElementSibling) oldHeader.nextElementSibling.remove();
-                        oldHeader.remove();
-                    }
-
-                    // Gunakan appendChild (BUKAN innerHTML +=) Agar Teks Laporan Di Atasnya Tetap Utuh
-                    const photoDiv = document.createElement('div');
-                    photoDiv.id = "adminPhotoBlockContainer";
-                    photoDiv.innerHTML = `
-                        <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; color: #0f172a; margin-top: 20px; font-size:13px;">
-                            VI. DOKUMENTASI FOTO KELOMPOK LAPANGAN
+                    // Buat elemen terpisah khusus tampilan foto di layar admin
+                    const photoCard = document.createElement('div');
+                    photoCard.id = "separateAdminPhotoCard";
+                    photoCard.style.cssText = "margin-top: 20px; padding: 15px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px;";
+                    photoCard.innerHTML = `
+                        <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; color: #0f172a; margin: 0 0 10px 0; font-size:13px;">
+                            📷 DOKUMENTASI FOTO KELOMPOK (DOKUMEN LAMPIRAN)
                         </h4>
                     ` + photosGridHtml;
 
-                    renderArea.appendChild(photoDiv);
+                    // Tempelkan di luar area cetak PDF agar tidak bikin crash
+                    renderArea.parentNode.appendChild(photoCard);
                 }
             }
         } catch(e) {
@@ -3104,7 +3101,8 @@ function downloadAdminReportPDF() {
         return;
     }
     
-    const element = document.getElementById('adminReportRenderArea');
+    // Hanya cetak bagian teks dokumen agar tidak membebani memori
+    const element = document.getElementById('pdfTextOnlyContainer') || document.getElementById('adminReportRenderArea');
     if (!element || !element.innerText.trim()) {
         showToast("⚠️ Isi laporan kosong atau tidak valid!", "error");
         return;
@@ -3113,19 +3111,13 @@ function downloadAdminReportPDF() {
     const gId = currentAdminSelectedReport.groupId || "Kelompok";
     const nama = (currentAdminSelectedReport.nama || "Murid").replace(/[^a-zA-Z0-9]/g, "_");
 
-    showToast("⏳ Memproses file PDF...", "info");
+    showToast("⏳ Mengunduh PDF laporan...", "info");
 
-    // Opsi canvas diset ringan (scale: 1) agar memori browser tidak kehabisan saat merender gambar Base64
     const opt = {
-        margin:       [8, 8, 8, 8],
+        margin:       [10, 10, 10, 10],
         filename:     `Laporan_Resmi_${gId}_${nama}.pdf`,
-        image:        { type: 'jpeg', quality: 0.85 },
-        html2canvas:  { 
-            scale: 1, 
-            useCORS: true, 
-            logging: false,
-            removeContainer: true
-        },
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, logging: false },
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
