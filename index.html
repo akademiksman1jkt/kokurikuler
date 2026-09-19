@@ -2822,11 +2822,11 @@ async function saveGroupPhotosServer() {
     const tbody = document.getElementById('adminReportsTableBody');
     const targetKelas = document.getElementById('adminLaporanFilterKelas').value;
 
-    // Ambil angka kelas saja (Contoh: "X-4" -> "4")
     const klsNum = targetKelas.replace(/[^0-9]/g, '');
 
+    // 🟢 TAMBAHKAN "Kelompok 0" DI PALING DEPAN
     const daftarKelompok = [
-        "Kelompok 1", "Kelompok 2", "Kelompok 3", 
+        "Kelompok 0", "Kelompok 1", "Kelompok 2", "Kelompok 3", 
         "Kelompok 4", "Kelompok 5", "Kelompok 6"
     ];
 
@@ -2836,12 +2836,10 @@ async function saveGroupPhotosServer() {
         const kelNum = namaKelompok.replace(/[^0-9]/g, '');
         const expectedGroupId = `X${klsNum}-K${kelNum}`;
 
-        // Cari data laporan spesifik per Group ID
         const report = reports.find(r => 
             r.groupId && r.groupId.trim().toUpperCase() === expectedGroupId.toUpperCase()
         );
 
-        // PENGECEKAN KETAT: Cek apakah laporan resmi sudah benar-benar dikirim/ada isinya
         const isSubmitted = report && (
             (report.laporanHtmlBase64 && report.laporanHtmlBase64.length > 50) || 
             (report.laporanHtml && report.laporanHtml.length > 50) ||
@@ -2849,12 +2847,11 @@ async function saveGroupPhotosServer() {
         );
 
         if (isSubmitted) {
-            // STATUS 1: JIKA SISWA SUDAH KLIK KIRIM LAPORAN
             htmlRows += `
                 <tr>
                     <td>
                         <strong style="color:var(--primary);">${report.groupId}</strong><br>
-                        <small style="color:var(--text-muted);">${namaKelompok}</small>
+                        <small style="color:var(--text-muted);">${namaKelompok === "Kelompok 0" ? "Kelompok Demo / Uji Coba" : namaKelompok}</small>
                     </td>
                     <td style="text-align:left;">
                         <strong>${report.nama}</strong> (${report.nisn})<br>
@@ -2867,7 +2864,6 @@ async function saveGroupPhotosServer() {
                 </tr>
             `;
         } else {
-            // STATUS 2: JIKA SISWA BELUM KLIK KIRIM LAPORAN
             const pengirimNama = (report && report.nama) ? report.nama : "Belum ada pengirim";
             const pengirimNisn = (report && report.nisn) ? `(${report.nisn})` : "";
 
@@ -2875,7 +2871,7 @@ async function saveGroupPhotosServer() {
                 <tr style="background: #fff5f5;">
                     <td>
                         <strong style="color:#dc2626;">${expectedGroupId}</strong><br>
-                        <small style="color:var(--text-muted);">${namaKelompok}</small>
+                        <small style="color:var(--text-muted);">${namaKelompok === "Kelompok 0" ? "Kelompok Demo / Uji Coba" : namaKelompok}</small>
                     </td>
                     <td style="text-align:left; color:#991b1b;">
                         <em>${pengirimNama} ${pengirimNisn}</em><br>
@@ -3074,7 +3070,9 @@ async function fetchAdminProgressRealtime() {
 function renderAdminProgressTable(progressMap, targetKelas) {
     const tbody = document.getElementById('adminProgressTableBody');
     const klsNum = targetKelas.replace(/[^0-9]/g, '');
-    const daftarKelompok = ["Kelompok 1", "Kelompok 2", "Kelompok 3", "Kelompok 4", "Kelompok 5", "Kelompok 6"];
+    
+    // 🟢 TAMBAHKAN "Kelompok 0" DI PALING DEPAN
+    const daftarKelompok = ["Kelompok 0", "Kelompok 1", "Kelompok 2", "Kelompok 3", "Kelompok 4", "Kelompok 5", "Kelompok 6"];
 
     let html = "";
 
@@ -3086,7 +3084,6 @@ function renderAdminProgressTable(progressMap, targetKelas) {
         const pill = (isDone) => isDone ? `<span class="status-pill done">✅</span>` : `<span class="status-pill yet">-</span>`;
         const contributorsText = p.contributors.length > 0 ? p.contributors.join(", ") : "<em style='color:#94a3b8;'>Belum ada isian</em>";
 
-        // Cek syarat lengkap LKPD 1-4 dan minimal 5 foto
         const isFullyDone = p.lk1 && p.lk2 && p.lk3 && p.lk4 && p.photosCount >= 5;
         const totalStatus = isFullyDone 
             ? `<span style="color:#059669; font-weight:800; font-size:12px;">✅ Siap Kirim</span>` 
@@ -3094,7 +3091,7 @@ function renderAdminProgressTable(progressMap, targetKelas) {
 
         html += `
             <tr>
-                <td><strong>${gId}</strong><br><small style="color:var(--text-muted);">${namaKel}</small></td>
+                <td><strong>${gId}</strong><br><small style="color:var(--text-muted);">${namaKel === "Kelompok 0" ? "Demo" : namaKel}</small></td>
                 <td style="text-align:left; font-size:12px; max-width:200px;">${contributorsText}</td>
                 <td>${pill(p.lk1)}</td>
                 <td>${pill(p.lk2)}</td>
