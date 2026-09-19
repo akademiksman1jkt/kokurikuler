@@ -2072,32 +2072,32 @@ function applyAnswersToForm(mySub) {
         const backupPhotos = typeof currentGroupPhotos !== 'undefined' ? currentGroupPhotos : [];
         window.currentGroupPhotos = [];
 
+        // Hasilkan string HTML laporan terbaru dengan penggabungan key yang sudah cocok
         const cleanHtmlContent = generateDraftHTML(groupSubmissions, []);
 
         window.currentGroupPhotos = backupPhotos;
 
-        // 3. Format Payload
-        const formParams = new URLSearchParams();
-        formParams.append("action", "submitFinalLaporan");
-        formParams.append("groupId", currentStudentData.groupId);
-        formParams.append("nisn", currentStudentData.nisn);
-        formParams.append("nama", currentStudentData.nama);
-        formParams.append("kelas", currentStudentData.kelas || "");
-        formParams.append("laporanHtml", cleanHtmlContent);
+        // 3. Format Payload menggunakan JSON Object
+        const payloadData = {
+            action: "submitFinalLaporan",
+            groupId: currentStudentData.groupId,
+            nisn: currentStudentData.nisn,
+            nama: currentStudentData.nama,
+            kelas: currentStudentData.kelas || "",
+            laporanHtml: cleanHtmlContent
+        };
 
-        // 4. Kirim via POST
+        // 4. Kirim via POST dengan format text/plain agar bebas dari blokir CORS
         const res = await fetch(targetUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-            body: formParams.toString()
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payloadData)
         });
 
         const result = await res.json();
 
         if (result.status === "success") {
             showToast(isRevisi ? "🔄 Revisi laporan berhasil dikirim!" : "🚀 Laporan kelompok berhasil dikirim!", "success");
-            
-            // Panggil cek status untuk memperbarui tampilan tombol & badge
             checkGroupSubmittedStatus();
         } else {
             showToast("Gagal mengirim laporan: " + result.message, "error");
@@ -2108,8 +2108,11 @@ function applyAnswersToForm(mySub) {
         }
     } catch (err) {
         console.error("Error submit report:", err);
-        showToast("🚀 Laporan berhasil dikirim!", "success");
-        checkGroupSubmittedStatus();
+        showToast("⚠️ Gagal terhubung ke server. Periksa koneksi internet.", "error");
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = isRevisi ? `🔄 Kirim Revisi Laporan Kelompok` : `🚀 Kirim Laporan Final Kelompok`;
+        }
     }
 }
 
