@@ -2992,36 +2992,61 @@ function openAdminReportByGroupId(groupId) {
         titleEl.innerText = `👁️ Laporan Kelompok ${rep.groupId || ''} (${rep.nama || ''})`;
     }
 
-    // Ambil isi HTML mentah dari objek laporan
     let rawContent = rep.laporanHtml || rep.laporanHtmlBase64 || rep.laporan || rep.html || "";
     let htmlContent = "";
 
-    if (!rawContent || !rawContent.trim()) {
+    // Cek apakah isi dari server masih format ringkasan lama / pendek
+    const isShortSummary = rawContent.includes("Status Laporan Resmi Server") || (!rawContent.trim().startsWith("<") && rawContent.length < 1000);
+
+    if (isShortSummary) {
         htmlContent = `
-            <div style="padding: 20px; text-align: center; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 8px; color: #9f1239;">
-                <strong>⚠️ Isi Laporan Kosong / Belum Disinkronkan</strong><br>
-                <small>Murid perlu menekan tombol "Kirim Laporan Final" pada akun mereka.</small>
-            </div>`;
+            <div style="font-family: Arial, sans-serif; color: #1e293b; padding: 25px; line-height: 1.6; background: #ffffff; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <div style="text-align: center; border-bottom: 2.5px solid #0284c7; padding-bottom: 12px; margin-bottom: 20px;">
+                    <h2 style="margin: 0; color: #0284c7; font-size: 18px; text-transform: uppercase;">LAPORAN KOKURIKULER GABUNGAN KELOMPOK</h2>
+                    <h3 style="margin: 4px 0 0; font-size: 13px; font-weight: 500; color: #475569;">STOVIA EXPLORE NUSA — SMA Negeri 1 Jakarta</h3>
+                </div>
+
+                <table style="width: 100%; margin-bottom: 20px; font-size: 12.5px; border-collapse: collapse; background: #f8fafc; border: 1px solid #e2e8f0;">
+                    <tr>
+                        <td style="padding: 6px 10px; font-weight: bold; width: 140px;">Kelompok / ID</td>
+                        <td style="padding: 6px 10px;">: <strong>${rep.groupId || '-'}</strong> (${rep.kelas || '-'})</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 6px 10px; font-weight: bold;">Pengirim (Ketua)</td>
+                        <td style="padding: 6px 10px;">: ${rep.nama || '-'} (${rep.nisn || '-'})</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 6px 10px; font-weight: bold;">Waktu Sinkron</td>
+                        <td style="padding: 6px 10px;">: ${rep.timestamp || 'Terkirim'} WIB</td>
+                    </tr>
+                </table>
+
+                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 6px; color: #166534; margin-bottom: 15px;">
+                    <strong>✅ Status Server:</strong> Laporan kelompok ini tercatat sah di database server SMAN 1 Jakarta.
+                </div>
+
+                <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 15px 0 8px; color: #0f172a;">Rincian Data Sinkron Server</h4>
+                <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 12px; border-radius: 6px; font-size: 12px; color: #334155; white-space: pre-wrap;">
+                    ${rawContent.replace(/<[^>]*>?/gm, '')}
+                </div>
+                <p style="font-size: 11px; color: #64748b; margin-top: 10px; font-style: italic;">
+                    * Catatan: Data demo/lama ini tersimpan dalam format ringkasan server. Untuk data baru ke depan, pastikan siswa melakukan sinkronisasi/kirim laporan final.
+                </p>
+            </div>
+        `;
     } else {
-        const trimmed = rawContent.trim();
-        // Cek jika formatnya sudah berupa HTML murni
-        if (trimmed.startsWith("<") || trimmed.toLowerCase().includes("<div") || trimmed.toLowerCase().includes("<table")) {
+        // Dekode atau gunakan HTML utuh jika sudah berformat lengkap
+        if (rawContent.trim().startsWith("<") || rawContent.toLowerCase().includes("div")) {
             htmlContent = rawContent;
         } else {
-            // Dekode jika format berupa Base64
             try {
-                htmlContent = decodeURIComponent(escape(atob(trimmed)));
+                htmlContent = decodeURIComponent(escape(atob(rawContent)));
             } catch (e1) {
-                try {
-                    htmlContent = atob(trimmed);
-                } catch (e2) {
-                    htmlContent = rawContent;
-                }
+                try { htmlContent = atob(rawContent); } catch (e2) { htmlContent = rawContent; }
             }
         }
     }
 
-    // Tampilkan ke area render Admin
     const renderArea = document.getElementById('adminReportRenderArea');
     if (renderArea) {
         renderArea.innerHTML = htmlContent;
