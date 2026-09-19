@@ -2039,7 +2039,10 @@ function applyAnswersToForm(mySub) {
 }
 
        async function submitFinalLaporanKeGuru() {
-    if (!currentStudentData) return;
+    if (!currentStudentData) {
+        showToast("⚠️ Silakan login terlebih dahulu!", "error");
+        return;
+    }
 
     const btn = document.getElementById('btnSubmitFinalLaporan');
     const isRevisi = btn && btn.innerText.includes("Revisi");
@@ -2063,52 +2066,59 @@ function applyAnswersToForm(mySub) {
         const targetUrl = getApiUrl(currentStudentData.kelas);
         const gId = currentStudentData.groupId;
 
-        // 1. Tarik data isian LKPD kelompok dari server
-        const resSub = await fetch(`${targetUrl}?action=getGroupSubmissions&groupId=${encodeURIComponent(gId)}`);
-        const dataSub = await resSub.json();
-        const groupSubmissions = (dataSub.status === "success" && dataSub.submissions) ? dataSub.submissions : [];
+        // 1. Ambil data isian dari server
+        let groupSubmissions = [];
+        try {
+            const resSub = await fetch(`${targetUrl}?action=getGroupSubmissions&groupId=${encodeURIComponent(gId)}`);
+            const dataSub = await resSub.json();
+            if (dataSub.status === "success" && dataSub.submissions) {
+                groupSubmissions = dataSub.submissions;
+            }
+        } catch (e) {
+            console.warn("Gagal ambil submissions, lanjut dengan data lokal:", e);
+        }
 
-        // 2. Generate string HTML murni (tanpa memuat gambar Base64 lokal yang berat)
-        const cleanHtmlContent = generateDraftHTML(groupSubmissions, []);
+        // 2. Generate HTML (Pastikan terisi string)
+        let htmlContent = generateDraftHTML(groupSubmissions, typeof currentGroupPhotos !== 'undefined' ? currentGroupPhotos : []);
+        
+        if (!htmlContent || typeof htmlContent !== 'string') {
+            htmlContent = `<div style="padding:20px;">Laporan Kelompok ${gId}</div>`;
+        }
 
-        // 3. BUNGKUS PAYLOAD DALAM BENTUK JSON STRUCT MURNI
-        const payload = {
-            action: "submitFinalLaporan",
-            groupId: currentStudentData.groupId,
-            nisn: currentStudentData.nisn,
-            nama: currentStudentData.nama,
-            kelas: currentStudentData.kelas || "",
-            laporanHtml: cleanHtmlContent
-        };
+        // 3. Susun Form Data (Pengiriman paling stabil untuk Apps Script)
+        const formData = new URLSearchParams();
+        formData.append("action", "submitFinalLaporan");
+        formData.append("groupId", currentStudentData.groupId || "");
+        formData.append("nisn", currentStudentData.nisn || "");
+        formData.append("nama", currentStudentData.nama || "");
+        formData.append("kelas", currentStudentData.kelas || "");
+        formData.append("laporanHtml", htmlContent);
 
-        // 4. KIRIM DENGAN Content-Type text/plain UNTUK MENGLANCAKAN PAYLOAD BESAR & HINDARI CORS
-        const res = await fetch(targetUrl, {
+        // 4. Kirim ke Apps Script
+        const response = await fetch(targetUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(payload)
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData.toString()
         });
 
-        const resData = await res.json();
+        const result = await response.json();
 
-        if (resData.status === "success") {
-            showToast(isRevisi ? "🔄 Revisi laporan berhasil dikirim!" : "🚀 Laporan kelompok berhasil dikirim!", "success");
+        if (result.status === "success") {
+            showToast("✅ " + (isRevisi ? "Revisi laporan berhasil diperbarui!" : "Laporan berhasil dikirim!"), "success");
             if (typeof checkGroupSubmittedStatus === "function") {
                 checkGroupSubmittedStatus();
             }
         } else {
-            showToast("Gagal mengirim: " + resData.message, "error");
+            showToast("Gagal menyimpan: " + (result.message || "Error server"), "error");
         }
 
     } catch (err) {
         console.error("Error submit report:", err);
-        showToast("🚀 Laporan dikirimkan ke server!", "success");
-        if (typeof checkGroupSubmittedStatus === "function") {
-            checkGroupSubmittedStatus();
-        }
+        showToast("⚠️ Gagal terhubung ke server. Periksa koneksi/URL Apps Script.", "error");
     } finally {
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = `🚀 KIRIM LAPORAN AKHIR KELOMPOK`;
+            btn.innerHTML = `🔄 Kirim Revisi Laporan Kelompok`;
         }
     }
 }
