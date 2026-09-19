@@ -1982,18 +1982,26 @@ function applyAnswersToForm(mySub) {
         }
 
         function saveProgress(type) {
+    if (!currentStudentData || !currentStudentData.groupId) {
+        showToast("⚠️ Data siswa tidak ditemukan. Silakan login ulang!", "error");
+        return;
+    }
+
     const targetUrl = getApiUrl(currentStudentData ? currentStudentData.kelas : "X-1");
     const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value.trim() : "";
 
-    const dataObj = {
-        nisn: currentStudentData ? currentStudentData.nisn : "",
-        nama: currentStudentData ? currentStudentData.nama : "MURID",
-        kelas: currentStudentData ? currentStudentData.kelas : "X-1",
-        kelompok: currentStudentData ? currentStudentData.kelompok : "Kelompok 1",
-        groupId: currentStudentData ? currentStudentData.groupId : "X1-K1",
-        anjungan: currentStudentData ? currentStudentData.anjungan : "",
-        misiCode: currentStudentData ? currentStudentData.misiCode : "",
+    // 1. Susun payload langsung di tingkat paling luar (top-level)
+    const payload = {
+        action: "saveLKPD",
+        nisn: currentStudentData.nisn || "",
+        nama: currentStudentData.nama || "",
+        kelas: currentStudentData.kelas || "X-1",
+        kelompok: currentStudentData.kelompok || "Kelompok 1",
+        groupId: currentStudentData.groupId || "X1-K1",
+        anjungan: currentStudentData.anjungan || "",
+        misiCode: currentStudentData.misiCode || "",
 
+        // Data Isian LKPD 1 - 4
         lk1_a1_nama: getVal('lk1_alat1_nama'), lk1_a1_zona: getVal('lk1_alat1_zona'), lk1_a1_hasil: getVal('lk1_alat1_hasil'), lk1_a1_konsep: getVal('lk1_alat1_konsep'),
         lk1_a2_nama: getVal('lk1_alat2_nama'), lk1_a2_zona: getVal('lk1_alat2_zona'), lk1_a2_hasil: getVal('lk1_alat2_hasil'), lk1_a2_konsep: getVal('lk1_alat2_konsep'),
         lk1_a3_nama: getVal('lk1_alat3_nama'), lk1_a3_zona: getVal('lk1_alat3_zona'), lk1_a3_hasil: getVal('lk1_alat3_hasil'), lk1_a3_konsep: getVal('lk1_alat3_konsep'),
@@ -2005,19 +2013,16 @@ function applyAnswersToForm(mySub) {
         lk4_kendala: getVal('lk4_kendala'), lk4_kerjasama: getVal('lk4_kerjasama')
     };
 
-    // 🟢 SIMPAN CADANGAN LOKAL AGAR TIDAK HILANG SAAT REFRESH
-    localStorage.setItem(`backup_lkpd_${dataObj.groupId}_${dataObj.nisn}`, JSON.stringify(dataObj));
-
-    const formData = new URLSearchParams();
-    formData.append("action", "saveLKPD");
-    formData.append("data", JSON.stringify(dataObj));
+    // 2. Simpan cadangan lokal
+    localStorage.setItem(`backup_lkpd_${payload.groupId}_${payload.nisn}`, JSON.stringify(payload));
 
     showToast("Menyimpan data...", "info");
 
+    // 3. Kirim payload JSON murni
     fetch(targetUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: formData.toString()
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
     })
     .then(res => res.json())
     .then(data => {
@@ -2028,10 +2033,11 @@ function applyAnswersToForm(mySub) {
             showToast("✅ Tersimpan! Data LKPD berhasil disinkronkan.", "success");
             backToHub();
         } else {
-            showToast("⚠️ " + data.message, "error");
+            showToast("⚠️ " + (data.message || "Gagal menyimpan"), "error");
         }
     })
     .catch(err => {
+        console.error(err);
         showToast("⚠️ Gagal kirim ke server, tapi data tersimpan di HP/Browser ini.", "error");
         if (type) completionStatus[type] = true;
         updateChecklistUI();
