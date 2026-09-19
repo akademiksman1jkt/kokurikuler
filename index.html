@@ -2992,16 +2992,36 @@ function openAdminReportByGroupId(groupId) {
         titleEl.innerText = `👁️ Laporan Kelompok ${rep.groupId || ''} (${rep.nama || ''})`;
     }
 
-    // 🟢 CEK: Jika isi laporan di database masih ringkasan singkat, pakai fungsi pembentuk laporan utuh dari frontend
+    // Ambil isi HTML mentah dari objek laporan
+    let rawContent = rep.laporanHtml || rep.laporanHtmlBase64 || rep.laporan || rep.html || "";
     let htmlContent = "";
-    if (typeof generateDraftHTML === 'function') {
-        // Otomatis bikin tampilan laporan utuh LKPD 1-4 + Foto persis seperti di menu user
-        htmlContent = generateDraftHTML(rep.groupId); 
+
+    if (!rawContent || !rawContent.trim()) {
+        htmlContent = `
+            <div style="padding: 20px; text-align: center; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 8px; color: #9f1239;">
+                <strong>⚠️ Isi Laporan Kosong / Belum Disinkronkan</strong><br>
+                <small>Murid perlu menekan tombol "Kirim Laporan Final" pada akun mereka.</small>
+            </div>`;
     } else {
-        htmlContent = rep.laporanHtml || rep.laporanHtmlBase64 || "<p>Isi laporan kosong.</p>";
+        const trimmed = rawContent.trim();
+        // Cek jika formatnya sudah berupa HTML murni
+        if (trimmed.startsWith("<") || trimmed.toLowerCase().includes("<div") || trimmed.toLowerCase().includes("<table")) {
+            htmlContent = rawContent;
+        } else {
+            // Dekode jika format berupa Base64
+            try {
+                htmlContent = decodeURIComponent(escape(atob(trimmed)));
+            } catch (e1) {
+                try {
+                    htmlContent = atob(trimmed);
+                } catch (e2) {
+                    htmlContent = rawContent;
+                }
+            }
+        }
     }
 
-    // Tampilkan ke area preview Admin
+    // Tampilkan ke area render Admin
     const renderArea = document.getElementById('adminReportRenderArea');
     if (renderArea) {
         renderArea.innerHTML = htmlContent;
