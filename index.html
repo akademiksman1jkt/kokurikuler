@@ -1656,30 +1656,43 @@ function applyAnswersToForm(mySub) {
     let rowsHtml = "";
 
     members.forEach(memberNama => {
-        // Pencarian nama murid dibuat lebih fleksibel
+        const cleanMember = memberNama.trim().toLowerCase();
+        
+        // Pencarian nama murid dibuat fleksibel & abaikan spasi
         const sub = submissions.find(s => 
-            (s.nama && s.nama.trim().toLowerCase() === memberNama.trim().toLowerCase()) ||
-            (s.Nama && s.Nama.trim().toLowerCase() === memberNama.trim().toLowerCase())
+            (s.nama && s.nama.trim().toLowerCase() === cleanMember) ||
+            (s.Nama && s.Nama.trim().toLowerCase() === cleanMember)
         );
         
-        // Pengecekan LKPD 1
+        // Pengecekan LKPD 1 (Abaikan String Kosong)
         const hasLk1 = sub && !!(
-            sub.lk1_a1_nama || sub.lk1_a1_hasil || sub.lk1_a2_nama || sub.lk1_a2_hasil || sub.lk1_aplikasi
+            (sub.lk1_a1_nama && sub.lk1_a1_nama.toString().trim() !== "") || 
+            (sub.lk1_a1_hasil && sub.lk1_a1_hasil.toString().trim() !== "") ||
+            (sub.lk1_aplikasi && sub.lk1_aplikasi.toString().trim() !== "")
         );
 
         // Pengecekan LKPD 2
         const hasLk2 = sub && !!(
-            sub.lk2_fokus || sub.lk2_data1 || sub.lk2_data2 || sub.lk2_data3 || sub.lk2_koneksi
+            (sub.lk2_fokus && sub.lk2_fokus.toString().trim() !== "") || 
+            (sub.lk2_data1 && sub.lk2_data1.toString().trim() !== "") ||
+            (sub.lk2_koneksi && sub.lk2_koneksi.toString().trim() !== "")
         );
 
-        // Pengecekan LKPD 3 (Perbaikan: Cek seluruh pilar STEAM & Judul)
+        // Pengecekan LKPD 3 (Seluruh Pilar STEAM)
         const hasLk3 = sub && !!(
-            sub.lk3_judul || sub.lk3_format || sub.steam_s || sub.steam_t || sub.steam_e || sub.steam_a || sub.steam_m
+            (sub.lk3_judul && sub.lk3_judul.toString().trim() !== "") || 
+            (sub.lk3_format && sub.lk3_format.toString().trim() !== "") || 
+            (sub.steam_s && sub.steam_s.toString().trim() !== "") || 
+            (sub.steam_t && sub.steam_t.toString().trim() !== "") || 
+            (sub.steam_e && sub.steam_e.toString().trim() !== "") || 
+            (sub.steam_a && sub.steam_a.toString().trim() !== "") || 
+            (sub.steam_m && sub.steam_m.toString().trim() !== "")
         );
 
         // Pengecekan LKPD 4
         const hasLk4 = sub && !!(
-            sub.lk4_kendala || sub.lk4_kerjasama
+            (sub.lk4_kendala && sub.lk4_kendala.toString().trim() !== "") || 
+            (sub.lk4_kerjasama && sub.lk4_kerjasama.toString().trim() !== "")
         );
 
         if(hasLk1) groupHasLk1 = true;
@@ -1687,11 +1700,20 @@ function applyAnswersToForm(mySub) {
         if(hasLk3) groupHasLk3 = true;
         if(hasLk4) groupHasLk4 = true;
 
+        const isSelf = cleanMember === currentStudentData.nama.trim().toLowerCase();
+
+        // 🟢 UBAH CHECKLIST MENU UTAMA SECARA OTOMATIS JIKA INI AKUN SAYA
+        if (isSelf) {
+            completionStatus.lkpd1 = hasLk1;
+            completionStatus.lkpd2 = hasLk2;
+            completionStatus.lkpd3 = hasLk3;
+            completionStatus.lkpd4 = hasLk4;
+            if (typeof updateChecklistUI === "function") updateChecklistUI();
+        }
+
         const makePill = (isDone) => isDone 
             ? `<span class="status-pill done">✅</span>` 
             : `<span class="status-pill yet">-</span>`;
-
-        const isSelf = memberNama.trim().toLowerCase() === currentStudentData.nama.trim().toLowerCase();
 
         let btnLihat = `<span style="color:#94a3b8; font-size:11px;">Belum Ada</span>`;
         if(sub && (hasLk1 || hasLk2 || hasLk3 || hasLk4)) {
@@ -1712,24 +1734,24 @@ function applyAnswersToForm(mySub) {
 
     tbody.innerHTML = rowsHtml;
 
-    // KONTROL AKTIVASI TOMBOL KIRIM LAPORAN
+    // 🟢 CEK SYARAT LKPD 1-4 DAN FOTO UNTUK MEMBUKA TOMBOL KIRIM LAPORAN
+    const hasPhotos = (typeof currentGroupPhotos !== 'undefined' && currentGroupPhotos.length > 0) || completionStatus.docs;
     const btnSubmit = document.getElementById('btnSubmitFinalLaporan');
     const submitBadge = document.getElementById('submitStatusBadge');
-    
-    // Syarat Lapor: LKPD 1-4 Terisi secara Kolektif Tim
-    if (groupHasLk1 && groupHasLk2 && groupHasLk3 && groupHasLk4) {
+
+    if (groupHasLk1 && groupHasLk2 && groupHasLk3 && groupHasLk4 && hasPhotos) {
         if(btnSubmit) btnSubmit.disabled = false;
         if(submitBadge) {
             submitBadge.style.background = "#059669";
             submitBadge.style.color = "#ffffff";
-            submitBadge.innerText = "✅ Tim Lengkap, Siap Dikirim";
+            submitBadge.innerText = "✅ Tim Lengkap & Foto Terunggah, Siap Dikirim";
         }
     } else {
         if(btnSubmit) btnSubmit.disabled = true;
         if(submitBadge) {
             submitBadge.style.background = "#334155";
             submitBadge.style.color = "#94a3b8";
-            submitBadge.innerText = "🔒 LKPD Tim Belum Lengkap";
+            submitBadge.innerText = "🔒 LKPD / Foto Tim Belum Lengkap";
         }
     }
 }
@@ -2333,7 +2355,7 @@ function applyAnswersToForm(mySub) {
 
 // 1. Memuat data foto dan kuota saat menu dibuka
 async function loadGroupPhotosQuota() {
-    if(!currentStudentData) return;
+    if (!currentStudentData) return;
     const targetUrl = getApiUrl(currentStudentData.kelas);
     const gId = currentStudentData.groupId;
 
@@ -2341,20 +2363,33 @@ async function loadGroupPhotosQuota() {
         const res = await fetch(`${targetUrl}?action=getGroupPhotos&groupId=${encodeURIComponent(gId)}`);
         const data = await res.json();
 
-        if(data.status === "success") {
-            currentGroupPhotos = data.photos || [];
-            
-            // 🟢 UPDATE STATUS CHECKLIST JIKA FOTO SUDAH ADA
+        if (data.status === "success") {
+            // 🟢 PENGAMAN: Pastikan photos selalu berupa Array yang valid
+            let photosArr = [];
+            if (Array.isArray(data.photos)) {
+                photosArr = data.photos;
+            } else if (typeof data.photos === 'string' && data.photos.trim() !== '') {
+                try { photosArr = JSON.parse(data.photos); } catch(e) { photosArr = []; }
+            }
+
+            currentGroupPhotos = photosArr;
+
+            // 🟢 TANDAI SELESAI JIKA ADA MINIMAL 1 FOTO TERPANTAU
             if (currentGroupPhotos.length > 0) {
                 completionStatus.docs = true;
             } else {
                 completionStatus.docs = false;
             }
-            
+
             updateChecklistUI();
             renderGroupPhotosUI();
+
+            // Sync ulang tabel tim agar indikator foto dan LKPD sinkron
+            if (typeof syncGroupStatusProgress === 'function') {
+                syncGroupStatusProgress();
+            }
         }
-    } catch(err) {
+    } catch (err) {
         console.warn("Gagal memuat data foto kelompok:", err);
     }
 }
