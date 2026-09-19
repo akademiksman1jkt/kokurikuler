@@ -3001,12 +3001,13 @@ async function previewAdminReportByData(jsonStr) {
         }
 
         const renderArea = document.getElementById('adminReportRenderArea');
-        // Render teks laporan murni
+        
+        // 1. Render Teks Laporan Utama
         renderArea.innerHTML = htmlContent;
         document.getElementById('adminReportPreviewCard').style.display = 'block';
         document.getElementById('adminReportPreviewCard').scrollIntoView({ behavior: 'smooth' });
 
-        // Tarik foto secara terpisah tanpa merusak DOM teks laporan
+        // 2. Ambil Foto Secara Terpisah & Sisipkan di Bawah Tanpa Merusak Teks Laporan
         try {
             const kls = document.getElementById('adminLaporanFilterKelas') ? document.getElementById('adminLaporanFilterKelas').value : (rep.kelas || "");
             const targetUrl = getApiUrl(kls);
@@ -3040,14 +3041,14 @@ async function previewAdminReportByData(jsonStr) {
                     
                     photosGridHtml += `</div>`;
 
-                    // Hapus seksi foto lama di teks laporan jika ada
+                    // Hapus blok foto lama jika ada
                     const oldHeader = Array.from(renderArea.querySelectorAll('h4')).find(h => h.innerText.includes("VI. DOKUMENTASI"));
                     if (oldHeader) {
                         if (oldHeader.nextElementSibling) oldHeader.nextElementSibling.remove();
                         oldHeader.remove();
                     }
 
-                    // Tempelkan seksi foto di bagian paling bawah DOM
+                    // Gunakan appendChild (BUKAN innerHTML +=) Agar Teks Laporan Di Atasnya Tetap Utuh
                     const photoDiv = document.createElement('div');
                     photoDiv.id = "adminPhotoBlockContainer";
                     photoDiv.innerHTML = `
@@ -3114,7 +3115,7 @@ function downloadAdminReportPDF() {
 
     showToast("⏳ Memproses file PDF...", "info");
 
-    // Pengaturan canvas skala 1x untuk mencegah pembengkakan memori (Maximum call stack size exceeded)
+    // Opsi canvas diset ringan (scale: 1) agar memori browser tidak kehabisan saat merender gambar Base64
     const opt = {
         margin:       [8, 8, 8, 8],
         filename:     `Laporan_Resmi_${gId}_${nama}.pdf`,
