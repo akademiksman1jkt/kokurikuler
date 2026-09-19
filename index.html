@@ -2166,7 +2166,7 @@ function applyAnswersToForm(mySub) {
         function generateDraftHTML(submissions = [], photos = []) {
     const user = currentStudentData || {};
     
-    // 🟢 GUNAKAN FOTO DARI PARAMETER ATAU DARI VARIABEL GLOBAL currentGroupPhotos
+    // 🟢 GUNAKAN FOTO DARI PARAMETER ATAU VARIABEL GLOBAL currentGroupPhotos
     const groupPhotos = (photos && photos.length > 0) ? photos : (typeof currentGroupPhotos !== 'undefined' ? currentGroupPhotos : []);
 
     const groupMembers = user.groupMembers || [user.nama || 'Murid'];
@@ -2190,16 +2190,18 @@ function applyAnswersToForm(mySub) {
             : `<em style="color:#94a3b8;">(Belum diisi)</em>`;
     };
 
-    // 🟢 SUSUN TAMPILAN FOTO DOKUMENTASI (GRID FOTO)
-    // 🟢 FUNGSI KONVERSI LINK GOOGLE DRIVE KE DIRECT IMAGE LINK
-    const formatDriveUrl = (url) => {
-        if (!url || typeof url !== 'string') return '';
-        if (url.startsWith('data:image')) return url; // Jika format base64
+    // 🟢 FUNGSI KONVERSI LINK GOOGLE DRIVE (MENDUKUNG FORMAT STRING & OBJEK JSON)
+    const getCleanImgUrl = (item) => {
+        if (!item) return '';
         
-        // Ekstrak File ID dari berbagai format link Google Drive
+        // Ekstrak properti .url jika data berupa Objek JSON [{"id":"...", "url":"..."}]
+        let url = (typeof item === 'object' && item.url) ? item.url : String(item);
+        if (url.startsWith('data:image')) return url; // Base64
+
+        // Ekstrak ID File dari URL Google Drive
         const match = url.match(/[-\w]{25,}/);
         if (match && match[0]) {
-            return `https://lh3.googleusercontent.com/d/${match[0]}=s800`;
+            return `https://drive.google.com/thumbnail?id=${match[0]}&sz=w800`;
         }
         return url;
     };
@@ -2208,11 +2210,19 @@ function applyAnswersToForm(mySub) {
     let photosHtml = "";
     if (groupPhotos && groupPhotos.length > 0) {
         photosHtml = `<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">`;
-        groupPhotos.forEach((rawUrl, index) => {
-            const imgUrl = formatDriveUrl(rawUrl);
+        groupPhotos.forEach((item, index) => {
+            const rawUrl = (typeof item === 'object' && item.url) ? item.url : String(item);
+            const fileIdMatch = rawUrl.match(/[-\w]{25,}/);
+            const fileId = fileIdMatch ? fileIdMatch[0] : '';
+            const imgUrl = getCleanImgUrl(item);
+
             photosHtml += `
                 <div style="flex: 1 1 calc(33.333% - 10px); max-width: calc(33.333% - 10px); box-sizing: border-box; text-align: center; border: 1px solid #e2e8f0; padding: 5px; border-radius: 6px; background: #fafafa;">
-                    <img src="${imgUrl}" crossorigin="anonymous" style="width: 100%; height: 120px; object-fit: cover; border-radius: 4px;" alt="Foto ${index + 1}" />
+                    <img src="${imgUrl}" 
+                         referrerpolicy="no-referrer" 
+                         style="width: 100%; height: 120px; object-fit: cover; border-radius: 4px; display: block;" 
+                         alt="Foto ${index + 1}" 
+                         onerror="this.onerror=null; this.src='https://lh3.googleusercontent.com/d/${fileId}=s800';" />
                     <span style="font-size: 10px; color: #64748b; display: block; margin-top: 4px;">Dokumentasi #${index + 1}</span>
                 </div>
             `;
