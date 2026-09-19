@@ -2166,8 +2166,19 @@ function applyAnswersToForm(mySub) {
         function generateDraftHTML(submissions = [], photos = []) {
     const user = currentStudentData || {};
     
-    // 🟢 GUNAKAN FOTO DARI PARAMETER ATAU VARIABEL GLOBAL currentGroupPhotos
-    const groupPhotos = (photos && photos.length > 0) ? photos : (typeof currentGroupPhotos !== 'undefined' ? currentGroupPhotos : []);
+    // 🟢 1. PARSE & NORMALISASI DATA FOTO KELOMPOK
+    let rawPhotos = (photos && photos.length > 0) ? photos : (typeof currentGroupPhotos !== 'undefined' ? currentGroupPhotos : []);
+    
+    // Jika data foto dikirim sebagai String JSON dari Google Sheets, parse dahulu
+    if (typeof rawPhotos === 'string') {
+        try { 
+            rawPhotos = JSON.parse(rawPhotos); 
+        } catch(e) { 
+            rawPhotos = []; 
+        }
+    }
+    
+    const groupPhotos = Array.isArray(rawPhotos) ? rawPhotos : [];
 
     const groupMembers = user.groupMembers || [user.nama || 'Murid'];
     const memberListHtml = groupMembers.map((m, idx) => `<li>${idx + 1}. ${m}</li>`).join("");
@@ -2190,42 +2201,45 @@ function applyAnswersToForm(mySub) {
             : `<em style="color:#94a3b8;">(Belum diisi)</em>`;
     };
 
-    // 🟢 FUNGSI KONVERSI LINK GOOGLE DRIVE (MENDUKUNG FORMAT STRING & OBJEK JSON)
+    // 🟢 2. FUNGSI EKSTRAK URL / BASE64 FOTO SECARA AMAN
     const getCleanImgUrl = (item) => {
         if (!item) return '';
         
-        // Ekstrak properti .url jika data berupa Objek JSON [{"id":"...", "url":"..."}]
-        let url = (typeof item === 'object' && item.url) ? item.url : String(item);
-        if (url.startsWith('data:image')) return url; // Base64
+        // Ambil properti .url jika item berbentuk Objek JSON {"id": "...", "url": "..."}
+        let url = (typeof item === 'object' && item !== null && item.url) ? item.url : String(item);
+        url = url.trim();
 
-        // Ekstrak ID File dari URL Google Drive
+        // Jika berbentuk Base64 (data:image/...) atau URL HTTP biasa, kembalikan langsung
+        if (url.startsWith('data:image') || url.startsWith('http')) {
+            return url;
+        }
+
+        // Jika berupa File ID Google Drive biasa, ubah ke URL Thumbnail
         const match = url.match(/[-\w]{25,}/);
         if (match && match[0]) {
             return `https://drive.google.com/thumbnail?id=${match[0]}&sz=w800`;
         }
+        
         return url;
     };
 
-    // 🟢 SUSUN TAMPILAN FOTO DOKUMENTASI (GRID FOTO)
+    // 🟢 3. SUSUN TAMPILAN FOTO DOKUMENTASI (GRID FOTO)
     let photosHtml = "";
     if (groupPhotos && groupPhotos.length > 0) {
         photosHtml = `<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">`;
         groupPhotos.forEach((item, index) => {
-            const rawUrl = (typeof item === 'object' && item.url) ? item.url : String(item);
-            const fileIdMatch = rawUrl.match(/[-\w]{25,}/);
-            const fileId = fileIdMatch ? fileIdMatch[0] : '';
             const imgUrl = getCleanImgUrl(item);
 
-            photosHtml += `
-                <div style="flex: 1 1 calc(33.333% - 10px); max-width: calc(33.333% - 10px); box-sizing: border-box; text-align: center; border: 1px solid #e2e8f0; padding: 5px; border-radius: 6px; background: #fafafa;">
-                    <img src="${imgUrl}" 
-                         referrerpolicy="no-referrer" 
-                         style="width: 100%; height: 120px; object-fit: cover; border-radius: 4px; display: block;" 
-                         alt="Foto ${index + 1}" 
-                         onerror="this.onerror=null; this.src='https://lh3.googleusercontent.com/d/${fileId}=s800';" />
-                    <span style="font-size: 10px; color: #64748b; display: block; margin-top: 4px;">Dokumentasi #${index + 1}</span>
-                </div>
-            `;
+            if (imgUrl) {
+                photosHtml += `
+                    <div style="flex: 1 1 calc(33.333% - 10px); max-width: calc(33.333% - 10px); box-sizing: border-box; text-align: center; border: 1px solid #cbd5e1; padding: 6px; border-radius: 6px; background: #f8fafc;">
+                        <img src="${imgUrl}" 
+                             style="width: 100%; height: 120px; object-fit: cover; border-radius: 4px; display: block;" 
+                             alt="Dokumentasi ${index + 1}" />
+                        <span style="font-size: 10px; color: #475569; display: block; margin-top: 4px; font-weight: bold;">Dokumentasi #${index + 1}</span>
+                    </div>
+                `;
+            }
         });
         photosHtml += `</div>`;
     } else {
