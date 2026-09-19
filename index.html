@@ -2992,31 +2992,16 @@ function openAdminReportByGroupId(groupId) {
         titleEl.innerText = `👁️ Laporan Kelompok ${rep.groupId || ''} (${rep.nama || ''})`;
     }
 
-    // Ambil isi HTML mentah
-    let rawContent = rep.laporanHtml || rep.laporanHtmlBase64 || rep.laporan || rep.html || "";
+    // 🟢 CEK: Jika isi laporan di database masih ringkasan singkat, pakai fungsi pembentuk laporan utuh dari frontend
     let htmlContent = "";
-
-    if (!rawContent || !rawContent.trim()) {
-        htmlContent = `<p style="color:red; text-align:center; padding:20px;">Isi laporan kosong atau data tidak ditemukan.</p>`;
+    if (typeof generateDraftHTML === 'function') {
+        // Otomatis bikin tampilan laporan utuh LKPD 1-4 + Foto persis seperti di menu user
+        htmlContent = generateDraftHTML(rep.groupId); 
     } else {
-        // Cek apakah data sudah berbentuk tag HTML murni (<div, <table, dll)
-        if (rawContent.trim().startsWith("<") || rawContent.toLowerCase().includes("div") || rawContent.toLowerCase().includes("table")) {
-            htmlContent = rawContent; 
-        } else {
-            // Dekode Base64 jika data dalam format lama
-            try {
-                htmlContent = decodeURIComponent(escape(atob(rawContent)));
-            } catch (e1) {
-                try {
-                    htmlContent = atob(rawContent);
-                } catch (e2) {
-                    htmlContent = rawContent; 
-                }
-            }
-        }
+        htmlContent = rep.laporanHtml || rep.laporanHtmlBase64 || "<p>Isi laporan kosong.</p>";
     }
 
-    // Tampilkan isi laporan ke elemen pratinjau Admin
+    // Tampilkan ke area preview Admin
     const renderArea = document.getElementById('adminReportRenderArea');
     if (renderArea) {
         renderArea.innerHTML = htmlContent;
