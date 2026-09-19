@@ -3006,7 +3006,7 @@ async function previewAdminReportByData(jsonStr) {
         document.getElementById('adminReportPreviewCard').style.display = 'block';
         document.getElementById('adminReportPreviewCard').scrollIntoView({ behavior: 'smooth' });
 
-        // Tarik foto tanpa merusak DOM teks laporan yang sudah dirender
+        // Tarik foto secara terpisah tanpa merusak DOM teks laporan
         try {
             const kls = document.getElementById('adminLaporanFilterKelas') ? document.getElementById('adminLaporanFilterKelas').value : (rep.kelas || "");
             const targetUrl = getApiUrl(kls);
@@ -3030,7 +3030,7 @@ async function previewAdminReportByData(jsonStr) {
                             photosGridHtml += `
                                 <div style="flex: 1 1 calc(33.333% - 10px); max-width: calc(33.333% - 10px); box-sizing: border-box; text-align: center; border: 1px solid #cbd5e1; padding: 6px; border-radius: 6px; background: #f8fafc;">
                                     <img src="${imgSrc}" 
-                                         style="width: 100%; height: 120px; object-fit: cover; border-radius: 4px; display: block;" 
+                                         style="width: 100%; height: 110px; object-fit: cover; border-radius: 4px; display: block;" 
                                          alt="Dokumentasi ${index + 1}" />
                                     <span style="font-size: 10px; color: #475569; display: block; margin-top: 4px; font-weight: bold;">Dokumentasi #${index + 1}</span>
                                 </div>
@@ -3040,23 +3040,22 @@ async function previewAdminReportByData(jsonStr) {
                     
                     photosGridHtml += `</div>`;
 
-                    // Buat node kontainer tersendiri di bagian bawah
-                    const photoDiv = document.createElement('div');
-                    photoDiv.id = "adminPhotoSectionBlock";
-                    photoDiv.innerHTML = `
-                        <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; color: #0f172a; margin-top: 20px; font-size:13px;">
-                            VI. DOKUMENTASI FOTO KELOMPOK LAPANGAN
-                        </h4>
-                    ` + photosGridHtml;
-
-                    // Hapus blok foto lama jika pernah tersisip di dalam teks
+                    // Hapus seksi foto lama di teks laporan jika ada
                     const oldHeader = Array.from(renderArea.querySelectorAll('h4')).find(h => h.innerText.includes("VI. DOKUMENTASI"));
                     if (oldHeader) {
                         if (oldHeader.nextElementSibling) oldHeader.nextElementSibling.remove();
                         oldHeader.remove();
                     }
 
-                    // Gunakan appendChild agar teks laporan di atasnya TIDAK TERNIMPA
+                    // Tempelkan seksi foto di bagian paling bawah DOM
+                    const photoDiv = document.createElement('div');
+                    photoDiv.id = "adminPhotoBlockContainer";
+                    photoDiv.innerHTML = `
+                        <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; color: #0f172a; margin-top: 20px; font-size:13px;">
+                            VI. DOKUMENTASI FOTO KELOMPOK LAPANGAN
+                        </h4>
+                    ` + photosGridHtml;
+
                     renderArea.appendChild(photoDiv);
                 }
             }
@@ -3113,17 +3112,18 @@ function downloadAdminReportPDF() {
     const gId = currentAdminSelectedReport.groupId || "Kelompok";
     const nama = (currentAdminSelectedReport.nama || "Murid").replace(/[^a-zA-Z0-9]/g, "_");
 
-    showToast("⏳ Mengunduh PDF laporan...", "info");
+    showToast("⏳ Memproses file PDF...", "info");
 
-    // Konfigurasi html2pdf ringan tanpa memicu stack overflow
+    // Pengaturan canvas skala 1x untuk mencegah pembengkakan memori (Maximum call stack size exceeded)
     const opt = {
-        margin:       [10, 10, 10, 10],
+        margin:       [8, 8, 8, 8],
         filename:     `Laporan_Resmi_${gId}_${nama}.pdf`,
-        image:        { type: 'jpeg', quality: 0.90 },
+        image:        { type: 'jpeg', quality: 0.85 },
         html2canvas:  { 
             scale: 1, 
             useCORS: true, 
-            logging: false
+            logging: false,
+            removeContainer: true
         },
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
