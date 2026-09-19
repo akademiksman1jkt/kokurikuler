@@ -2041,7 +2041,7 @@ function applyAnswersToForm(mySub) {
 
     const setuju = await showCustomConfirm(
         "Kirim Laporan Final?", 
-        "Laporan resmi kelompok akan dikirimkan. Pastikan seluruh isian sudah benar!", 
+        "Laporan resmi kelompok akan dikirimkan. Pastikan seluruh isian dan foto sudah benar!", 
         "🚀"
     );
 
@@ -2055,15 +2055,27 @@ function applyAnswersToForm(mySub) {
 
     try {
         const targetUrl = getApiUrl(currentStudentData.kelas);
+        const gId = currentStudentData.groupId;
 
-        // 🟢 1. TARIK DATA SUBMISSIONS TERBARU LEBIH DULU
-        const resSub = await fetch(`${targetUrl}?action=getGroupSubmissions&groupId=${encodeURIComponent(currentStudentData.groupId)}`);
+        // 🟢 1. TARIK ISIAN LKPD GABUNGAN
+        const resSub = await fetch(`${targetUrl}?action=getGroupSubmissions&groupId=${encodeURIComponent(gId)}`);
         const dataSub = await resSub.json();
-        
         const groupSubmissions = (dataSub.status === "success" && dataSub.submissions) ? dataSub.submissions : [];
 
-        // 🟢 2. OPER DATA SUBMISSIONS KE generateDraftHTML
-        const htmlContent = generateDraftHTML(groupSubmissions);
+        // 🟢 2. TARIK FOTO DOKUMENTASI KELOMPOK JIKA VARIABEL GLOBAL BELUM TERISI
+        let photosList = (typeof currentGroupPhotos !== 'undefined' && currentGroupPhotos.length > 0) ? currentGroupPhotos : [];
+        if (photosList.length === 0) {
+            try {
+                const resPhoto = await fetch(`${targetUrl}?action=getGroupPhotos&groupId=${encodeURIComponent(gId)}`);
+                const dataPhoto = await resPhoto.json();
+                if (dataPhoto.status === "success" && dataPhoto.photos) {
+                    photosList = Array.isArray(dataPhoto.photos) ? dataPhoto.photos : JSON.parse(dataPhoto.photos);
+                }
+            } catch(e) { console.warn("Gagal fetch foto:", e); }
+        }
+
+        // 🟢 3. RENDER HTML LAPORAN DENGAN ISIAN LKPD + FOTO DOKUMENTASI
+        const htmlContent = generateDraftHTML(groupSubmissions, photosList);
 
         const payload = {
             action: "submitFinalLaporan",
@@ -2151,111 +2163,121 @@ function applyAnswersToForm(mySub) {
             });
         }
 
-        function generateDraftHTML(submissions) {
-    const subs = submissions || [];
+        function generateDraftHTML(submissions = [], photos = []) {
+    const user = currentStudentData || {};
+    
+    // 🟢 GUNAKAN FOTO DARI PARAMETER ATAU DARI VARIABEL GLOBAL currentGroupPhotos
+    const groupPhotos = (photos && photos.length > 0) ? photos : (typeof currentGroupPhotos !== 'undefined' ? currentGroupPhotos : []);
 
-    // FUNGSI MERGER PEMBANTU: Menangani berbagai kemungkinan kunci properti dari backend
-    const mergeField = (keys) => {
-        const keyList = Array.isArray(keys) ? keys : [keys];
-        const items = [];
+    const groupMembers = user.groupMembers || [user.nama || 'Murid'];
+    const memberListHtml = groupMembers.map((m, idx) => `<li>${idx + 1}. ${m}</li>`).join("");
 
-        subs.forEach(s => {
-            let val = "";
-            for (let k of keyList) {
-                if (s[k] && String(s[k]).trim() !== "" && String(s[k]).trim() !== "-") {
-                    val = String(s[k]).trim();
-                    break;
+    // Helper untuk menggabungkan isian murid dari submissions
+    const mergeField = (fieldKeys) => {
+        if (!submissions || submissions.length === 0) return `<em style="color:#94a3b8;">(Belum diisi)</em>`;
+        
+        let foundValues = [];
+        submissions.forEach(sub => {
+            fieldKeys.forEach(key => {
+                if (sub[key] && String(sub[key]).trim() !== "") {
+                    foundValues.push(`<strong>${sub.nama || 'Anggota'}:</strong> ${sub[key]}`);
                 }
-            }
-
-            const author = s.nama || s.Nama || "Murid";
-
-            if (val && val !== "(Belum diisi)") {
-                items.push(`
-                    <div style="margin-bottom:8px; background:#f8fafc; padding:8px 12px; border-radius:6px; border-left:4px solid #0284c7; font-size:12px; border:1px solid #e2e8f0;">
-                        ${val.replace(/\n/g, '<br>')}
-                        <div style="margin-top:4px; font-size:11px; color:#0284c7; font-weight:600; font-style:italic;">✍️ Ditulis oleh: ${author}</div>
-                    </div>
-                `);
-            }
+            });
         });
 
-        return items.length > 0 ? items.join("") : '<em style="color:#94a3b8; font-size:12px;">(Belum diisi)</em>';
+        return foundValues.length > 0 
+            ? foundValues.join("<br>") 
+            : `<em style="color:#94a3b8;">(Belum diisi)</em>`;
     };
 
-   // Daftar Anggota Kelompok
-const user = currentStudentData;
-const memberListHtml = user && user.groupMembers && user.groupMembers.length > 0 
-    ? user.groupMembers.map((m, idx) => `<li>${idx + 1}. ${m}</li>`).join('')
-    : `<li>1. ${user ? user.nama : 'Murid'}</li>`;
+    // 🟢 SUSUN TAMPILAN FOTO DOKUMENTASI (GRID FOTO)
+    let photosHtml = "";
+    if (groupPhotos && groupPhotos.length > 0) {
+        photosHtml = `<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">`;
+        groupPhotos.forEach((imgUrl, index) => {
+            photosHtml += `
+                <div style="flex: 1 1 calc(33.333% - 10px); max-width: calc(33.333% - 10px); box-sizing: border-box; text-align: center; border: 1px solid #e2e8f0; padding: 5px; border-radius: 6px; background: #fafafa;">
+                    <img src="${imgUrl}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 4px;" alt="Foto ${index + 1}" />
+                    <span style="font-size: 10px; color: #64748b; display: block; margin-top: 4px;">Dokumentasi #${index + 1}</span>
+                </div>
+            `;
+        });
+        photosHtml += `</div>`;
+    } else {
+        photosHtml = `<p style="font-size: 12px; color: #94a3b8; italic;">Belum ada dokumentasi foto yang diunggah oleh kelompok ini.</p>`;
+    }
 
-return `
-    <div style="font-family: Arial, sans-serif; color: #1e293b; padding: 20px; line-height: 1.6; background: #ffffff;">
-        <div style="text-align: center; border-bottom: 2.5px solid #0284c7; padding-bottom: 10px; margin-bottom: 15px;">
-            <h2 style="margin: 0; color: #0284c7; font-size: 18px; text-transform: uppercase;">LAPORAN KOKURIKULER GABUNGAN KELOMPOK</h2>
-            <h3 style="margin: 4px 0 0; font-size: 13px; font-weight: 500; color: #475569;">STOVIA EXPLORE NUSA — SMA Negeri 1 Jakarta</h3>
-        </div>
+    return `
+        <div style="font-family: Arial, sans-serif; color: #1e293b; padding: 20px; line-height: 1.6; background: #ffffff;">
+            <div style="text-align: center; border-bottom: 2.5px solid #0284c7; padding-bottom: 10px; margin-bottom: 15px;">
+                <h2 style="margin: 0; color: #0284c7; font-size: 18px; text-transform: uppercase;">LAPORAN KOKURIKULER GABUNGAN KELOMPOK</h2>
+                <h3 style="margin: 4px 0 0; font-size: 13px; font-weight: 500; color: #475569;">STOVIA EXPLORE NUSA — SMA Negeri 1 Jakarta</h3>
+            </div>
 
-        <table style="width: 100%; font-size: 12px; margin-bottom: 15px; border-collapse: collapse; background: #f8fafc; border: 1px solid #cbd5e1;">
-            <tr><td style="padding: 6px 10px; font-weight: bold; width: 140px;">Group ID / Kelas</td><td style="padding: 6px 10px;">: <strong>${user ? user.groupId : '-'}</strong> (${user ? user.kelas : '-'} / ${user ? user.kelompok : '-'})</td></tr>
-            <tr><td style="padding: 6px 10px; font-weight: bold;">Anjungan Target</td><td style="padding: 6px 10px;">: ${user ? (user.anjungan || '-') : '-'} [${user ? (user.misiCode || '-') : '-'}]</td></tr>
-        </table>
+            <table style="width: 100%; font-size: 12px; margin-bottom: 15px; border-collapse: collapse; background: #f8fafc; border: 1px solid #cbd5e1;">
+                <tr><td style="padding: 6px 10px; font-weight: bold; width: 140px;">Group ID / Kelas</td><td style="padding: 6px 10px;">: <strong>${user ? user.groupId : '-'}</strong> (${user ? user.kelas : '-'} / ${user ? user.kelompok : '-'})</td></tr>
+                <tr><td style="padding: 6px 10px; font-weight: bold;">Anjungan Target</td><td style="padding: 6px 10px;">: ${user ? (user.anjungan || '-') : '-'} [${user ? (user.misiCode || '-') : '-'}]</td></tr>
+            </table>
 
-        <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; color: #0f172a; margin-top: 15px; font-size:13px;">I. DAFTAR ANGGOTA KELOMPOK TIM LAPANGAN</h4>
-        <ul style="font-size: 12px; margin: 5px 0 15px 15px; padding: 0; list-style-type: none;">
-            ${memberListHtml}
-        </ul>
+            <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; color: #0f172a; margin-top: 15px; font-size:13px;">I. DAFTAR ANGGOTA KELOMPOK TIM LAPANGAN</h4>
+            <ul style="font-size: 12px; margin: 5px 0 15px 15px; padding: 0; list-style-type: none;">
+                ${memberListHtml}
+            </ul>
 
-        <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; color: #0f172a; margin-top: 15px; font-size:13px;">II. LKPD 1: EKSPLORASI SAINS & TEKNOLOGI TERPADU (PP-IPTEK)</h4>
-        <div style="font-size: 12px; margin-bottom:12px;">
-            <strong>Wahana 1:</strong>
-            <p style="margin:2px 0; color:#475569;"><em>Hasil Observasi:</em></p>
-            ${mergeField(['lk1_a1_hasil', 'lk1_a1_nama'])}
-            <p style="margin:2px 0; color:#475569;"><em>Prinsip Sains & Konsep:</em></p>
-            ${mergeField(['lk1_a1_konsep'])}
-        </div>
-        <div style="font-size: 12px; margin-bottom:12px;">
-            <strong>Wahana 2:</strong>
-            <p style="margin:2px 0; color:#475569;"><em>Hasil Observasi:</em></p>
-            ${mergeField(['lk1_a2_hasil', 'lk1_a2_nama'])}
-            <p style="margin:2px 0; color:#475569;"><em>Prinsip Sains & Konsep:</em></p>
-            ${mergeField(['lk1_a2_konsep'])}
-        </div>
-        <div style="font-size: 12px; margin-bottom:12px;">
-            <strong>Wahana 3:</strong>
-            <p style="margin:2px 0; color:#475569;"><em>Hasil Observasi:</em></p>
-            ${mergeField(['lk1_a3_hasil', 'lk1_a3_nama'])}
-            <p style="margin:2px 0; color:#475569;"><em>Prinsip Sains & Konsep:</em></p>
-            ${mergeField(['lk1_a3_konsep'])}
-        </div>
-        <p style="font-size:12px;"><strong>Relevansi Kehidupan Modern:</strong><br>${mergeField(['lk1_aplikasi'])}</p>
+            <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; color: #0f172a; margin-top: 15px; font-size:13px;">II. LKPD 1: EKSPLORASI SAINS & TEKNOLOGI TERPADU (PP-IPTEK)</h4>
+            <div style="font-size: 12px; margin-bottom:12px;">
+                <strong>Wahana 1:</strong>
+                <p style="margin:2px 0; color:#475569;"><em>Hasil Observasi:</em></p>
+                ${mergeField(['lk1_a1_hasil', 'lk1_a1_nama'])}
+                <p style="margin:2px 0; color:#475569;"><em>Prinsip Sains & Konsep:</em></p>
+                ${mergeField(['lk1_a1_konsep'])}
+            </div>
+            <div style="font-size: 12px; margin-bottom:12px;">
+                <strong>Wahana 2:</strong>
+                <p style="margin:2px 0; color:#475569;"><em>Hasil Observasi:</em></p>
+                ${mergeField(['lk1_a2_hasil', 'lk1_a2_nama'])}
+                <p style="margin:2px 0; color:#475569;"><em>Prinsip Sains & Konsep:</em></p>
+                ${mergeField(['lk1_a2_konsep'])}
+            </div>
+            <div style="font-size: 12px; margin-bottom:12px;">
+                <strong>Wahana 3:</strong>
+                <p style="margin:2px 0; color:#475569;"><em>Hasil Observasi:</em></p>
+                ${mergeField(['lk1_a3_hasil', 'lk1_a3_nama'])}
+                <p style="margin:2px 0; color:#475569;"><em>Prinsip Sains & Konsep:</em></p>
+                ${mergeField(['lk1_a3_konsep'])}
+            </div>
+            <p style="font-size:12px;"><strong>Relevansi Kehidupan Modern:</strong><br>${mergeField(['lk1_aplikasi'])}</p>
 
-        <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; color: #0f172a; margin-top: 15px; font-size:13px;">III. LKPD 2: OBSERVASI ARSITEKTUR RUMAH ADAT</h4>
-        <div style="font-size: 12px;">
-            <p style="margin:4px 0;"><strong>Fokus Observasi:</strong><br>${mergeField(['lk2_fokus'])}</p>
-            <p style="margin:4px 0;"><strong>Data Karakteristik Bangunan:</strong><br>${mergeField(['lk2_data1'])}</p>
-            <p style="margin:4px 0;"><strong>Bentuk Adaptasi Lingkungan:</strong><br>${mergeField(['lk2_data2'])}</p>
-            <p style="margin:4px 0;"><strong>Integrasi Kebudayaan & Sains:</strong><br>${mergeField(['lk2_koneksi'])}</p>
-        </div>
+            <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; color: #0f172a; margin-top: 15px; font-size:13px;">III. LKPD 2: OBSERVASI ARSITEKTUR RUMAH ADAT</h4>
+            <div style="font-size: 12px;">
+                <p style="margin:4px 0;"><strong>Fokus Observasi:</strong><br>${mergeField(['lk2_fokus'])}</p>
+                <p style="margin:4px 0;"><strong>Data Karakteristik Bangunan:</strong><br>${mergeField(['lk2_data1'])}</p>
+                <p style="margin:4px 0;"><strong>Bentuk Adaptasi Lingkungan:</strong><br>${mergeField(['lk2_data2'])}</p>
+                <p style="margin:4px 0;"><strong>Integrasi Kebudayaan & Sains:</strong><br>${mergeField(['lk2_koneksi'])}</p>
+            </div>
 
-        <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; color: #0f172a; margin-top: 15px; font-size:13px;">IV. LKPD 3: PERANCANGAN PROYEK (STEAM)</h4>
-        <div style="font-size: 12px;">
-            <p style="margin:4px 0;"><strong>Judul Proyek:</strong><br>${mergeField(['lk3_judul'])}</p>
-            <p style="margin:4px 0;"><strong>Format Produk:</strong><br>${mergeField(['lk3_format'])}</p>
-            <p style="margin:4px 0;"><strong>[S] Science:</strong> ${mergeField(['steam_s'])}</p>
-            <p style="margin:4px 0;"><strong>[T] Technology:</strong> ${mergeField(['steam_t'])}</p>
-            <p style="margin:4px 0;"><strong>[E] Engineering:</strong> ${mergeField(['steam_e'])}</p>
-            <p style="margin:4px 0;"><strong>[A] Arts:</strong> ${mergeField(['steam_a'])}</p>
-            <p style="margin:4px 0;"><strong>[M] Mathematics:</strong> ${mergeField(['steam_m'])}</p>
-        </div>
+            <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; color: #0f172a; margin-top: 15px; font-size:13px;">IV. LKPD 3: PERANCANGAN PROYEK (STEAM)</h4>
+            <div style="font-size: 12px;">
+                <p style="margin:4px 0;"><strong>Judul Proyek:</strong><br>${mergeField(['lk3_judul'])}</p>
+                <p style="margin:4px 0;"><strong>Format Produk:</strong><br>${mergeField(['lk3_format'])}</p>
+                <p style="margin:4px 0;"><strong>[S] Science:</strong> ${mergeField(['steam_s'])}</p>
+                <p style="margin:4px 0;"><strong>[T] Technology:</strong> ${mergeField(['steam_t'])}</p>
+                <p style="margin:4px 0;"><strong>[E] Engineering:</strong> ${mergeField(['steam_e'])}</p>
+                <p style="margin:4px 0;"><strong>[A] Arts:</strong> ${mergeField(['steam_a'])}</p>
+                <p style="margin:4px 0;"><strong>[M] Mathematics:</strong> ${mergeField(['steam_m'])}</p>
+            </div>
 
-        <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; color: #0f172a; margin-top: 15px; font-size:13px;">V. LKPD 4: REFLEKSI MANDIRI</h4>
-        <div style="font-size: 12px;">
-            <p style="margin:4px 0;"><strong>Kendala Lapangan & Solusi:</strong><br>${mergeField(['lk4_kendala'])}</p>
-            <p style="margin:4px 0;"><strong>Refleksi Kolaborasi Tim:</strong><br>${mergeField(['lk4_kerjasama'])}</p>
+            <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; color: #0f172a; margin-top: 15px; font-size:13px;">V. LKPD 4: REFLEKSI MANDIRI</h4>
+            <div style="font-size: 12px;">
+                <p style="margin:4px 0;"><strong>Kendala Lapangan & Solusi:</strong><br>${mergeField(['lk4_kendala'])}</p>
+                <p style="margin:4px 0;"><strong>Refleksi Kolaborasi Tim:</strong><br>${mergeField(['lk4_kerjasama'])}</p>
+            </div>
+
+            <!-- 🟢 SEKSI VI: DOKUMENTASI FOTO KELOMPOK -->
+            <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; color: #0f172a; margin-top: 15px; font-size:13px;">VI. DOKUMENTASI FOTO KELOMPOK LAPANGAN</h4>
+            ${photosHtml}
         </div>
-    </div>
-`;
+    `;
 }
 
 async function updateDraftPreview() {
