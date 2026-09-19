@@ -2990,10 +2990,29 @@ function previewAdminReportByData(jsonStr) {
         
         document.getElementById('adminPreviewTitle').innerText = `👁️ Laporan Kelompok ${rep.groupId} (${rep.nama})`;
         
-        // Memuat HTML mentah
-        let htmlContent = rep.laporanHtml || "<p style='color:red; text-align:center;'>Format laporan kosong atau tidak valid.</p>";
+        // 🟢 Cek semua kemungkinan nama variabel dari backend (HTML Mentah / Base64 / properti alternatif)
+        let htmlContent = rep.laporanHtml || rep.laporanHtmlBase64 || rep.laporan || rep.html || "";
 
-        document.getElementById('adminReportRenderArea').innerHTML = htmlContent;
+        // Jika data tersimpan berupa Base64 (diawali kode terenkripsi seperti CiA / PGR / dY), lakukan decode otomatis
+        if (htmlContent && !htmlContent.trim().startsWith("<") && !htmlContent.toLowerCase().includes("div")) {
+            try {
+                htmlContent = decodeBase64Utf8(htmlContent);
+            } catch (e) {
+                try {
+                    htmlContent = atob(htmlContent);
+                } catch (err) {
+                    console.warn("Gagal decode Base64, menampilkan teks mentah:", err);
+                }
+            }
+        }
+
+        // Jika variabel tetap kosong
+        if (!htmlContent || !htmlContent.trim()) {
+            htmlContent = `<p style="color:red; text-align:center;">Format laporan kosong atau tidak valid.</p>`;
+        }
+
+        const renderArea = document.getElementById('adminReportRenderArea');
+        renderArea.innerHTML = htmlContent;
         document.getElementById('adminReportPreviewCard').style.display = 'block';
         document.getElementById('adminReportPreviewCard').scrollIntoView({ behavior: 'smooth' });
 
