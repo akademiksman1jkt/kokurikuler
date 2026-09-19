@@ -2988,36 +2988,45 @@ function previewAdminReportByData(jsonStr) {
         const rep = JSON.parse(decodeURIComponent(jsonStr));
         currentAdminSelectedReport = rep;
         
-        document.getElementById('adminPreviewTitle').innerText = `👁️ Laporan Kelompok ${rep.groupId} (${rep.nama})`;
+        const titleEl = document.getElementById('adminPreviewTitle');
+        if (titleEl) {
+            titleEl.innerText = `👁️ Laporan Kelompok ${rep.groupId || ''} (${rep.nama || ''})`;
+        }
         
-        // 🟢 Cek semua kemungkinan nama variabel dari backend (HTML Mentah / Base64 / properti alternatif)
-        let htmlContent = rep.laporanHtml || rep.laporanHtmlBase64 || rep.laporan || rep.html || "";
+        // 1. Ambil teks laporan dari semua variabel yang mungkin
+        let content = rep.laporanHtml || rep.laporanHtmlBase64 || rep.laporan || rep.html || "";
 
-        // Jika data tersimpan berupa Base64 (diawali kode terenkripsi seperti CiA / PGR / dY), lakukan decode otomatis
-        if (htmlContent && !htmlContent.trim().startsWith("<") && !htmlContent.toLowerCase().includes("div")) {
+        // 2. Jika berbentuk Base64, lakukan decode tanpa library luar
+        if (content && !content.trim().startsWith("<") && !content.toLowerCase().includes("div")) {
             try {
-                htmlContent = decodeBase64Utf8(htmlContent);
+                content = decodeURIComponent(escape(atob(content)));
             } catch (e) {
                 try {
-                    htmlContent = atob(htmlContent);
+                    content = atob(content);
                 } catch (err) {
-                    console.warn("Gagal decode Base64, menampilkan teks mentah:", err);
+                    console.warn("Decode fallback:", err);
                 }
             }
         }
 
-        // Jika variabel tetap kosong
-        if (!htmlContent || !htmlContent.trim()) {
-            htmlContent = `<p style="color:red; text-align:center;">Format laporan kosong atau tidak valid.</p>`;
+        // 3. Masukkan hasil ke area render
+        const renderArea = document.getElementById('adminReportRenderArea');
+        if (renderArea) {
+            if (!content || !content.trim()) {
+                renderArea.innerHTML = `<p style="color:red; text-align:center; padding:20px;">Isi laporan tidak ditemukan atau kosong.</p>`;
+            } else {
+                renderArea.innerHTML = content;
+            }
         }
 
-        const renderArea = document.getElementById('adminReportRenderArea');
-        renderArea.innerHTML = htmlContent;
-        document.getElementById('adminReportPreviewCard').style.display = 'block';
-        document.getElementById('adminReportPreviewCard').scrollIntoView({ behavior: 'smooth' });
+        const cardContainer = document.getElementById('adminReportPreviewCard');
+        if (cardContainer) {
+            cardContainer.style.display = 'block';
+            cardContainer.scrollIntoView({ behavior: 'smooth' });
+        }
 
     } catch (err) {
-        alert("Gagal membuka laporan: " + err.message);
+        alert("Gagal memuat laporan: " + err.message);
     }
 }
 
