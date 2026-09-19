@@ -2992,13 +2992,38 @@ function openAdminReportByGroupId(groupId) {
         titleEl.innerText = `👁️ Laporan Kelompok ${rep.groupId || ''} (${rep.nama || ''})`;
     }
 
-    let rawContent = rep.laporanHtml || rep.laporanHtmlBase64 || rep.laporan || rep.html || "";
+    // 1. Ambil array isian LKPD kelompok ini dari memori frontend
+    let subs = [];
+    if (typeof allSubmissions !== 'undefined' && Array.isArray(allSubmissions)) {
+        subs = allSubmissions.filter(s => String(s.groupId || s.group_id || '').trim().toUpperCase() === String(groupId).trim().toUpperCase());
+    } else if (window.submissions && Array.isArray(window.submissions)) {
+        subs = window.submissions.filter(s => String(s.groupId || s.group_id || '').trim().toUpperCase() === String(groupId).trim().toUpperCase());
+    }
+
+    // Jika di database sudah ada laporanHtml utuh dari server (bukan ringkasan), pakai itu. Jika belum/ringkasan, render dari data memori/rep.
+    let rawContent = rep.laporanHtml || rep.laporanHtmlBase64 || "";
+    let isShortSummary = rawContent.includes("Status Laporan Resmi Server") || (!rawContent.trim().startsWith("<") && rawContent.length < 1000);
+
     let htmlContent = "";
+    if (!isShortSummary && rawContent.trim().startsWith("<")) {
+        htmlContent = rawContent;
+    } else {
+        // 2. Render ulang struktur utuh persis menu gabungkan laporan siswa
+        let listMurid = subs.length > 0 ? subs.map(s => s.nama).filter((v,i,a)=>a.indexOf(v)===top) : [rep.nama];
+        
+        function getMergedVal(keys) {
+            let items = [];
+            subs.forEach(s => {
+                keys.forEach(k => {
+                    if (s[k] && String(s[k]).trim() !== "") {
+                        let val = String(s[k]).trim().replace(/\n/g, '<br>');
+                        if (items.indexOf(val) === -1) items.push('• ' + val + ` <small style="color:#0284c7;">(${s.nama})</small>`);
+                    }
+                });
+            });
+            return items.length > 0 ? items.join('<br>') : '<em style="color:#94a3b8;">(Data belum diinput murid)</em>';
+        }
 
-    // Cek apakah isi dari server masih format ringkasan lama / pendek
-    const isShortSummary = rawContent.includes("Status Laporan Resmi Server") || (!rawContent.trim().startsWith("<") && rawContent.length < 1000);
-
-    if (isShortSummary) {
         htmlContent = `
             <div style="font-family: Arial, sans-serif; color: #1e293b; padding: 25px; line-height: 1.6; background: #ffffff; border-radius: 8px; border: 1px solid #e2e8f0;">
                 <div style="text-align: center; border-bottom: 2.5px solid #0284c7; padding-bottom: 12px; margin-bottom: 20px;">
@@ -3021,30 +3046,38 @@ function openAdminReportByGroupId(groupId) {
                     </tr>
                 </table>
 
-                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 6px; color: #166534; margin-bottom: 15px;">
-                    <strong>✅ Status Server:</strong> Laporan kelompok ini tercatat sah di database server SMAN 1 Jakarta.
+                <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 15px 0 8px; color: #0f172a;">I. DAFTAR ANGGOTA TIM LAPANGAN</h4>
+                <p style="font-size: 12.5px; margin: 0 0 15px 12px;">${Array.isArray(listMurid) ? listMurid.join(', ') : rep.nama}</p>
+
+                <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 20px 0 8px; color: #0f172a;">II. LKPD 1: EKSPLORASI SAINS & TEKNOLOGI TERPADU (PP-IPTEK)</h4>
+                <div style="font-size: 12.5px; margin-bottom: 10px;">
+                    <strong>1. Wahana Pertama:</strong><br>${getMergedVal(['lk1_a1_hasil', 'lk1_a1_nama', 'lk1_a1_konsep'])}<br><br>
+                    <strong>2. Wahana Kedua:</strong><br>${getMergedVal(['lk1_a2_hasil', 'lk1_a2_nama', 'lk1_a2_konsep'])}<br><br>
+                    <strong>3. Wahana Ketiga:</strong><br>${getMergedVal(['lk1_a3_hasil', 'lk1_a3_nama', 'lk1_a3_konsep'])}<br><br>
+                    <strong>Relevansi Kehidupan:</strong><br>${getMergedVal(['lk1_aplikasi'])}
                 </div>
 
-                <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 15px 0 8px; color: #0f172a;">Rincian Data Sinkron Server</h4>
-                <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 12px; border-radius: 6px; font-size: 12px; color: #334155; white-space: pre-wrap;">
-                    ${rawContent.replace(/<[^>]*>?/gm, '')}
+                <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 20px 0 8px; color: #0f172a;">III. LKPD 2: OBSERVASI ARSITEKTUR RUMAH ADAT</h4>
+                <div style="font-size: 12.5px; margin-bottom: 10px;">
+                    <strong>Deskripsi Arsitektur:</strong><br>${getMergedVal(['lk2_fokus'])}<br><br>
+                    <strong>Karakteristik & Material:</strong><br>${getMergedVal(['lk2_data1', 'lk2_data3'])}<br><br>
+                    <strong>Adaptasi Lingkungan:</strong><br>${getMergedVal(['lk2_data2'])}<br><br>
+                    <strong>Integrasi Kebudayaan & Sains:</strong><br>${getMergedVal(['lk2_koneksi'])}
                 </div>
-                <p style="font-size: 11px; color: #64748b; margin-top: 10px; font-style: italic;">
-                    * Catatan: Data demo/lama ini tersimpan dalam format ringkasan server. Untuk data baru ke depan, pastikan siswa melakukan sinkronisasi/kirim laporan final.
-                </p>
+
+                <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 20px 0 8px; color: #0f172a;">IV. LKPD 3: PERANCANGAN PROYEK (STEAM)</h4>
+                <div style="font-size: 12.5px; margin-bottom: 10px;">
+                    <strong>Judul & Format:</strong><br>${getMergedVal(['lk3_judul', 'lk3_format'])}<br><br>
+                    <strong>STEAM Breakdown:</strong><br>${getMergedVal(['steam_s', 'steam_t', 'steam_e', 'steam_a', 'steam_m'])}
+                </div>
+
+                <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 20px 0 8px; color: #0f172a;">V. LKPD 4: REFLEKSI MANDIRI & TIM</h4>
+                <div style="font-size: 12.5px; margin-bottom: 10px;">
+                    <strong>Kendala & Solusi:</strong><br>${getMergedVal(['lk4_kendala'])}<br><br>
+                    <strong>Refleksi Kolaborasi:</strong><br>${getMergedVal(['lk4_kerjasama'])}
+                </div>
             </div>
         `;
-    } else {
-        // Dekode atau gunakan HTML utuh jika sudah berformat lengkap
-        if (rawContent.trim().startsWith("<") || rawContent.toLowerCase().includes("div")) {
-            htmlContent = rawContent;
-        } else {
-            try {
-                htmlContent = decodeURIComponent(escape(atob(rawContent)));
-            } catch (e1) {
-                try { htmlContent = atob(rawContent); } catch (e2) { htmlContent = rawContent; }
-            }
-        }
     }
 
     const renderArea = document.getElementById('adminReportRenderArea');
