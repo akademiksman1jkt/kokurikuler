@@ -1759,45 +1759,80 @@ function applyAnswersToForm(mySub) {
 
         // FUNGSI MEMBUKA MODAL INTIP JAWABAN TEMAN
         function viewMemberAnswers(memberNama) {
-            const sub = mergedSubmissionsData.find(s => s.nama.trim().toLowerCase() === memberNama.trim().toLowerCase());
-            if(!sub) { alert("Anggota ini belum menyimpan data apa pun."); return; }
-            
-            document.getElementById('modalMemberName').innerText = `Isian LKPD: ${sub.nama}`;
-            
-            const v = (val) => val ? val.replace(/\n/g, '<br>') : '<i style="color:#94a3b8;">(Kosong)</i>';
+    // 1. Cek apakah variabel array data tersedia
+    if (!mergedSubmissionsData || !Array.isArray(mergedSubmissionsData) || mergedSubmissionsData.length === 0) {
+        alert("Data isian kelompok belum dimuat dari server. Silakan klik tombol 'Refresh Progress Tim'.");
+        return;
+    }
 
-            let html = `
-                <div style="margin-bottom:14px; padding:16px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:12px;">
-                    <h4 style="margin:0 0 10px 0; color:#1e3a8a; font-size:15px; border-bottom:1px dashed #cbd5e1; padding-bottom:6px;">🔬 LKPD 1: Eksplorasi Sains</h4>
-                    <p style="margin:4px 0;"><strong>Wahana 1:</strong> ${v(sub.lk1_a1_nama)} (${v(sub.lk1_a1_zona)})</p>
-                    <p style="margin:4px 0 10px 0; font-size:13px; color:#475569;">${v(sub.lk1_a1_hasil)}</p>
-                    <p style="margin:4px 0;"><strong>Wahana 2:</strong> ${v(sub.lk1_a2_nama)}</p>
-                    <p style="margin:4px 0 10px 0; font-size:13px; color:#475569;">${v(sub.lk1_a2_hasil)}</p>
-                    <p style="margin:4px 0;"><strong>Relevansi Kehidupan:</strong><br><span style="font-size:13.5px;">${v(sub.lk1_aplikasi)}</span></p>
-                </div>
+    const targetNama = (memberNama || "").trim().toLowerCase();
 
-                <div style="margin-bottom:14px; padding:16px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:12px;">
-                    <h4 style="margin:0 0 10px 0; color:#1e3a8a; font-size:15px; border-bottom:1px dashed #cbd5e1; padding-bottom:6px;">🏛️ LKPD 2: Arsitektur Rumah Adat</h4>
-                    <p style="margin:4px 0;"><strong>Deskripsi Bentuk & Tata Ruang:</strong><br><span style="font-size:13.5px;">${v(sub.lk2_fokus)}</span></p>
-                    <p style="margin:8px 0 4px 0;"><strong>Data Kunci 1:</strong><br><span style="font-size:13.5px;">${v(sub.lk2_data1)}</span></p>
-                </div>
+    // 2. Pencarian aman (Abaikan perbedaan kapital & cegah error jika nama kosong)
+    const sub = mergedSubmissionsData.find(s => {
+        const namaDb = s && (s.nama || s.Nama || "");
+        return namaDb.toString().trim().toLowerCase() === targetNama;
+    });
 
-                <div style="margin-bottom:14px; padding:16px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:12px;">
-                    <h4 style="margin:0 0 10px 0; color:#1e3a8a; font-size:15px; border-bottom:1px dashed #cbd5e1; padding-bottom:6px;">🛠️ LKPD 3: Tantangan STEAM</h4>
-                    <p style="margin:4px 0;"><strong>Judul Proyek:</strong> <strong style="color:#059669;">${v(sub.lk3_judul)}</strong> (${v(sub.lk3_format)})</p>
-                    <p style="margin:8px 0 4px 0;"><strong>[S] Science:</strong> ${v(sub.steam_s)}</p>
-                    <p style="margin:4px 0;"><strong>[T] Technology:</strong> ${v(sub.steam_t)}</p>
-                </div>
+    if (!sub) {
+        alert(`Data isian untuk "${memberNama}" belum tersimpan di server.`);
+        return;
+    }
 
-                <div style="margin-bottom:14px; padding:16px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:12px;">
-                    <h4 style="margin:0 0 10px 0; color:#1e3a8a; font-size:15px; border-bottom:1px dashed #cbd5e1; padding-bottom:6px;">🧠 LKPD 4: Refleksi</h4>
-                    <p style="margin:4px 0;"><strong>Kendala & Solusi Lapangan:</strong><br><span style="font-size:13.5px;">${v(sub.lk4_kendala)}</span></p>
-                    <p style="margin:8px 0 4px 0;"><strong>Refleksi Kolaborasi & Budaya:</strong><br><span style="font-size:13.5px;">${v(sub.lk4_kerjasama)}</span></p>
-                </div>
-            `;
-            document.getElementById('modalMemberContent').innerHTML = html;
-            document.getElementById('modalViewAnswers').classList.add('active');
+    // 3. Cek keberadaan elemen Modal HTML
+    const elTitle = document.getElementById('modalMemberName');
+    const elContent = document.getElementById('modalMemberContent');
+    const elModal = document.getElementById('modalViewAnswers');
+
+    if (!elTitle || !elContent || !elModal) {
+        alert("⚠️ Elemen modal HTML (modalViewAnswers) tidak ditemukan di halaman ini.");
+        return;
+    }
+
+    // 4. Set Judul Modal
+    elTitle.innerText = `Isian LKPD: ${sub.nama || sub.Nama || memberNama}`;
+
+    // 5. Pembantu format teks aman (Konversi ke String dulu baru replace)
+    const v = (val) => {
+        if (val === null || val === undefined || val.toString().trim() === "") {
+            return '<i style="color:#94a3b8;">(Kosong)</i>';
         }
+        return String(val).replace(/\n/g, '<br>');
+    };
+
+    // 6. Susun Teks HTML
+    let html = `
+        <div style="margin-bottom:14px; padding:16px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:12px;">
+            <h4 style="margin:0 0 10px 0; color:#1e3a8a; font-size:15px; border-bottom:1px dashed #cbd5e1; padding-bottom:6px;">🔬 LKPD 1: Eksplorasi Sains</h4>
+            <p style="margin:4px 0;"><strong>Wahana 1:</strong> ${v(sub.lk1_a1_nama)} (${v(sub.lk1_a1_zona)})</p>
+            <p style="margin:4px 0 10px 0; font-size:13px; color:#475569;">${v(sub.lk1_a1_hasil)}</p>
+            <p style="margin:4px 0;"><strong>Wahana 2:</strong> ${v(sub.lk1_a2_nama)}</p>
+            <p style="margin:4px 0 10px 0; font-size:13px; color:#475569;">${v(sub.lk1_a2_hasil)}</p>
+            <p style="margin:4px 0;"><strong>Relevansi Kehidupan:</strong><br><span style="font-size:13.5px;">${v(sub.lk1_aplikasi)}</span></p>
+        </div>
+
+        <div style="margin-bottom:14px; padding:16px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:12px;">
+            <h4 style="margin:0 0 10px 0; color:#1e3a8a; font-size:15px; border-bottom:1px dashed #cbd5e1; padding-bottom:6px;">🏛️ LKPD 2: Arsitektur Rumah Adat</h4>
+            <p style="margin:4px 0;"><strong>Deskripsi Bentuk & Tata Ruang:</strong><br><span style="font-size:13.5px;">${v(sub.lk2_fokus)}</span></p>
+            <p style="margin:8px 0 4px 0;"><strong>Data Kunci 1:</strong><br><span style="font-size:13.5px;">${v(sub.lk2_data1)}</span></p>
+        </div>
+
+        <div style="margin-bottom:14px; padding:16px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:12px;">
+            <h4 style="margin:0 0 10px 0; color:#1e3a8a; font-size:15px; border-bottom:1px dashed #cbd5e1; padding-bottom:6px;">🛠️ LKPD 3: Tantangan STEAM</h4>
+            <p style="margin:4px 0;"><strong>Judul Proyek:</strong> <strong style="color:#059669;">${v(sub.lk3_judul)}</strong> (${v(sub.lk3_format)})</p>
+            <p style="margin:8px 0 4px 0;"><strong>[S] Science:</strong> ${v(sub.steam_s)}</p>
+            <p style="margin:4px 0;"><strong>[T] Technology:</strong> ${v(sub.steam_t)}</p>
+        </div>
+
+        <div style="margin-bottom:14px; padding:16px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:12px;">
+            <h4 style="margin:0 0 10px 0; color:#1e3a8a; font-size:15px; border-bottom:1px dashed #cbd5e1; padding-bottom:6px;">🧠 LKPD 4: Refleksi</h4>
+            <p style="margin:4px 0;"><strong>Kendala & Solusi Lapangan:</strong><br><span style="font-size:13.5px;">${v(sub.lk4_kendala)}</span></p>
+            <p style="margin:8px 0 4px 0;"><strong>Refleksi Kolaborasi & Budaya:</strong><br><span style="font-size:13.5px;">${v(sub.lk4_kerjasama)}</span></p>
+        </div>
+    `;
+
+    elContent.innerHTML = html;
+    elModal.classList.add('active');
+}
 
         function closeModal() {
             document.getElementById('modalViewAnswers').classList.remove('active');
@@ -3372,6 +3407,16 @@ async function checkGroupSubmittedStatus() {
         <div class="modal-action-btns">
             <button id="btnModalCancel" class="btn-modal-secondary">Batal</button>
             <button id="btnModalConfirm" class="btn-modal-primary">Ya, Kirim</button>
+        </div>
+    </div>
+</div>
+    <!-- MODAL INTIP JAWABAN ANGGOTA KELOMPOK -->
+<div id="modalViewAnswers" class="modal-overlay-center">
+    <div class="modal-card-center" style="max-width: 600px; max-height: 80vh; overflow-y: auto; text-align: left;">
+        <h3 id="modalMemberName" style="margin-top:0; color:var(--primary, #1e3a8a);">Isian LKPD</h3>
+        <div id="modalMemberContent"></div>
+        <div style="text-align: right; margin-top: 15px;">
+            <button onclick="closeModal()" class="btn-modal-secondary">Tutup</button>
         </div>
     </div>
 </div>
