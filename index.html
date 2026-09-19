@@ -2690,25 +2690,32 @@ async function saveGroupPhotosServer() {
         }
 
         function renderMergedReportPreview(submissions, photos) {
-            const container = document.getElementById('reportPreviewArea');
-            if (!container) return;
+    const container = document.getElementById('reportPreviewArea');
+    if (!container) return;
 
-            const subs = submissions || [];
-            const allGroupMembers = (currentStudentData && currentStudentData.groupMembers && currentStudentData.groupMembers.length > 0) 
-                ? currentStudentData.groupMembers 
-                : [(currentStudentData ? currentStudentData.nama : 'Murid')];
+    const subs = submissions || [];
+    const allGroupMembers = (currentStudentData && currentStudentData.groupMembers && currentStudentData.groupMembers.length > 0) 
+        ? currentStudentData.groupMembers 
+        : [(currentStudentData ? currentStudentData.nama : 'Murid')];
 
-            const namaAnggotaList = allGroupMembers.map(mNama => {
-                return `<li><strong>${mNama}</strong></li>`;
-            }).join('');
+    const namaAnggotaList = allGroupMembers.map(mNama => {
+        return `<li><strong>${mNama}</strong></li>`;
+    }).join('');
 
-            // FUNGSI UTAMA: Menggabungkan jawaban seluruh anggota + Menampilkan Nama Penulis (Font Kecil)
-            const mergeField = (fieldKey) => {
-                const items = [];
-                subs.forEach(s => {
-                    const val = s[fieldKey] ? String(s[fieldKey]).trim() : "";
-                    const author = s.nama ? String(s.nama).trim() : "Murid";
-                    if (val && val !== "-" && val !== "(Belum diisi)") {
+    // 🟢 FUNGSI MERGE BISA MEMBACA BANYAK KEY SEKALIGUS (ARRAY ATAL STRING)
+    const mergeField = (fieldKeys) => {
+        const keys = Array.isArray(fieldKeys) ? fieldKeys : [fieldKeys];
+        const items = [];
+        
+        subs.forEach(s => {
+            keys.forEach(key => {
+                const val = s[key] ? String(s[key]).trim() : "";
+                const author = s.nama ? String(s.nama).trim() : "Murid";
+                
+                if (val && val !== "-" && val !== "(Belum diisi)") {
+                    // Mencegah duplikasi data jika key alternatif menemukan string yang sama
+                    const isAlreadyAdded = items.some(item => item.includes(val));
+                    if (!isAlreadyAdded) {
                         items.push(`
                             <div style="margin-bottom:6px; background:#ffffff; padding:6px 10px; border-radius:4px; border-left:3px solid #0284c7; font-size:12px;">
                                 ${val.replace(/\n/g, '<br>')}
@@ -2716,112 +2723,121 @@ async function saveGroupPhotosServer() {
                             </div>
                         `);
                     }
-                });
-                return items.length > 0 ? items.join("") : '<em style="color:#94a3b8; font-size:12px;">(Belum diisi)</em>';
-            };
+                }
+            });
+        });
 
-            // Render Foto Dokumentasi Kelompok
-            let photosHTML = '';
-            if (photos && photos.length > 0) {
-                photosHTML = `
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 10px;">
-                        ${photos.map((p, idx) => `
-                            <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px; text-align: center; background: #fafafa;">
-                                <img src="${p.url}" style="width: 100%; height: 110px; object-fit: cover; border-radius: 6px; display: block; margin-bottom: 5px;">
-                                <small style="font-size: 11px; color: #64748b;">Foto ${idx+1} (${p.uploadedBy || 'Tim'})</small>
-                            </div>
-                        `).join('')}
+        return items.length > 0 ? items.join("") : '<em style="color:#94a3b8; font-size:12px;">(Belum diisi)</em>';
+    };
+
+    // Render Foto Dokumentasi Kelompok
+    let photosHTML = '';
+    if (photos && photos.length > 0) {
+        photosHTML = `
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 10px;">
+                ${photos.map((p, idx) => `
+                    <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px; text-align: center; background: #fafafa;">
+                        <img src="${p.url}" style="width: 100%; height: 110px; object-fit: cover; border-radius: 6px; display: block; margin-bottom: 5px;">
+                        <small style="font-size: 11px; color: #64748b;">Foto ${idx+1} (${p.uploadedBy || 'Tim'})</small>
                     </div>
-                `;
-            } else {
-                photosHTML = `<p style="font-style: italic; color: #94a3b8; font-size: 13px;">Belum ada foto dokumentasi yang diunggah.</p>`;
-            }
+                `).join('')}
+            </div>
+        `;
+    } else {
+        photosHTML = `<p style="font-style: italic; color: #94a3b8; font-size: 13px;">Belum ada foto dokumentasi yang diunggah.</p>`;
+    }
 
-            // RENDER LENGKAP LAPORAN GABUNGAN KELOMPOK
-            container.innerHTML = `
-                <div id="printableReport" style="background: #ffffff; padding: 25px; border-radius: 8px; border: 1px solid #e2e8f0; font-family: sans-serif; color: #1e293b; line-height: 1.6;">
-                    <div style="text-align: center; border-bottom: 2.5px solid #0284c7; padding-bottom: 12px; margin-bottom: 20px;">
-                        <h2 style="margin: 0; color: #0284c7; font-size: 18px; text-transform: uppercase;">LAPORAN KOKURIKULER GABUNGAN KELOMPOK</h2>
-                        <h3 style="margin: 4px 0 0; font-size: 13px; font-weight: 500; color: #475569;">STOVIA EXPLORE NUSA — SMA Negeri 1 Jakarta</h3>
-                    </div>
+    // RENDER LENGKAP LAPORAN GABUNGAN KELOMPOK
+    container.innerHTML = `
+        <div id="printableReport" style="background: #ffffff; padding: 25px; border-radius: 8px; border: 1px solid #e2e8f0; font-family: sans-serif; color: #1e293b; line-height: 1.6;">
+            <div style="text-align: center; border-bottom: 2.5px solid #0284c7; padding-bottom: 12px; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: #0284c7; font-size: 18px; text-transform: uppercase;">LAPORAN KOKURIKULER GABUNGAN KELOMPOK</h2>
+                <h3 style="margin: 4px 0 0; font-size: 13px; font-weight: 500; color: #475569;">STOVIA EXPLORE NUSA — SMA Negeri 1 Jakarta</h3>
+            </div>
 
-                    <table style="width: 100%; margin-bottom: 20px; font-size: 13px; border-collapse: collapse; background: #f8fafc; border: 1px solid #e2e8f0;">
-                        <tr>
-                            <td style="padding: 6px 10px; font-weight: bold; width: 140px;">Kelas / Kelompok</td>
-                            <td style="padding: 6px 10px;">: ${currentStudentData.kelas} / ${currentStudentData.kelompok} (Group ID: ${currentStudentData.groupId})</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 6px 10px; font-weight: bold;">Anjungan Target</td>
-                            <td style="padding: 6px 10px;">: ${currentStudentData.anjungan} (${currentStudentData.misiCode})</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 6px 10px; font-weight: bold;">Guru Pendamping</td>
-                            <td style="padding: 6px 10px;">: ${currentStudentData.guruPendamping || 'Nurul Faozi, S.Pd.'}</td>
-                        </tr>
-                    </table>
+            <table style="width: 100%; margin-bottom: 20px; font-size: 13px; border-collapse: collapse; background: #f8fafc; border: 1px solid #e2e8f0;">
+                <tr>
+                    <td style="padding: 6px 10px; font-weight: bold; width: 140px;">Kelas / Kelompok</td>
+                    <td style="padding: 6px 10px;">: ${currentStudentData.kelas} / ${currentStudentData.kelompok} (Group ID: ${currentStudentData.groupId})</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 10px; font-weight: bold;">Anjungan Target</td>
+                    <td style="padding: 6px 10px;">: ${currentStudentData.anjungan} (${currentStudentData.misiCode})</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 10px; font-weight: bold;">Guru Pendamping</td>
+                    <td style="padding: 6px 10px;">: ${currentStudentData.guruPendamping || 'Nurul Faozi, S.Pd.'}</td>
+                </tr>
+            </table>
 
-                    <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 15px 0 8px; color: #0f172a;">I. DAFTAR ANGGOTA KELOMPOK TIM LAPANGAN</h4>
-                    <ol style="margin: 0; padding-left: 20px; font-size: 13px;">
-                        ${namaAnggotaList}
-                    </ol>
+            <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 15px 0 8px; color: #0f172a;">I. DAFTAR ANGGOTA KELOMPOK TIM LAPANGAN</h4>
+            <ol style="margin: 0; padding-left: 20px; font-size: 13px;">
+                ${namaAnggotaList}
+            </ol>
 
-                    <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 20px 0 8px; color: #0f172a;">II. LKPD 1: EKSPLORASI SAINS & TEKNOLOGI TERPADU (PP-IPTEK)</h4>
-                    <div style="font-size: 13px; display: flex; flex-direction: column; gap: 8px;">
-                        <div style="background:#f8fafc; padding:8px 12px; border-radius:6px; border:1px solid #e2e8f0;">
-                            <strong>1. Wahana Pertama:</strong>
-                            <p style="margin:4px 0 2px;"><em>Hasil Observasi:</em></p>
-                            ${mergeField('lk1_a1_hasil')}
-                            <p style="margin:4px 0 2px;"><em>Prinsip Sains:</em></p>
-                            ${mergeField('lk1_a1_konsep')}
-                        </div>
-                        <div style="background:#f8fafc; padding:8px 12px; border-radius:6px; border:1px solid #e2e8f0;">
-                            <strong>2. Wahana Kedua:</strong>
-                            <p style="margin:4px 0 2px;"><em>Hasil Observasi:</em></p>
-                            ${mergeField('lk1_a2_hasil')}
-                            <p style="margin:4px 0 2px;"><em>Prinsip Sains:</em></p>
-                            ${mergeField('lk1_a2_konsep')}
-                        </div>
-                        <div style="background:#f8fafc; padding:8px 12px; border-radius:6px; border:1px solid #e2e8f0;">
-                            <strong>3. Wahana Ketiga:</strong>
-                            <p style="margin:4px 0 2px;"><em>Hasil Observasi:</em></p>
-                            ${mergeField('lk1_a3_hasil')}
-                            <p style="margin:4px 0 2px;"><em>Prinsip Sains:</em></p>
-                            ${mergeField('lk1_a3_konsep')}
-                        </div>
-                        <p style="margin:4px 0;"><strong>Relevansi Kehidupan Modern:</strong><br>${mergeField('lk1_aplikasi')}</p>
-                    </div>
-
-                    <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 20px 0 8px; color: #0f172a;">III. LKPD 2: OBSERVASI ARSITEKTUR RUMAH ADAT</h4>
-                    <div style="font-size: 13px; line-height: 1.5;">
-                        <p><strong>Deskripsi Arsitektur Bangunan:</strong><br>${mergeField('lk2_fokus')}</p>
-                        <p><strong>Item Data 1 (Karakteristik):</strong><br>${mergeField('lk2_data1')}</p>
-                        <p><strong>Item Data 2 (Adaptasi Lingkungan):</strong><br>${mergeField('lk2_data2')}</p>
-                        <p><strong>Item Data 3 (Material Utama):</strong><br>${mergeField('lk2_data3')}</p>
-                        <p><strong>Integrasi Kebudayaan ↔ Sains Modern:</strong><br>${mergeField('lk2_koneksi')}</p>
-                    </div>
-
-                    <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 20px 0 8px; color: #0f172a;">IV. LKPD 3: PERANCANGAN PROYEK (STEAM)</h4>
-                    <div style="font-size: 13px;">
-                        <p><strong>Judul Proyek / Prototype:</strong><br>${mergeField('lk3_judul')}</p>
-                        <p><strong>Format Produk:</strong><br>${mergeField('lk3_format')}</p>
-                        <p><strong>1. Science:</strong> ${mergeField('steam_s')}</p>
-                        <p><strong>2. Technology:</strong> ${mergeField('steam_t')}</p>
-                        <p><strong>3. Engineering:</strong> ${mergeField('steam_e')}</p>
-                        <p><strong>4. Arts:</strong> ${mergeField('steam_a')}</p>
-                        <p><strong>5. Mathematics:</strong> ${mergeField('steam_m')}</p>
-                    </div>
-
-                    <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 20px 0 8px; color: #0f172a;">V. LKPD 4: REFLEKSI MANDIRI & TIM</h4>
-                    <div style="font-size: 13px;">
-                        <p><strong>Kendala Lapangan & Pemecahannya:</strong><br>${mergeField('lk4_kendala')}</p>
-                        <p><strong>Refleksi Kolaborasi & Budaya:</strong><br>${mergeField('lk4_kerjasama')}</p>
-                    </div>
-
-                    <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 20px 0 8px; color: #0f172a;">VI. LAMPIRAN DOKUMENTASI LAPANGAN KELOMPOK</h4>
-                    ${photosHTML}
+            <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 20px 0 8px; color: #0f172a;">II. LKPD 1: EKSPLORASI SAINS & TEKNOLOGI TERPADU (PP-IPTEK)</h4>
+            <div style="font-size: 13px; display: flex; flex-direction: column; gap: 8px;">
+                <!-- 🟢 WAHANA 1 (MEMERIKSA SEMUA VARIABEL) -->
+                <div style="background:#f8fafc; padding:8px 12px; border-radius:6px; border:1px solid #e2e8f0;">
+                    <strong>1. Wahana Pertama:</strong>
+                    <p style="margin:4px 0 2px;"><em>Hasil Observasi & Nama Alat:</em></p>
+                    ${mergeField(['lk1_alat1_hasil', 'lk1_alat1_nama', 'lk1_alat1_zona', 'lk1_a1_hasil', 'lk1_a1_nama', 'lk1_a1_zona'])}
+                    <p style="margin:4px 0 2px;"><em>Prinsip Sains:</em></p>
+                    ${mergeField(['lk1_alat1_konsep', 'lk1_a1_konsep'])}
                 </div>
-            `;
-        }
+
+                <!-- 🟢 WAHANA 2 (MEMERIKSA SEMUA VARIABEL) -->
+                <div style="background:#f8fafc; padding:8px 12px; border-radius:6px; border:1px solid #e2e8f0;">
+                    <strong>2. Wahana Kedua:</strong>
+                    <p style="margin:4px 0 2px;"><em>Hasil Observasi & Nama Alat:</em></p>
+                    ${mergeField(['lk1_alat2_hasil', 'lk1_alat2_nama', 'lk1_alat2_zona', 'lk1_a2_hasil', 'lk1_a2_nama', 'lk1_a2_zona'])}
+                    <p style="margin:4px 0 2px;"><em>Prinsip Sains:</em></p>
+                    ${mergeField(['lk1_alat2_konsep', 'lk1_a2_konsep'])}
+                </div>
+
+                <!-- 🟢 WAHANA 3 (MEMERIKSA SEMUA VARIABEL) -->
+                <div style="background:#f8fafc; padding:8px 12px; border-radius:6px; border:1px solid #e2e8f0;">
+                    <strong>3. Wahana Ketiga:</strong>
+                    <p style="margin:4px 0 2px;"><em>Hasil Observasi & Nama Alat:</em></p>
+                    ${mergeField(['lk1_alat3_hasil', 'lk1_alat3_nama', 'lk1_alat3_zona', 'lk1_a3_hasil', 'lk1_a3_nama', 'lk1_a3_zona'])}
+                    <p style="margin:4px 0 2px;"><em>Prinsip Sains:</em></p>
+                    ${mergeField(['lk1_alat3_konsep', 'lk1_a3_konsep'])}
+                </div>
+
+                <p style="margin:4px 0;"><strong>Relevansi Kehidupan Modern:</strong><br>${mergeField(['lk1_aplikasi'])}</p>
+            </div>
+
+            <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 20px 0 8px; color: #0f172a;">III. LKPD 2: OBSERVASI ARSITEKTUR RUMAH ADAT</h4>
+            <div style="font-size: 13px; line-height: 1.5;">
+                <p><strong>Deskripsi Arsitektur Bangunan:</strong><br>${mergeField(['lk2_fokus'])}</p>
+                <p><strong>Item Data 1 (Karakteristik):</strong><br>${mergeField(['lk2_data1'])}</p>
+                <p><strong>Item Data 2 (Adaptasi Lingkungan):</strong><br>${mergeField(['lk2_data2'])}</p>
+                <p><strong>Item Data 3 (Material Utama):</strong><br>${mergeField(['lk2_data3'])}</p>
+                <p><strong>Integrasi Kebudayaan ↔ Sains Modern:</strong><br>${mergeField(['lk2_koneksi'])}</p>
+            </div>
+
+            <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 20px 0 8px; color: #0f172a;">IV. LKPD 3: PERANCANGAN PROYEK (STEAM)</h4>
+            <div style="font-size: 13px;">
+                <p><strong>Judul Proyek / Prototype:</strong><br>${mergeField(['lk3_judul'])}</p>
+                <p><strong>Format Produk:</strong><br>${mergeField(['lk3_format'])}</p>
+                <p><strong>1. Science:</strong> ${mergeField(['steam_s'])}</p>
+                <p><strong>2. Technology:</strong> ${mergeField(['steam_t'])}</p>
+                <p><strong>3. Engineering:</strong> ${mergeField(['steam_e'])}</p>
+                <p><strong>4. Arts:</strong> ${mergeField(['steam_a'])}</p>
+                <p><strong>5. Mathematics:</strong> ${mergeField(['steam_m'])}</p>
+            </div>
+
+            <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 20px 0 8px; color: #0f172a;">V. LKPD 4: REFLEKSI MANDIRI & TIM</h4>
+            <div style="font-size: 13px;">
+                <p><strong>Kendala Lapangan & Pemecahannya:</strong><br>${mergeField(['lk4_kendala'])}</p>
+                <p><strong>Refleksi Kolaborasi & Budaya:</strong><br>${mergeField(['lk4_kerjasama'])}</p>
+            </div>
+
+            <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; margin: 20px 0 8px; color: #0f172a;">VI. LAMPIRAN DOKUMENTASI LAPANGAN KELOMPOK</h4>
+            ${photosHTML}
+        </div>
+    `;
+}
 
         function downloadReportPDF() { exportToPDF(); }
         function downloadReportWord() { exportToWord(); }
