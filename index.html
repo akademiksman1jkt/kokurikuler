@@ -1357,6 +1357,7 @@
             "X-8": "https://script.google.com/macros/s/AKfycbxQQp8SFEgadwysaFjudH1Yf8CIdf3vxQoXvrzbqYEft3i3AbfmmZSfuLDqwCpI9QX1/exec",
             "X-10": "https://script.google.com/macros/s/AKfycbxQQp8SFEgadwysaFjudH1Yf8CIdf3vxQoXvrzbqYEft3i3AbfmmZSfuLDqwCpI9QX1/exec"
         };
+        window.adminReportsMap = {};
 
         function getApiUrl(kelas) {
             return API_ENDPOINTS[kelas] || API_ENDPOINTS["X-1"];
@@ -2887,7 +2888,6 @@ async function saveGroupPhotosServer() {
 
     const klsNum = targetKelas.replace(/[^0-9]/g, '');
 
-    // 🟢 TAMBAHKAN "Kelompok 0" DI PALING DEPAN
     const daftarKelompok = [
         "Kelompok 0", "Kelompok 1", "Kelompok 2", "Kelompok 3", 
         "Kelompok 4", "Kelompok 5", "Kelompok 6"
@@ -2910,6 +2910,9 @@ async function saveGroupPhotosServer() {
         );
 
         if (isSubmitted) {
+            // 🟢 SIMPAN OBJEK KE DOKUMEN GLOBAL MAP BERDASARKAN GROUP ID
+            window.adminReportsMap[report.groupId] = report;
+
             htmlRows += `
                 <tr>
                     <td>
@@ -2922,7 +2925,8 @@ async function saveGroupPhotosServer() {
                     </td>
                     <td><span class="status-pill done">✅ Sudah Kirim</span></td>
                     <td>
-                        <button class="btn-lihat-isian" onclick="previewAdminReportByData('${encodeURIComponent(JSON.stringify(report))}')">👁️ Buka Laporan</button>
+                        <!-- 🟢 PARAMETER ONCLICK CUKUP MENGIRIM GROUP ID -->
+                        <button class="btn-lihat-isian" onclick="openAdminReportByGroupId('${report.groupId}')">👁️ Buka Laporan</button>
                     </td>
                 </tr>
             `;
@@ -2974,55 +2978,54 @@ async function saveGroupPhotosServer() {
 
 // PERBARUI FUNGSI PREVIEW ADMIN
 // 🟢 TAMBAHKAN 'async' DI DEPAN FUNGSI
-function previewAdminReportByData(jsonStr) {
-    try {
-        const rep = JSON.parse(decodeURIComponent(jsonStr));
-        currentAdminSelectedReport = rep;
-        
-        const titleEl = document.getElementById('adminPreviewTitle');
-        if (titleEl) {
-            titleEl.innerText = `👁️ Laporan Kelompok ${rep.groupId || ''} (${rep.nama || ''})`;
-        }
-        
-        // Semak semua kemungkinan nama pemboleh ubah yang dihantar dari backend
-        let rawContent = rep.laporanHtml || rep.laporanHtmlBase64 || rep.laporan || rep.html || "";
+function openAdminReportByGroupId(groupId) {
+    const rep = window.adminReportsMap[groupId];
+    if (!rep) {
+        showToast("⚠️ Data laporan tidak ditemukan!", "error");
+        return;
+    }
 
-        let htmlContent = "";
+    currentAdminSelectedReport = rep;
+    
+    const titleEl = document.getElementById('adminPreviewTitle');
+    if (titleEl) {
+        titleEl.innerText = `👁️ Laporan Kelompok ${rep.groupId || ''} (${rep.nama || ''})`;
+    }
 
-        if (!rawContent || !rawContent.trim()) {
-            htmlContent = `<p style="color:red; text-align:center; padding:20px;">Isi laporan kosong atau data tidak ditemukan.</p>`;
+    // Ambil isi HTML mentah
+    let rawContent = rep.laporanHtml || rep.laporanHtmlBase64 || rep.laporan || rep.html || "";
+    let htmlContent = "";
+
+    if (!rawContent || !rawContent.trim()) {
+        htmlContent = `<p style="color:red; text-align:center; padding:20px;">Isi laporan kosong atau data tidak ditemukan.</p>`;
+    } else {
+        // Cek apakah data sudah berbentuk tag HTML murni (<div, <table, dll)
+        if (rawContent.trim().startsWith("<") || rawContent.toLowerCase().includes("div") || rawContent.toLowerCase().includes("table")) {
+            htmlContent = rawContent; 
         } else {
-            // Pengesanan Automatik: Jika mengandungi tag HTML (<div, <table, dll.), terus gunakan HTML murni
-            if (rawContent.trim().startsWith("<") || rawContent.toLowerCase().includes("div") || rawContent.toLowerCase().includes("table")) {
-                htmlContent = rawContent; 
-            } else {
-                // Jika berbentuk Base64, dekod secara selamat
+            // Dekode Base64 jika data dalam format lama
+            try {
+                htmlContent = decodeURIComponent(escape(atob(rawContent)));
+            } catch (e1) {
                 try {
-                    htmlContent = decodeURIComponent(escape(atob(rawContent)));
-                } catch (e1) {
-                    try {
-                        htmlContent = atob(rawContent);
-                    } catch (e2) {
-                        htmlContent = rawContent; 
-                    }
+                    htmlContent = atob(rawContent);
+                } catch (e2) {
+                    htmlContent = rawContent; 
                 }
             }
         }
+    }
 
-        // Paparkan ke skrin
-        const renderArea = document.getElementById('adminReportRenderArea');
-        if (renderArea) {
-            renderArea.innerHTML = htmlContent;
-        }
+    // Tampilkan isi laporan ke elemen pratinjau Admin
+    const renderArea = document.getElementById('adminReportRenderArea');
+    if (renderArea) {
+        renderArea.innerHTML = htmlContent;
+    }
 
-        const cardContainer = document.getElementById('adminReportPreviewCard');
-        if (cardContainer) {
-            cardContainer.style.display = 'block';
-            cardContainer.scrollIntoView({ behavior: 'smooth' });
-        }
-
-    } catch (err) {
-        alert("Gagal memuatkan pratonton laporan: " + err.message);
+    const cardContainer = document.getElementById('adminReportPreviewCard');
+    if (cardContainer) {
+        cardContainer.style.display = 'block';
+        cardContainer.scrollIntoView({ behavior: 'smooth' });
     }
 }
 
