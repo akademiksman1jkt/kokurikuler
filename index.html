@@ -2484,43 +2484,37 @@ async function saveGroupPhotosServer() {
     const targetUrl = getApiUrl(currentStudentData.kelas);
     showToast("Menyinkronkan dokumentasi foto ke server kelompok...", "info");
 
-    const payloadObj = {
+    const payloadData = {
         groupId: currentStudentData.groupId,
         nisn: currentStudentData.nisn,
         nama: currentStudentData.nama,
         photos: currentGroupPhotos
     };
 
-    const formData = new URLSearchParams();
-    formData.append("action", "saveGroupPhotos");
-    formData.append("data", JSON.stringify(payloadObj));
-
-    try {
-        const res = await fetch(targetUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: formData.toString()
-        });
-        const result = await res.json();
-        
+    // 🟢 GUNAKAN FORMAT TEXT/PLAIN AGAR TIDAK MEMICU PRE-FLIGHT CORS BLOCK
+    fetch(targetUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+            action: "saveGroupPhotos",
+            data: payloadData
+        })
+    })
+    .then(res => res.json())
+    .then(result => {
         if(result.status === "success") {
-            // 🟢 UBAH STATUS CHECKLIST MENJADI SELESAI
             completionStatus.docs = (currentGroupPhotos.length > 0);
             updateChecklistUI();
-            
-            // Refresh progres tim dan tombol kirim laporan
-            if (typeof syncGroupStatusProgress === "function") {
-                syncGroupStatusProgress();
-            }
-            
+            if (typeof syncGroupStatusProgress === "function") syncGroupStatusProgress();
             showToast("✅ Dokumentasi foto kelompok berhasil disimpan!", "success");
             backToHub();
         } else {
             showToast("Gagal menyimpan foto: " + result.message, "error");
         }
-    } catch(err) {
+    })
+    .catch(err => {
         showToast("Terjadi kesalahan jaringan saat menyimpan foto.", "error");
-    }
+    });
 }
 
         // ==========================================
