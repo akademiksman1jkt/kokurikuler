@@ -2990,31 +2990,38 @@ async function previewAdminReportByData(jsonStr) {
         
         document.getElementById('adminPreviewTitle').innerText = `👁️ Laporan Kelompok ${rep.groupId} (${rep.nama})`;
         
+        // 🟢 BACA DATA FLEKSIBEL (SUPPORT BASE64 MAUPUN HTML MURNI)
+        let rawData = rep.laporanHtmlBase64 || rep.laporanHtml || "";
         let htmlContent = "";
 
-        if (rep.laporanHtmlBase64) {
-            htmlContent = decodeBase64Utf8(rep.laporanHtmlBase64);
-        } else if (rep.laporanHtml) {
-            htmlContent = rep.laporanHtml;
+        if (!rawData) {
+            htmlContent = `<p style="color:red; text-align:center;">Format laporan kosong atau tidak valid.</p>`;
         } else {
-            htmlContent = `<p style="color:red; text-align:center;">Format laporan tidak valid atau kosong.</p>`;
+            // Cek otomatis apakah data berupa Base64 atau HTML Mentah
+            if (rawData.trim().startsWith("<") || rawData.includes("DIV") || rawData.includes("div")) {
+                htmlContent = rawData; // Langsung baca jika HTML Mentah
+            } else {
+                try {
+                    htmlContent = decodeBase64Utf8(rawData); // Decode jika Base64
+                } catch(e) {
+                    htmlContent = rawData; // Fallback
+                }
+            }
         }
 
-        // Render hanya teks laporan utama di area dokumen utama
+        // Render Teks Laporan
         const renderArea = document.getElementById('adminReportRenderArea');
         renderArea.innerHTML = `<div id="pdfTextOnlyContainer">${htmlContent}</div>`;
-        
         document.getElementById('adminReportPreviewCard').style.display = 'block';
         document.getElementById('adminReportPreviewCard').scrollIntoView({ behavior: 'smooth' });
 
-        // Tarik foto dan masukkan ke wadah terpisah DILUAR kontainer cetak PDF
+        // Tarik Foto Terpisah untuk Tampilan Layar Admin
         try {
             const kls = document.getElementById('adminLaporanFilterKelas') ? document.getElementById('adminLaporanFilterKelas').value : (rep.kelas || "");
             const targetUrl = getApiUrl(kls);
             const resPhoto = await fetch(`${targetUrl}?action=getGroupPhotos&groupId=${encodeURIComponent(rep.groupId)}`);
             const dataPhoto = await resPhoto.json();
             
-            // Hapus blok foto terpisah lama jika ada
             const oldPhotoBlock = document.getElementById('separateAdminPhotoCard');
             if (oldPhotoBlock) oldPhotoBlock.remove();
 
@@ -3026,7 +3033,6 @@ async function previewAdminReportByData(jsonStr) {
                 
                 if (photosList && photosList.length > 0) {
                     let photosGridHtml = `<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">`;
-                    
                     photosList.forEach((item, index) => {
                         let imgSrc = (typeof item === 'object' && item !== null && item.url) ? item.url : String(item);
                         imgSrc = imgSrc.trim();
@@ -3040,20 +3046,17 @@ async function previewAdminReportByData(jsonStr) {
                             `;
                         }
                     });
-                    
                     photosGridHtml += `</div>`;
 
-                    // Buat elemen terpisah khusus tampilan foto di layar admin
                     const photoCard = document.createElement('div');
                     photoCard.id = "separateAdminPhotoCard";
                     photoCard.style.cssText = "margin-top: 20px; padding: 15px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px;";
                     photoCard.innerHTML = `
                         <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; color: #0f172a; margin: 0 0 10px 0; font-size:13px;">
-                            📷 DOKUMENTASI FOTO KELOMPOK (DOKUMEN LAMPIRAN)
+                            📷 DOKUMENTASI FOTO KELOMPOK LAPANGAN
                         </h4>
                     ` + photosGridHtml;
 
-                    // Tempelkan di luar area cetak PDF agar tidak bikin crash
                     renderArea.parentNode.appendChild(photoCard);
                 }
             }
