@@ -1645,73 +1645,74 @@ function applyAnswersToForm(mySub) {
 }
 
         function renderGroupStatusTable(submissions) {
-            const tbody = document.getElementById('groupStatusTableBody');
-            const members = currentStudentData.groupMembers || [currentStudentData.nama];
-            
-            // Variabel Progress Kolektif (Asalkan ada SATU orang yang ngisi, kelompok dianggap sudah)
-            let groupHasLk1 = false;
-            let groupHasLk2 = false;
-            let groupHasLk3 = false;
-            let groupHasLk4 = false;
+    const tbody = document.getElementById('groupStatusTableBody');
+    const members = currentStudentData.groupMembers || [currentStudentData.nama];
+    
+    let groupHasLk1 = false;
+    let groupHasLk2 = false;
+    let groupHasLk3 = false;
+    let groupHasLk4 = false;
 
-            let rowsHtml = "";
+    let rowsHtml = "";
 
-            members.forEach(memberNama => {
-                const sub = submissions.find(s => s.nama.trim().toLowerCase() === memberNama.trim().toLowerCase());
-                
-                const hasLk1 = sub && !!(sub.lk1_a1_nama || sub.lk1_a1_hasil);
-                const hasLk2 = sub && !!(sub.lk2_fokus || sub.lk2_data1);
-                const hasLk3 = sub && !!(sub.lk3_judul || sub.steam_s);
-                const hasLk4 = sub && !!(sub.lk4_kendala || sub.lk4_kerjasama);
+    members.forEach(memberNama => {
+        const sub = submissions.find(s => s.nama.trim().toLowerCase() === memberNama.trim().toLowerCase());
+        
+        const hasLk1 = sub && !!(sub.lk1_a1_nama || sub.lk1_a1_hasil || sub.lk1_a2_nama || sub.lk1_a3_nama);
+        const hasLk2 = sub && !!(sub.lk2_fokus || sub.lk2_data1 || sub.lk2_data2 || sub.lk2_data3);
+        const hasLk3 = sub && !!(sub.lk3_judul || sub.steam_s || sub.steam_t || sub.steam_e);
+        const hasLk4 = sub && !!(sub.lk4_kendala || sub.lk4_kerjasama);
 
-                if(hasLk1) groupHasLk1 = true;
-                if(hasLk2) groupHasLk2 = true;
-                if(hasLk3) groupHasLk3 = true;
-                if(hasLk4) groupHasLk4 = true;
+        if(hasLk1) groupHasLk1 = true;
+        if(hasLk2) groupHasLk2 = true;
+        if(hasLk3) groupHasLk3 = true;
+        if(hasLk4) groupHasLk4 = true;
 
-                const makePill = (isDone) => isDone ? `<span class="status-pill done">✅</span>` : `<span class="status-pill yet">-</span>`;
-                const isSelf = memberNama.trim().toLowerCase() === currentStudentData.nama.trim().toLowerCase();
+        const makePill = (isDone) => isDone ? `<span class="status-pill done">✅</span>` : `<span class="status-pill yet">-</span>`;
+        const isSelf = memberNama.trim().toLowerCase() === currentStudentData.nama.trim().toLowerCase();
 
-                // Tombol Lihat Jawaban
-                let btnLihat = `<span style="color:#94a3b8; font-size:11px;">Belum Ada</span>`;
-                if(sub && (hasLk1 || hasLk2 || hasLk3 || hasLk4)) {
-                    btnLihat = `<button class="btn-lihat-isian" onclick="viewMemberAnswers('${memberNama}')">🔍 Lihat</button>`;
-                }
-
-                rowsHtml += `
-                    <tr>
-                        <td><strong>${memberNama}</strong> ${isSelf ? '<span style="font-size:11px; color:var(--primary); font-weight:800;">(Saya)</span>' : ''}</td>
-                        <td>${makePill(hasLk1)}</td>
-                        <td>${makePill(hasLk2)}</td>
-                        <td>${makePill(hasLk3)}</td>
-                        <td>${makePill(hasLk4)}</td>
-                        <td>${btnLihat}</td>
-                    </tr>
-                `;
-            });
-
-            tbody.innerHTML = rowsHtml;
-
-            // KONTROL AKTIVASI TOMBOL KIRIM LAPORAN KE GURU (BERBASIS KOLEKTIF)
-            const btnSubmit = document.getElementById('btnSubmitFinalLaporan');
-            const submitBadge = document.getElementById('submitStatusBadge');
-
-            if (groupHasLk1 && groupHasLk2 && groupHasLk3 && groupHasLk4) {
-                if(btnSubmit) btnSubmit.disabled = false;
-                if(submitBadge) {
-                    submitBadge.style.background = "#059669";
-                    submitBadge.style.color = "#ffffff";
-                    submitBadge.innerText = "✅ Tim Lengkap, Siap Dikirim";
-                }
-            } else {
-                if(btnSubmit) btnSubmit.disabled = true;
-                if(submitBadge) {
-                    submitBadge.style.background = "#334155";
-                    submitBadge.style.color = "#94a3b8";
-                    submitBadge.innerText = "🔒 LKPD Tim Belum Lengkap";
-                }
-            }
+        let btnLihat = `<span style="color:#94a3b8; font-size:11px;">Belum Ada</span>`;
+        if(sub && (hasLk1 || hasLk2 || hasLk3 || hasLk4)) {
+            btnLihat = `<button class="btn-lihat-isian" onclick="viewMemberAnswers('${memberNama}')">🔍 Lihat</button>`;
         }
+
+        rowsHtml += `
+            <tr>
+                <td><strong>${memberNama}</strong> ${isSelf ? '<span style="font-size:11px; color:var(--primary); font-weight:800;">(Saya)</span>' : ''}</td>
+                <td>${makePill(hasLk1)}</td>
+                <td>${makePill(hasLk2)}</td>
+                <td>${makePill(hasLk3)}</td>
+                <td>${makePill(hasLk4)}</td>
+                <td>${btnLihat}</td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = rowsHtml;
+
+    // KONTROL AKTIVASI TOMBOL KIRIM LAPORAN KE GURU
+    const btnSubmit = document.getElementById('btnSubmitFinalLaporan');
+    const submitBadge = document.getElementById('submitStatusBadge');
+    
+    // Cek apakah foto kelompok minimal sudah 1 atau terisi
+    const hasPhotos = currentGroupPhotos && currentGroupPhotos.length > 0;
+
+    if (groupHasLk1 && groupHasLk2 && groupHasLk3 && groupHasLk4 && hasPhotos) {
+        if(btnSubmit) btnSubmit.disabled = false;
+        if(submitBadge) {
+            submitBadge.style.background = "#059669";
+            submitBadge.style.color = "#ffffff";
+            submitBadge.innerText = "✅ Tim Lengkap & Foto Terunggah, Siap Dikirim";
+        }
+    } else {
+        if(btnSubmit) btnSubmit.disabled = true;
+        if(submitBadge) {
+            submitBadge.style.background = "#334155";
+            submitBadge.style.color = "#94a3b8";
+            submitBadge.innerText = "🔒 LKPD / Foto Tim Belum Lengkap";
+        }
+    }
+}
 
         // FUNGSI MEMBUKA MODAL INTIP JAWABAN TEMAN
         function viewMemberAnswers(memberNama) {
@@ -2439,7 +2440,6 @@ async function deleteGroupPhoto(photoIdOrIndex) {
 async function saveGroupPhotosServer() {
     if(!currentStudentData) return;
 
-    // Pop-Up Konfirmasi Sebelum Upload Foto
     const setuju = await showCustomConfirm(
         "Simpan Foto Kelompok?", 
         "Apakah Anda yakin ingin menyinkronkan seluruh foto dokumentasi kelompok ini ke server?", 
@@ -2451,7 +2451,7 @@ async function saveGroupPhotosServer() {
     const targetUrl = getApiUrl(currentStudentData.kelas);
     showToast("Menyinkronkan dokumentasi foto ke server kelompok...", "info");
 
-    const dataObj = {
+    const payloadObj = {
         groupId: currentStudentData.groupId,
         nisn: currentStudentData.nisn,
         nama: currentStudentData.nama,
@@ -2460,7 +2460,7 @@ async function saveGroupPhotosServer() {
 
     const formData = new URLSearchParams();
     formData.append("action", "saveGroupPhotos");
-    formData.append("data", JSON.stringify(dataObj));
+    formData.append("data", JSON.stringify(payloadObj));
 
     try {
         const res = await fetch(targetUrl, {
@@ -2472,6 +2472,7 @@ async function saveGroupPhotosServer() {
         if(result.status === "success") {
             completionStatus.docs = true;
             updateChecklistUI();
+            syncGroupStatusProgress(); // Perbarui status tabel anggota dan aktifkan tombol kirim
             showToast("✅ Dokumentasi foto kelompok berhasil disimpan!", "success");
             backToHub();
         } else {
