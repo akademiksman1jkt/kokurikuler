@@ -2982,7 +2982,6 @@ async function previewAdminReportByData(jsonStr) {
         let htmlContent = "";
 
         if (rep.laporanHtmlBase64) {
-            // Gunakan fungsi decode UTF-8 yang baru
             htmlContent = decodeBase64Utf8(rep.laporanHtmlBase64);
         } else if (rep.laporanHtml) {
             htmlContent = rep.laporanHtml;
@@ -2990,39 +2989,67 @@ async function previewAdminReportByData(jsonStr) {
             htmlContent = `<p style="color:red; text-align:center;">Format laporan tidak valid atau kosong.</p>`;
         }
 
+        // Render teks laporan
         document.getElementById('adminReportRenderArea').innerHTML = htmlContent;
         document.getElementById('adminReportPreviewCard').style.display = 'block';
         document.getElementById('adminReportPreviewCard').scrollIntoView({ behavior: 'smooth' });
 
-        // 🟢 PENAMBAHAN BIKINAN: TARIK DOKUMENTASI FOTO REAL-TIME DARI SHEET DOKUMENTASIKELOMPOK
+        // 🟢 TARIK DOKUMENTASI FOTO BASE64 REAL-TIME DARI SHEET DOKUMENTASIKELOMPOK
         try {
-            const kls = document.getElementById('adminLaporanFilterKelas').value;
+            const kls = document.getElementById('adminLaporanFilterKelas') ? document.getElementById('adminLaporanFilterKelas').value : (rep.kelas || "");
             const targetUrl = getApiUrl(kls);
             const resPhoto = await fetch(`${targetUrl}?action=getGroupPhotos&groupId=${encodeURIComponent(rep.groupId)}`);
             const dataPhoto = await resPhoto.json();
             
             if (dataPhoto.status === "success" && dataPhoto.photos) {
-                let photosList = Array.isArray(dataPhoto.photos) ? dataPhoto.photos : JSON.parse(dataPhoto.photos);
+                let photosList = Array.isArray(dataPhoto.photos) ? dataPhoto.photos : [];
+                if (typeof dataPhoto.photos === 'string') {
+                    try { photosList = JSON.parse(dataPhoto.photos); } catch(e) {}
+                }
                 
-                // Panggil generateDraftHTML khusus foto
-                const fullHtmlWithPhotos = generateDraftHTML([], photosList);
-                
-                // Ambil elemen grid foto dari hasil render
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(fullHtmlWithPhotos, 'text/html');
-                const photoGrid = doc.querySelector('div[style*="flex-wrap"]');
-                
-                const currentArea = document.getElementById('adminReportRenderArea');
-                if (photoGrid && !currentArea.innerHTML.includes("VI. DOKUMENTASI FOTO")) {
+                // Susun elemen grid foto Base64 secara langsung
+                if (photosList && photosList.length > 0) {
+                    let photosGridHtml = `<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">`;
+                    
+                    photosList.forEach((item, index) => {
+                        // Ekstrak string Base64 dari objek JSON {"id": "...", "url": "data:image/..."}
+                        let imgSrc = (typeof item === 'object' && item !== null && item.url) ? item.url : String(item);
+                        imgSrc = imgSrc.trim();
+
+                        if (imgSrc) {
+                            photosGridHtml += `
+                                <div style="flex: 1 1 calc(33.333% - 10px); max-width: calc(33.333% - 10px); box-sizing: border-box; text-align: center; border: 1px solid #cbd5e1; padding: 6px; border-radius: 6px; background: #f8fafc;">
+                                    <img src="${imgSrc}" 
+                                         style="width: 100%; height: 130px; object-fit: cover; border-radius: 4px; display: block;" 
+                                         alt="Dokumentasi ${index + 1}" />
+                                    <span style="font-size: 10px; color: #475569; display: block; margin-top: 4px; font-weight: bold;">Dokumentasi #${index + 1}</span>
+                                </div>
+                            `;
+                        }
+                    });
+                    
+                    photosGridHtml += `</div>`;
+
+                    // Sisipkan/Gantikan seksi foto di area pratinjau admin
+                    const currentArea = document.getElementById('adminReportRenderArea');
+                    
+                    // Hapus blok foto lama yang rusak jika ada
+                    const existingSection = currentArea.querySelector('h4:last-of-type');
+                    if (existingSection && existingSection.innerText.includes("VI. DOKUMENTASI")) {
+                        existingSection.nextElementSibling?.remove();
+                        existingSection.remove();
+                    }
+
+                    // Tambahkan blok foto Base64 yang baru
                     currentArea.innerHTML += `
                         <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; color: #0f172a; margin-top: 20px; font-size:13px;">
                             VI. DOKUMENTASI FOTO KELOMPOK LAPANGAN
                         </h4>
-                    ` + photoGrid.outerHTML;
+                    ` + photosGridHtml;
                 }
             }
         } catch(e) {
-            console.warn("Gagal memuat foto tambahan di admin:", e);
+            console.warn("Gagal memuat foto di panel admin:", e);
         }
 
     } catch (err) {
