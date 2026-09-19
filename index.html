@@ -2090,7 +2090,6 @@ function applyAnswersToForm(mySub) {
         // 4. Kirim via POST dengan format text/plain agar bebas dari blokir CORS
         const res = await fetch(targetUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(payloadData)
         });
 
