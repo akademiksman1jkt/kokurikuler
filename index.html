@@ -1781,72 +1781,76 @@ function applyAnswersToForm(mySub) {
         }
 
         async function handleLoginMurid(e) {
-            e.preventDefault();
-            const u = document.getElementById('usernameMurid').value.trim();
-            const p = document.getElementById('passwordMurid').value.trim();
-            const btn = document.getElementById('btnLoginMurid');
-            btn.innerText = "Memuat..."; btn.disabled = true;
+    e.preventDefault();
+    const u = document.getElementById('usernameMurid').value.trim();
+    const p = document.getElementById('passwordMurid').value.trim();
+    const btn = document.getElementById('btnLoginMurid');
+    btn.innerText = "Memuat..."; btn.disabled = true;
 
-            const uniqueEndpoints = [...new Set(Object.values(API_ENDPOINTS))];
-            let loggedInUser = null;
+    const uniqueEndpoints = [...new Set(Object.values(API_ENDPOINTS))];
+    let loggedInUser = null;
 
-            for (const url of uniqueEndpoints) {
-                if (!url || !url.includes("script.google.com/macros/s/")) continue;
-                try {
-                    const formData = new URLSearchParams();
-                    formData.append("action", "login");
-                    formData.append("nisn", u);
-                    formData.append("password", p);
+    for (const url of uniqueEndpoints) {
+        if (!url || !url.includes("script.google.com/macros/s/")) continue;
+        try {
+            const formData = new URLSearchParams();
+            formData.append("action", "login");
+            formData.append("nisn", u);
+            formData.append("password", p);
 
-                    const res = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: formData.toString()
-                    });
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+            });
 
-                    if (res.ok) {
-                        const text = await res.text();
-                        if (text.trim().startsWith('{')) {
-                            const data = JSON.parse(text);
-                            if (data.status === "success") {
-                                loggedInUser = data;
-                                break;
-                            }
-                        }
+            if (res.ok) {
+                const text = await res.text();
+                if (text.trim().startsWith('{')) {
+                    const data = JSON.parse(text);
+                    if (data.status === "success") {
+                        loggedInUser = data;
+                        break;
                     }
-                } catch (err) { console.warn("Skip URL:", url); }
+                }
             }
+        } catch (err) { console.warn("Skip URL:", url); }
+    }
 
-            btn.innerText = "Masuk"; btn.disabled = false;
+    btn.innerText = "Masuk"; btn.disabled = false;
 
-            if (loggedInUser) {
-                const st = loggedInUser.user;
-                const ms = loggedInUser.misi || {};
+    if (loggedInUser) {
+        const st = loggedInUser.user;
+        const ms = loggedInUser.misi || {};
 
-                currentStudentData = {
-                    nisn: st.nisn, 
-                    nama: st.nama, 
-                    kelas: st.kelas || "X-1", 
-                    kelompok: st.kelompok || "Kelompok 1",
-                    groupId: st.groupId || "X1-K1",
-                    groupMembers: st.groupMembers || [st.nama],
-                    misiCode: ms.misiCode || "MISSION 01 — ADAPT",
-                    anjungan: ms.anjungan || "Anjungan NTB (Rumah Dalam Loka)",
-                    guruPendamping: st.guruPendamping || "Nurul Faozi, S.Pd."
-                };
+        currentStudentData = {
+            nisn: st.nisn, 
+            nama: st.nama, 
+            kelas: st.kelas || "X-1", 
+            kelompok: st.kelompok || "Kelompok 1",
+            groupId: st.groupId || "X1-K1",
+            groupMembers: st.groupMembers || [st.nama],
+            misiCode: ms.misiCode || "MISSION 01 — ADAPT",
+            anjungan: ms.anjungan || "Anjungan NTB (Rumah Dalam Loka)",
+            guruPendamping: st.guruPendamping || "Nurul Faozi, S.Pd."
+        };
 
-                updateUIProfile();
-                syncGroupStatusProgress(); // Ambil Data Teman Sekelompok saat Login
-                loadStudentOwnAnswers();
-                document.querySelectorAll('.item-murid').forEach(el => el.style.display = 'flex');
-                document.querySelectorAll('.item-admin').forEach(el => el.style.display = 'none');
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('dashboardScreen').classList.add('active');
-                backToHub();
-            } else {
-                showToast("Gagal Login: NISN atau Password salah!", "error");
-            }
-        }
+        updateUIProfile();
+        
+        // 🟢 LANGKAH NOMOR 3: DITARUH DI SINI
+        loadGroupPhotosQuota(); 
+
+        syncGroupStatusProgress(); // Ambil Data Teman Sekelompok saat Login
+        loadStudentOwnAnswers();
+        document.querySelectorAll('.item-murid').forEach(el => el.style.display = 'flex');
+        document.querySelectorAll('.item-admin').forEach(el => el.style.display = 'none');
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('dashboardScreen').classList.add('active');
+        backToHub();
+    } else {
+        showToast("Gagal Login: NISN atau Password salah!", "error");
+    }
+}
 
         function updateUIProfile() {
     const mCode = currentStudentData.misiCode;
@@ -2339,6 +2343,15 @@ async function loadGroupPhotosQuota() {
 
         if(data.status === "success") {
             currentGroupPhotos = data.photos || [];
+            
+            // 🟢 UPDATE STATUS CHECKLIST JIKA FOTO SUDAH ADA
+            if (currentGroupPhotos.length > 0) {
+                completionStatus.docs = true;
+            } else {
+                completionStatus.docs = false;
+            }
+            
+            updateChecklistUI();
             renderGroupPhotosUI();
         }
     } catch(err) {
@@ -2489,10 +2502,17 @@ async function saveGroupPhotosServer() {
             body: formData.toString()
         });
         const result = await res.json();
+        
         if(result.status === "success") {
-            completionStatus.docs = true;
+            // 🟢 UBAH STATUS CHECKLIST MENJADI SELESAI
+            completionStatus.docs = (currentGroupPhotos.length > 0);
             updateChecklistUI();
-            syncGroupStatusProgress(); // Perbarui status tabel anggota dan aktifkan tombol kirim
+            
+            // Refresh progres tim dan tombol kirim laporan
+            if (typeof syncGroupStatusProgress === "function") {
+                syncGroupStatusProgress();
+            }
+            
             showToast("✅ Dokumentasi foto kelompok berhasil disimpan!", "success");
             backToHub();
         } else {
