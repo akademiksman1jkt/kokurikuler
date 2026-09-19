@@ -1574,66 +1574,75 @@ function closeSidebarMobile() {
             }
         }
         async function loadStudentOwnAnswers() {
-            if (!currentStudentData) return;
-            const targetUrl = getApiUrl(currentStudentData.kelas);
-            
-            try {
-                const res = await fetch(`${targetUrl}?action=getGroupSubmissions&groupId=${encodeURIComponent(currentStudentData.groupId)}`);
-                const data = await res.json();
-                
-                if (data.status === "success" && data.submissions) {
-                    const mySub = data.submissions.find(s => s.nama.trim().toLowerCase() === currentStudentData.nama.trim().toLowerCase() || s.nisn === currentStudentData.nisn);
-                    
-                    if (mySub) {
-                        // Isi ulang LKPD 1
-                        if (document.getElementById('lk1_alat1_nama')) document.getElementById('lk1_alat1_nama').value = mySub.lk1_a1_nama || '';
-                        if (document.getElementById('lk1_alat1_zona')) document.getElementById('lk1_alat1_zona').value = mySub.lk1_a1_zona || '';
-                        if (document.getElementById('lk1_alat1_hasil')) document.getElementById('lk1_alat1_hasil').value = mySub.lk1_a1_hasil || '';
-                        if (document.getElementById('lk1_alat1_konsep')) document.getElementById('lk1_alat1_konsep').value = mySub.lk1_a1_konsep || '';
+    if (!currentStudentData) return;
+    const targetUrl = getApiUrl(currentStudentData.kelas);
+    
+    // 🟢 1. CEK CADANGAN LOKAL DAHULU
+    const localBackup = localStorage.getItem(`backup_lkpd_${currentStudentData.groupId}_${currentStudentData.nisn}`);
+    if (localBackup) {
+        try {
+            const mySub = JSON.parse(localBackup);
+            applyAnswersToForm(mySub);
+        } catch(e){}
+    }
 
-                        if (document.getElementById('lk1_alat2_nama')) document.getElementById('lk1_alat2_nama').value = mySub.lk1_a2_nama || '';
-                        if (document.getElementById('lk1_alat2_zona')) document.getElementById('lk1_alat2_zona').value = mySub.lk1_a2_zona || '';
-                        if (document.getElementById('lk1_alat2_hasil')) document.getElementById('lk1_alat2_hasil').value = mySub.lk1_a2_hasil || '';
-                        if (document.getElementById('lk1_alat2_konsep')) document.getElementById('lk1_alat2_konsep').value = mySub.lk1_a2_konsep || '';
-
-                        if (document.getElementById('lk1_alat3_nama')) document.getElementById('lk1_alat3_nama').value = mySub.lk1_a3_nama || '';
-                        if (document.getElementById('lk1_alat3_zona')) document.getElementById('lk1_alat3_zona').value = mySub.lk1_a3_zona || '';
-                        if (document.getElementById('lk1_alat3_hasil')) document.getElementById('lk1_alat3_hasil').value = mySub.lk1_a3_hasil || '';
-                        if (document.getElementById('lk1_alat3_konsep')) document.getElementById('lk1_alat3_konsep').value = mySub.lk1_a3_konsep || '';
-                        if (document.getElementById('lk1_aplikasi')) document.getElementById('lk1_aplikasi').value = mySub.lk1_aplikasi || '';
-
-                        // Isi ulang LKPD 2
-                        if (document.getElementById('lk2_fokus')) document.getElementById('lk2_fokus').value = mySub.lk2_fokus || '';
-                        if (document.getElementById('lk2_data1')) document.getElementById('lk2_data1').value = mySub.lk2_data1 || '';
-                        if (document.getElementById('lk2_data2')) document.getElementById('lk2_data2').value = mySub.lk2_data2 || '';
-                        if (document.getElementById('lk2_data3')) document.getElementById('lk2_data3').value = mySub.lk2_data3 || '';
-                        if (document.getElementById('lk2_koneksi')) document.getElementById('lk2_koneksi').value = mySub.lk2_koneksi || '';
-
-                        // Isi ulang LKPD 3
-                        if (document.getElementById('lk3_judul')) document.getElementById('lk3_judul').value = mySub.lk3_judul || '';
-                        if (document.getElementById('lk3_format')) document.getElementById('lk3_format').value = mySub.lk3_format || '';
-                        if (document.getElementById('steam_s')) document.getElementById('steam_s').value = mySub.steam_s || '';
-                        if (document.getElementById('steam_t')) document.getElementById('steam_t').value = mySub.steam_t || '';
-                        if (document.getElementById('steam_e')) document.getElementById('steam_e').value = mySub.steam_e || '';
-                        if (document.getElementById('steam_a')) document.getElementById('steam_a').value = mySub.steam_a || '';
-                        if (document.getElementById('steam_m')) document.getElementById('steam_m').value = mySub.steam_m || '';
-
-                        // Isi ulang LKPD 4
-                        if (document.getElementById('lk4_kendala')) document.getElementById('lk4_kendala').value = mySub.lk4_kendala || '';
-                        if (document.getElementById('lk4_kerjasama')) document.getElementById('lk4_kerjasama').value = mySub.lk4_kerjasama || '';
-
-                        // Perbarui status checklist centang hijau
-                        completionStatus.lkpd1 = !!(mySub.lk1_a1_nama || mySub.lk1_a1_hasil);
-                        completionStatus.lkpd2 = !!(mySub.lk2_fokus || mySub.lk2_data1);
-                        completionStatus.lkpd3 = !!(mySub.lk3_judul || mySub.steam_s);
-                        completionStatus.lkpd4 = !!(mySub.lk4_kendala || mySub.lk4_kerjasama);
-                        updateChecklistUI();
-                    }
-                }
-            } catch(err) {
-                console.warn("Gagal memuat isian awal murid:", err);
+    // 2. AMBIL DATA TERBARU DARI SERVER
+    try {
+        const res = await fetch(`${targetUrl}?action=getGroupSubmissions&groupId=${encodeURIComponent(currentStudentData.groupId)}`);
+        const data = await res.json();
+        
+        if (data.status === "success" && data.submissions) {
+            const mySub = data.submissions.find(s => s.nama.trim().toLowerCase() === currentStudentData.nama.trim().toLowerCase() || s.nisn === currentStudentData.nisn);
+            if (mySub) {
+                applyAnswersToForm(mySub);
             }
         }
+    } catch(err) {
+        console.warn("Menggunakan data lokal karena gagal koneksi:", err);
+    }
+}
+
+// Fungsi pembantu mengisi form
+function applyAnswersToForm(mySub) {
+    if (document.getElementById('lk1_alat1_nama')) document.getElementById('lk1_alat1_nama').value = mySub.lk1_a1_nama || '';
+    if (document.getElementById('lk1_alat1_zona')) document.getElementById('lk1_alat1_zona').value = mySub.lk1_a1_zona || '';
+    if (document.getElementById('lk1_alat1_hasil')) document.getElementById('lk1_alat1_hasil').value = mySub.lk1_a1_hasil || '';
+    if (document.getElementById('lk1_alat1_konsep')) document.getElementById('lk1_alat1_konsep').value = mySub.lk1_a1_konsep || '';
+
+    if (document.getElementById('lk1_alat2_nama')) document.getElementById('lk1_alat2_nama').value = mySub.lk1_a2_nama || '';
+    if (document.getElementById('lk1_alat2_zona')) document.getElementById('lk1_alat2_zona').value = mySub.lk1_a2_zona || '';
+    if (document.getElementById('lk1_alat2_hasil')) document.getElementById('lk1_alat2_hasil').value = mySub.lk1_a2_hasil || '';
+    if (document.getElementById('lk1_alat2_konsep')) document.getElementById('lk1_alat2_konsep').value = mySub.lk1_a2_konsep || '';
+
+    if (document.getElementById('lk1_alat3_nama')) document.getElementById('lk1_alat3_nama').value = mySub.lk1_a3_nama || '';
+    if (document.getElementById('lk1_alat3_zona')) document.getElementById('lk1_alat3_zona').value = mySub.lk1_a3_zona || '';
+    if (document.getElementById('lk1_alat3_hasil')) document.getElementById('lk1_alat3_hasil').value = mySub.lk1_a3_hasil || '';
+    if (document.getElementById('lk1_alat3_konsep')) document.getElementById('lk1_alat3_konsep').value = mySub.lk1_a3_konsep || '';
+    if (document.getElementById('lk1_aplikasi')) document.getElementById('lk1_aplikasi').value = mySub.lk1_aplikasi || '';
+
+    if (document.getElementById('lk2_fokus')) document.getElementById('lk2_fokus').value = mySub.lk2_fokus || '';
+    if (document.getElementById('lk2_data1')) document.getElementById('lk2_data1').value = mySub.lk2_data1 || '';
+    if (document.getElementById('lk2_data2')) document.getElementById('lk2_data2').value = mySub.lk2_data2 || '';
+    if (document.getElementById('lk2_data3')) document.getElementById('lk2_data3').value = mySub.lk2_data3 || '';
+    if (document.getElementById('lk2_koneksi')) document.getElementById('lk2_koneksi').value = mySub.lk2_koneksi || '';
+
+    if (document.getElementById('lk3_judul')) document.getElementById('lk3_judul').value = mySub.lk3_judul || '';
+    if (document.getElementById('lk3_format')) document.getElementById('lk3_format').value = mySub.lk3_format || '';
+    if (document.getElementById('steam_s')) document.getElementById('steam_s').value = mySub.steam_s || '';
+    if (document.getElementById('steam_t')) document.getElementById('steam_t').value = mySub.steam_t || '';
+    if (document.getElementById('steam_e')) document.getElementById('steam_e').value = mySub.steam_e || '';
+    if (document.getElementById('steam_a')) document.getElementById('steam_a').value = mySub.steam_a || '';
+    if (document.getElementById('steam_m')) document.getElementById('steam_m').value = mySub.steam_m || '';
+
+    if (document.getElementById('lk4_kendala')) document.getElementById('lk4_kendala').value = mySub.lk4_kendala || '';
+    if (document.getElementById('lk4_kerjasama')) document.getElementById('lk4_kerjasama').value = mySub.lk4_kerjasama || '';
+
+    completionStatus.lkpd1 = !!(mySub.lk1_a1_nama || mySub.lk1_a1_hasil);
+    completionStatus.lkpd2 = !!(mySub.lk2_fokus || mySub.lk2_data1);
+    completionStatus.lkpd3 = !!(mySub.lk3_judul || mySub.steam_s);
+    completionStatus.lkpd4 = !!(mySub.lk4_kendala || mySub.lk4_kerjasama);
+    updateChecklistUI();
+}
 
         function renderGroupStatusTable(submissions) {
             const tbody = document.getElementById('groupStatusTableBody');
@@ -1923,52 +1932,62 @@ function closeSidebarMobile() {
         }
 
         function saveProgress(type) {
-            const targetUrl = getApiUrl(currentStudentData ? currentStudentData.kelas : "X-1");
-            const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value.trim() : "";
+    const targetUrl = getApiUrl(currentStudentData ? currentStudentData.kelas : "X-1");
+    const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value.trim() : "";
 
-            const dataObj = {
-                nisn: currentStudentData ? currentStudentData.nisn : "0109575978",
-                nama: currentStudentData ? currentStudentData.nama : "MURID",
-                kelas: currentStudentData ? currentStudentData.kelas : "X-1",
-                kelompok: currentStudentData ? currentStudentData.kelompok : "Kelompok 1",
-                groupId: currentStudentData ? currentStudentData.groupId : "X1-K1",
-                anjungan: currentStudentData ? currentStudentData.anjungan : "Anjungan NTB",
-                misiCode: currentStudentData ? currentStudentData.misiCode : "MISSION 01 — ADAPT",
+    const dataObj = {
+        nisn: currentStudentData ? currentStudentData.nisn : "",
+        nama: currentStudentData ? currentStudentData.nama : "MURID",
+        kelas: currentStudentData ? currentStudentData.kelas : "X-1",
+        kelompok: currentStudentData ? currentStudentData.kelompok : "Kelompok 1",
+        groupId: currentStudentData ? currentStudentData.groupId : "X1-K1",
+        anjungan: currentStudentData ? currentStudentData.anjungan : "",
+        misiCode: currentStudentData ? currentStudentData.misiCode : "",
 
-                lk1_a1_nama: getVal('lk1_alat1_nama'), lk1_a1_zona: getVal('lk1_alat1_zona'), lk1_a1_hasil: getVal('lk1_alat1_hasil'), lk1_a1_konsep: getVal('lk1_alat1_konsep'),
-                lk1_a2_nama: getVal('lk1_alat2_nama'), lk1_a2_zona: getVal('lk1_alat2_zona'), lk1_a2_hasil: getVal('lk1_alat2_hasil'), lk1_a2_konsep: getVal('lk1_alat2_konsep'),
-                lk1_a3_nama: getVal('lk1_alat3_nama'), lk1_a3_zona: getVal('lk1_alat3_zona'), lk1_a3_hasil: getVal('lk1_alat3_hasil'), lk1_a3_konsep: getVal('lk1_alat3_konsep'),
-                lk1_aplikasi: getVal('lk1_aplikasi'),
+        lk1_a1_nama: getVal('lk1_alat1_nama'), lk1_a1_zona: getVal('lk1_alat1_zona'), lk1_a1_hasil: getVal('lk1_alat1_hasil'), lk1_a1_konsep: getVal('lk1_alat1_konsep'),
+        lk1_a2_nama: getVal('lk1_alat2_nama'), lk1_a2_zona: getVal('lk1_alat2_zona'), lk1_a2_hasil: getVal('lk1_alat2_hasil'), lk1_a2_konsep: getVal('lk1_alat2_konsep'),
+        lk1_a3_nama: getVal('lk1_alat3_nama'), lk1_a3_zona: getVal('lk1_alat3_zona'), lk1_a3_hasil: getVal('lk1_alat3_hasil'), lk1_a3_konsep: getVal('lk1_alat3_konsep'),
+        lk1_aplikasi: getVal('lk1_aplikasi'),
 
-                lk2_fokus: getVal('lk2_fokus'), lk2_data1: getVal('lk2_data1'), lk2_data2: getVal('lk2_data2'), lk2_data3: getVal('lk2_data3'), lk2_koneksi: getVal('lk2_koneksi'),
-                lk3_judul: getVal('lk3_judul'), lk3_format: getVal('lk3_format'),
-                steam_s: getVal('steam_s'), steam_t: getVal('steam_t'), steam_e: getVal('steam_e'), steam_a: getVal('steam_a'), steam_m: getVal('steam_m'),
-                lk4_kendala: getVal('lk4_kendala'), lk4_kerjasama: getVal('lk4_kerjasama')
-            };
+        lk2_fokus: getVal('lk2_fokus'), lk2_data1: getVal('lk2_data1'), lk2_data2: getVal('lk2_data2'), lk2_data3: getVal('lk2_data3'), lk2_koneksi: getVal('lk2_koneksi'),
+        lk3_judul: getVal('lk3_judul'), lk3_format: getVal('lk3_format'),
+        steam_s: getVal('steam_s'), steam_t: getVal('steam_t'), steam_e: getVal('steam_e'), steam_a: getVal('steam_a'), steam_m: getVal('steam_m'),
+        lk4_kendala: getVal('lk4_kendala'), lk4_kerjasama: getVal('lk4_kerjasama')
+    };
 
-            const formData = new URLSearchParams();
-            formData.append("action", "saveLKPD");
-            formData.append("data", JSON.stringify(dataObj));
+    // 🟢 SIMPAN CADANGAN LOKAL AGAR TIDAK HILANG SAAT REFRESH
+    localStorage.setItem(`backup_lkpd_${dataObj.groupId}_${dataObj.nisn}`, JSON.stringify(dataObj));
 
-            showToast("Menyimpan data...", "info");
+    const formData = new URLSearchParams();
+    formData.append("action", "saveLKPD");
+    formData.append("data", JSON.stringify(dataObj));
 
-            fetch(targetUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData.toString()
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.status === "success") {
-                    if (type) completionStatus[type] = true;
-                    updateChecklistUI();
-                    syncGroupStatusProgress(); // Perbarui status tabel anggota kelompok setelah simpan
-                    showToast("✅ Tersimpan! Menampilkan centang hijau di menu utama.", "success");
-                    backToHub();
-                } else alert("⚠️ " + data.message);
-            })
-            .catch(err => alert("Gagal kirim: " + err.message));
+    showToast("Menyimpan data...", "info");
+
+    fetch(targetUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData.toString()
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.status === "success") {
+            if (type) completionStatus[type] = true;
+            updateChecklistUI();
+            syncGroupStatusProgress();
+            showToast("✅ Tersimpan! Data LKPD berhasil disinkronkan.", "success");
+            backToHub();
+        } else {
+            showToast("⚠️ " + data.message, "error");
         }
+    })
+    .catch(err => {
+        showToast("⚠️ Gagal kirim ke server, tapi data tersimpan di HP/Browser ini.", "error");
+        if (type) completionStatus[type] = true;
+        updateChecklistUI();
+        backToHub();
+    });
+}
 
         async function submitFinalLaporanKeGuru() {
     // 1. Panggil pop-up konfirmasi modern (menunggu keputusan murid)
