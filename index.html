@@ -2041,7 +2041,7 @@ function applyAnswersToForm(mySub) {
 
     const setuju = await showCustomConfirm(
         "Kirim Laporan Final?", 
-        "Laporan resmi kelompok akan dikirimkan. Pastikan seluruh isian dan foto sudah benar!", 
+        "Laporan resmi kelompok akan dikirimkan ke guru pimpinan. Pastikan seluruh isian sudah benar!", 
         "🚀"
     );
 
@@ -2050,47 +2050,31 @@ function applyAnswersToForm(mySub) {
     const btn = document.getElementById('btnSubmitFinalLaporan');
     if (btn) {
         btn.disabled = true;
-        btn.innerHTML = `⌛ Mengambil data & Mengirim...`;
+        btn.innerHTML = `⌛ Mengirim Laporan...`;
     }
 
     try {
         const targetUrl = getApiUrl(currentStudentData.kelas);
         const gId = currentStudentData.groupId;
 
-        // 🟢 1. TARIK ISIAN LKPD GABUNGAN
+        // 1. Tarik data isian LKPD murid
         const resSub = await fetch(`${targetUrl}?action=getGroupSubmissions&groupId=${encodeURIComponent(gId)}`);
         const dataSub = await resSub.json();
         const groupSubmissions = (dataSub.status === "success" && dataSub.submissions) ? dataSub.submissions : [];
 
-        // 🟢 2. TARIK FOTO DOKUMENTASI KELOMPOK JIKA VARIABEL GLOBAL BELUM TERISI
-        let photosList = (typeof currentGroupPhotos !== 'undefined' && currentGroupPhotos.length > 0) ? currentGroupPhotos : [];
-        if (photosList.length === 0) {
-            try {
-                const resPhoto = await fetch(`${targetUrl}?action=getGroupPhotos&groupId=${encodeURIComponent(gId)}`);
-                const dataPhoto = await resPhoto.json();
-                if (dataPhoto.status === "success" && dataPhoto.photos) {
-                    photosList = Array.isArray(dataPhoto.photos) ? dataPhoto.photos : JSON.parse(dataPhoto.photos);
-                }
-            } catch(e) { console.warn("Gagal fetch foto:", e); }
-        }
-
-        // 🟢 3. RENDER HTML LAPORAN DENGAN ISIAN LKPD + FOTO DOKUMENTASI
-        const htmlContent = generateDraftHTML(groupSubmissions, photosList);
+        // 🟢 2. GENERATE DRAFT HTML TANPA MEMBAWA BASE64 FOTO RAKSASA KE PAYLOAD
+        // Oper array kosong [] untuk photos agar payload POST tetap ringan
+        const htmlContent = generateDraftHTML(groupSubmissions, []);
 
         const payload = {
             action: "submitFinalLaporan",
             groupId: currentStudentData.groupId,
             nisn: currentStudentData.nisn,
             nama: currentStudentData.nama,
-            laporanHtml: htmlContent,
-            data: {
-                groupId: currentStudentData.groupId,
-                nisn: currentStudentData.nisn,
-                nama: currentStudentData.nama,
-                laporanHtml: htmlContent
-            }
+            laporanHtml: htmlContent
         };
 
+        // 3. Kirim payload ringan ke Apps Script
         const res = await fetch(targetUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -2100,7 +2084,7 @@ function applyAnswersToForm(mySub) {
         const result = await res.json();
 
         if (result.status === "success") {
-            showToast("🚀 Laporan kelompok berhasil dikirim!", "success");
+            showToast("🚀 Laporan kelompok berhasil dikirim ke server!", "success");
             if (btn) {
                 btn.disabled = true;
                 btn.style.background = "#059669";
