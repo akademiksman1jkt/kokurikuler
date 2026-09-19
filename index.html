@@ -2984,7 +2984,7 @@ function previewAdminReportByData(jsonStr) {
             titleEl.innerText = `👁️ Laporan Kelompok ${rep.groupId || ''} (${rep.nama || ''})`;
         }
         
-        // Periksa semua kemungkinan nama properti dari Apps Script
+        // Semak semua kemungkinan nama pemboleh ubah yang dihantar dari backend
         let rawContent = rep.laporanHtml || rep.laporanHtmlBase64 || rep.laporan || rep.html || "";
 
         let htmlContent = "";
@@ -2992,10 +2992,11 @@ function previewAdminReportByData(jsonStr) {
         if (!rawContent || !rawContent.trim()) {
             htmlContent = `<p style="color:red; text-align:center; padding:20px;">Isi laporan kosong atau data tidak ditemukan.</p>`;
         } else {
-            // Deteksi otomatis HTML Mentah vs Base64
-            if (rawContent.trim().startsWith("<") || rawContent.toLowerCase().includes("div")) {
+            // Pengesanan Automatik: Jika mengandungi tag HTML (<div, <table, dll.), terus gunakan HTML murni
+            if (rawContent.trim().startsWith("<") || rawContent.toLowerCase().includes("div") || rawContent.toLowerCase().includes("table")) {
                 htmlContent = rawContent; 
             } else {
+                // Jika berbentuk Base64, dekod secara selamat
                 try {
                     htmlContent = decodeURIComponent(escape(atob(rawContent)));
                 } catch (e1) {
@@ -3008,7 +3009,7 @@ function previewAdminReportByData(jsonStr) {
             }
         }
 
-        // Tampilkan ke layar
+        // Paparkan ke skrin
         const renderArea = document.getElementById('adminReportRenderArea');
         if (renderArea) {
             renderArea.innerHTML = htmlContent;
@@ -3021,7 +3022,7 @@ function previewAdminReportByData(jsonStr) {
         }
 
     } catch (err) {
-        alert("Gagal memuat preview laporan: " + err.message);
+        alert("Gagal memuatkan pratonton laporan: " + err.message);
     }
 }
 
