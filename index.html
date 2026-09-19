@@ -2078,10 +2078,9 @@ function applyAnswersToForm(mySub) {
             console.warn("Gagal ambil submissions dari server:", e);
         }
 
-        // 2. Generate HTML (Dipastikan selalu menghasilkan string HTML murni, bukan kosong)
+        // 2. Generate HTML Utuh
         let htmlContent = generateDraftHTML(groupSubmissions, typeof currentGroupPhotos !== 'undefined' ? currentGroupPhotos : []);
         
-        // 🟢 PENGAMAN: Jika HTML tetap kosong, buat struktur laporan dasar otomatis
         if (!htmlContent || typeof htmlContent !== 'string' || htmlContent.trim().length < 50) {
             htmlContent = `
                 <div style="font-family: Arial, sans-serif; padding: 20px;">
@@ -2089,10 +2088,13 @@ function applyAnswersToForm(mySub) {
                     <p><strong>Pengirim:</strong> ${currentStudentData.nama} (${currentStudentData.nisn})</p>
                     <p><strong>Kelas:</strong> ${currentStudentData.kelas} - ${currentStudentData.kelompok}</p>
                     <hr>
-                    <p><em>Laporan resmi telah diperbarui oleh murid. Silakan gunakan tombol Buka Laporan untuk memuat pratinjau lengkap.</em></p>
+                    <p>Laporan telah diperbarui.</p>
                 </div>
             `;
         }
+
+        // 🟢 ENKODE HTML KE BASE64 AGAR AMAN DARI PEMOTONGAN PAYLOAD
+        const base64Html = btoa(unescape(encodeURIComponent(htmlContent)));
 
         // 3. Susun Form Data
         const formData = new URLSearchParams();
@@ -2101,7 +2103,7 @@ function applyAnswersToForm(mySub) {
         formData.append("nisn", currentStudentData.nisn || "");
         formData.append("nama", currentStudentData.nama || "");
         formData.append("kelas", currentStudentData.kelas || "");
-        formData.append("laporanHtml", htmlContent); // String HTML dijamin terisi utuh
+        formData.append("laporanHtmlBase64", base64Html); // Kirim via Base64
 
         // 4. Kirim dengan mode no-cors
         await fetch(targetUrl, {
