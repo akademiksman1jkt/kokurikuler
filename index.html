@@ -1859,8 +1859,10 @@ function applyAnswersToForm(mySub) {
 
         updateUIProfile();
         
-        // 🟢 LANGKAH NOMOR 3: DITARUH DI SINI
         loadGroupPhotosQuota(); 
+
+        // 🟢 DIPANGGIL DI SINI: CEK STATUS PENGIIRIMAN LAPORAN KELOMPOK
+        checkGroupSubmittedStatus();
 
         syncGroupStatusProgress(); // Ambil Data Teman Sekelompok saat Login
         loadStudentOwnAnswers();
@@ -2039,15 +2041,19 @@ function applyAnswersToForm(mySub) {
        async function submitFinalLaporanKeGuru() {
     if (!currentStudentData) return;
 
+    const btn = document.getElementById('btnSubmitFinalLaporan');
+    const isRevisi = btn && btn.innerText.includes("Revisi");
+
     const setuju = await showCustomConfirm(
-        "Kirim Laporan Final?", 
-        "Laporan resmi kelompok akan dikirimkan. Pastikan seluruh isian sudah benar!", 
+        isRevisi ? "Kirim Revisi Laporan?" : "Kirim Laporan Final?", 
+        isRevisi 
+            ? "Laporan terbaru akan menggantikan laporan kelompok sebelumnya. Lanjutkan?" 
+            : "Laporan kelompok akan dikirimkan. Pastikan seluruh isian sudah benar!", 
         "🚀"
     );
 
     if (!setuju) return;
 
-    const btn = document.getElementById('btnSubmitFinalLaporan');
     if (btn) {
         btn.disabled = true;
         btn.innerHTML = `⌛ Mengirim Laporan...`;
@@ -2062,17 +2068,15 @@ function applyAnswersToForm(mySub) {
         const dataSub = await resSub.json();
         const groupSubmissions = (dataSub.status === "success" && dataSub.submissions) ? dataSub.submissions : [];
 
-        // 2. Netralkan foto global sementara
+        // 2. Netralkan foto global sementara agar payload tetap ringan
         const backupPhotos = typeof currentGroupPhotos !== 'undefined' ? currentGroupPhotos : [];
         window.currentGroupPhotos = [];
 
-        // Generate HTML murni isian teks
         const cleanHtmlContent = generateDraftHTML(groupSubmissions, []);
 
-        // Kembalikan variabel global foto
         window.currentGroupPhotos = backupPhotos;
 
-        // 🟢 3. FORMAT PAYLOAD MENGGUNAKAN FORM DATA (URLSearchParams) UNTUK MENGHINDARI PREFLIGHT CORS
+        // 3. Format Payload
         const formParams = new URLSearchParams();
         formParams.append("action", "submitFinalLaporan");
         formParams.append("groupId", currentStudentData.groupId);
@@ -2081,7 +2085,7 @@ function applyAnswersToForm(mySub) {
         formParams.append("kelas", currentStudentData.kelas || "");
         formParams.append("laporanHtml", cleanHtmlContent);
 
-        // 🟢 4. KIRIM VIA POST DENGAN METHOD FORM STANDAR
+        // 4. Kirim via POST
         const res = await fetch(targetUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
@@ -2091,28 +2095,21 @@ function applyAnswersToForm(mySub) {
         const result = await res.json();
 
         if (result.status === "success") {
-            showToast("🚀 Laporan kelompok berhasil dikirim ke server!", "success");
-            if (btn) {
-                btn.disabled = true;
-                btn.style.background = "#059669";
-                btn.innerHTML = `✅ Laporan Terkirim`;
-            }
+            showToast(isRevisi ? "🔄 Revisi laporan berhasil dikirim!" : "🚀 Laporan kelompok berhasil dikirim!", "success");
+            
+            // Panggil cek status untuk memperbarui tampilan tombol & badge
+            checkGroupSubmittedStatus();
         } else {
             showToast("Gagal mengirim laporan: " + result.message, "error");
             if (btn) {
                 btn.disabled = false;
-                btn.innerHTML = `🚀 Kirim Laporan Final Kelompok`;
+                btn.innerHTML = isRevisi ? `🔄 Kirim Revisi Laporan Kelompok` : `🚀 Kirim Laporan Final Kelompok`;
             }
         }
     } catch (err) {
         console.error("Error submit report:", err);
-        // Jika browser memblokir respon JSON tapi data berhasil masuk
         showToast("🚀 Laporan berhasil dikirim!", "success");
-        if (btn) {
-            btn.disabled = true;
-            btn.style.background = "#059669";
-            btn.innerHTML = `✅ Laporan Terkirim`;
-        }
+        checkGroupSubmittedStatus();
     }
 }
 
@@ -3263,6 +3260,48 @@ function renderAdminProgressTable(progressMap, targetKelas) {
         btnConfirm.addEventListener('click', onConfirm);
         btnCancel.addEventListener('click', onCancel);
     });
+}
+        // 🟢 FUNGSI BARU: CEK STATUS LAPORAN KELOMPOK UNTUK INDIKATOR & REVISI
+async function checkGroupSubmittedStatus() {
+    if (!currentStudentData || !currentStudentData.groupId) return;
+
+    try {
+        const targetUrl = getApiUrl(currentStudentData.kelas);
+        const res = await fetch(`${targetUrl}?action=getSubmittedReports&kelas=${encodeURIComponent(currentStudentData.kelas)}`);
+        const data = await res.json();
+
+        if (data.status === "success" && data.reports) {
+            // Cari apakah Group ID murid ini sudah ada di sheet SUBMITTED_REPORTS
+            const existingReport = data.reports.find(r => 
+                String(r.groupId).trim().toLowerCase() === String(currentStudentData.groupId).trim().toLowerCase()
+            );
+
+            const btn = document.getElementById('btnSubmitFinalLaporan');
+
+            if (existingReport) {
+                // 1. Ubah tombol agar tetap AKTIF untuk revisi
+                if (btn) {
+                    btn.disabled = false;
+                    btn.style.background = "#0284c7"; // Warna biru
+                    btn.innerHTML = `🔄 Kirim Revisi Laporan Kelompok`;
+                }
+
+                // 2. Tampilkan badge / kotak pesan hijau di atas tombol
+                let infoContainer = document.getElementById('infoStatusLaporanSubmitted');
+                if (!infoContainer && btn && btn.parentElement) {
+                    infoContainer = document.createElement('div');
+                    infoContainer.id = 'infoStatusLaporanSubmitted';
+                    infoContainer.style.cssText = "margin-bottom: 12px; padding: 10px 14px; background: #ecfdf5; border: 1px solid #10b981; border-radius: 8px; color: #065f46; font-size: 12px; text-align: center; font-weight: 500; line-height: 1.5;";
+                    btn.parentElement.insertBefore(infoContainer, btn);
+                }
+                if (infoContainer) {
+                    infoContainer.innerHTML = `✅ Laporan kelompok ini sudah pernah dikirimkan oleh <strong>${existingReport.nama || 'Anggota Kelompok'}</strong>.<br><span style="font-size: 11px; opacity: 0.9;">Anda tetap dapat mengirimkan revisi ulang kapan saja jika ada perbaikan.</span>`;
+                }
+            }
+        }
+    } catch (err) {
+        console.warn("Gagal cek status laporan terkirim:", err);
+    }
 }
     </script>
     <div id="customConfirmModal" class="modal-overlay-center">
