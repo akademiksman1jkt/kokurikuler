@@ -1656,24 +1656,46 @@ function applyAnswersToForm(mySub) {
     let rowsHtml = "";
 
     members.forEach(memberNama => {
-        const sub = submissions.find(s => s.nama.trim().toLowerCase() === memberNama.trim().toLowerCase());
+        // Pencarian nama murid dibuat lebih fleksibel
+        const sub = submissions.find(s => 
+            (s.nama && s.nama.trim().toLowerCase() === memberNama.trim().toLowerCase()) ||
+            (s.Nama && s.Nama.trim().toLowerCase() === memberNama.trim().toLowerCase())
+        );
         
-        const hasLk1 = sub && !!(sub.lk1_a1_nama || sub.lk1_a1_hasil || sub.lk1_a2_nama || sub.lk1_a3_nama);
-        const hasLk2 = sub && !!(sub.lk2_fokus || sub.lk2_data1 || sub.lk2_data2 || sub.lk2_data3);
-        const hasLk3 = sub && !!(sub.lk3_judul || sub.steam_s || sub.steam_t || sub.steam_e);
-        const hasLk4 = sub && !!(sub.lk4_kendala || sub.lk4_kerjasama);
+        // Pengecekan LKPD 1
+        const hasLk1 = sub && !!(
+            sub.lk1_a1_nama || sub.lk1_a1_hasil || sub.lk1_a2_nama || sub.lk1_a2_hasil || sub.lk1_aplikasi
+        );
+
+        // Pengecekan LKPD 2
+        const hasLk2 = sub && !!(
+            sub.lk2_fokus || sub.lk2_data1 || sub.lk2_data2 || sub.lk2_data3 || sub.lk2_koneksi
+        );
+
+        // Pengecekan LKPD 3 (Perbaikan: Cek seluruh pilar STEAM & Judul)
+        const hasLk3 = sub && !!(
+            sub.lk3_judul || sub.lk3_format || sub.steam_s || sub.steam_t || sub.steam_e || sub.steam_a || sub.steam_m
+        );
+
+        // Pengecekan LKPD 4
+        const hasLk4 = sub && !!(
+            sub.lk4_kendala || sub.lk4_kerjasama
+        );
 
         if(hasLk1) groupHasLk1 = true;
         if(hasLk2) groupHasLk2 = true;
         if(hasLk3) groupHasLk3 = true;
         if(hasLk4) groupHasLk4 = true;
 
-        const makePill = (isDone) => isDone ? `<span class="status-pill done">✅</span>` : `<span class="status-pill yet">-</span>`;
+        const makePill = (isDone) => isDone 
+            ? `<span class="status-pill done">✅</span>` 
+            : `<span class="status-pill yet">-</span>`;
+
         const isSelf = memberNama.trim().toLowerCase() === currentStudentData.nama.trim().toLowerCase();
 
         let btnLihat = `<span style="color:#94a3b8; font-size:11px;">Belum Ada</span>`;
         if(sub && (hasLk1 || hasLk2 || hasLk3 || hasLk4)) {
-            btnLihat = `<button class="btn-lihat-isian" onclick="viewMemberAnswers('${memberNama}')">🔍 Lihat</button>`;
+            btnLihat = `<button class="btn-lihat-isian" onclick="viewMemberAnswers('${memberNama.replace(/'/g, "\\'")}')">🔍 Lihat</button>`;
         }
 
         rowsHtml += `
@@ -1690,26 +1712,24 @@ function applyAnswersToForm(mySub) {
 
     tbody.innerHTML = rowsHtml;
 
-    // KONTROL AKTIVASI TOMBOL KIRIM LAPORAN KE GURU
+    // KONTROL AKTIVASI TOMBOL KIRIM LAPORAN
     const btnSubmit = document.getElementById('btnSubmitFinalLaporan');
     const submitBadge = document.getElementById('submitStatusBadge');
     
-    // Cek apakah foto kelompok minimal sudah 1 atau terisi
-    const hasPhotos = currentGroupPhotos && currentGroupPhotos.length > 0;
-
-    if (groupHasLk1 && groupHasLk2 && groupHasLk3 && groupHasLk4 && hasPhotos) {
+    // Syarat Lapor: LKPD 1-4 Terisi secara Kolektif Tim
+    if (groupHasLk1 && groupHasLk2 && groupHasLk3 && groupHasLk4) {
         if(btnSubmit) btnSubmit.disabled = false;
         if(submitBadge) {
             submitBadge.style.background = "#059669";
             submitBadge.style.color = "#ffffff";
-            submitBadge.innerText = "✅ Tim Lengkap & Foto Terunggah, Siap Dikirim";
+            submitBadge.innerText = "✅ Tim Lengkap, Siap Dikirim";
         }
     } else {
         if(btnSubmit) btnSubmit.disabled = true;
         if(submitBadge) {
             submitBadge.style.background = "#334155";
             submitBadge.style.color = "#94a3b8";
-            submitBadge.innerText = "🔒 LKPD / Foto Tim Belum Lengkap";
+            submitBadge.innerText = "🔒 LKPD Tim Belum Lengkap";
         }
     }
 }
@@ -3055,6 +3075,26 @@ function renderAdminProgressTable(progressMap, targetKelas) {
 }
     </script>
     <div id="customConfirmModal" class="modal-overlay-center">
+    <div class="modal-card-center">
+        <div id="modalIcon" class="modal-icon-wrapper">📬</div>
+        <h3 id="modalTitle" class="modal-title-text">Kirim Laporan Resmi?</h3>
+        <p id="modalMessage" class="modal-message-text">
+            Apakah kelompok Anda yakin ingin mengirim laporan akhir ini?
+        </p>
+        <div class="modal-action-btns">
+            <button id="btnModalCancel" class="btn-modal-secondary">Batal</button>
+            <button id="btnModalConfirm" class="btn-modal-primary">Ya, Kirim</button>
+        </div>
+    </div>
+</div>
+    <!-- ELEMEN NOTIFIKASI TOAST MELAYANG -->
+<div id="customToast" class="custom-toast">
+    <span id="toastIcon">🔔</span>
+    <span id="toastMessage">Pesan notifikasi...</span>
+</div>
+
+<!-- POP-UP MODAL KONFIRMASI TENGAH LAYAR -->
+<div id="customConfirmModal" class="modal-overlay-center">
     <div class="modal-card-center">
         <div id="modalIcon" class="modal-icon-wrapper">📬</div>
         <h3 id="modalTitle" class="modal-title-text">Kirim Laporan Resmi?</h3>
