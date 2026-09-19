@@ -2983,86 +2983,19 @@ async function saveGroupPhotosServer() {
 
 // PERBARUI FUNGSI PREVIEW ADMIN
 // 🟢 TAMBAHKAN 'async' DI DEPAN FUNGSI
-async function previewAdminReportByData(jsonStr) {
+function previewAdminReportByData(jsonStr) {
     try {
         const rep = JSON.parse(decodeURIComponent(jsonStr));
         currentAdminSelectedReport = rep;
         
         document.getElementById('adminPreviewTitle').innerText = `👁️ Laporan Kelompok ${rep.groupId} (${rep.nama})`;
         
-        // 🟢 BACA DATA FLEKSIBEL (SUPPORT BASE64 MAUPUN HTML MURNI)
-        let rawData = rep.laporanHtmlBase64 || rep.laporanHtml || "";
-        let htmlContent = "";
+        // Memuat HTML mentah
+        let htmlContent = rep.laporanHtml || "<p style='color:red; text-align:center;'>Format laporan kosong atau tidak valid.</p>";
 
-        if (!rawData) {
-            htmlContent = `<p style="color:red; text-align:center;">Format laporan kosong atau tidak valid.</p>`;
-        } else {
-            // Cek otomatis apakah data berupa Base64 atau HTML Mentah
-            if (rawData.trim().startsWith("<") || rawData.includes("DIV") || rawData.includes("div")) {
-                htmlContent = rawData; // Langsung baca jika HTML Mentah
-            } else {
-                try {
-                    htmlContent = decodeBase64Utf8(rawData); // Decode jika Base64
-                } catch(e) {
-                    htmlContent = rawData; // Fallback
-                }
-            }
-        }
-
-        // Render Teks Laporan
-        const renderArea = document.getElementById('adminReportRenderArea');
-        renderArea.innerHTML = `<div id="pdfTextOnlyContainer">${htmlContent}</div>`;
+        document.getElementById('adminReportRenderArea').innerHTML = htmlContent;
         document.getElementById('adminReportPreviewCard').style.display = 'block';
         document.getElementById('adminReportPreviewCard').scrollIntoView({ behavior: 'smooth' });
-
-        // Tarik Foto Terpisah untuk Tampilan Layar Admin
-        try {
-            const kls = document.getElementById('adminLaporanFilterKelas') ? document.getElementById('adminLaporanFilterKelas').value : (rep.kelas || "");
-            const targetUrl = getApiUrl(kls);
-            const resPhoto = await fetch(`${targetUrl}?action=getGroupPhotos&groupId=${encodeURIComponent(rep.groupId)}`);
-            const dataPhoto = await resPhoto.json();
-            
-            const oldPhotoBlock = document.getElementById('separateAdminPhotoCard');
-            if (oldPhotoBlock) oldPhotoBlock.remove();
-
-            if (dataPhoto.status === "success" && dataPhoto.photos) {
-                let photosList = Array.isArray(dataPhoto.photos) ? dataPhoto.photos : [];
-                if (typeof dataPhoto.photos === 'string') {
-                    try { photosList = JSON.parse(dataPhoto.photos); } catch(e) {}
-                }
-                
-                if (photosList && photosList.length > 0) {
-                    let photosGridHtml = `<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">`;
-                    photosList.forEach((item, index) => {
-                        let imgSrc = (typeof item === 'object' && item !== null && item.url) ? item.url : String(item);
-                        imgSrc = imgSrc.trim();
-
-                        if (imgSrc) {
-                            photosGridHtml += `
-                                <div style="flex: 1 1 calc(33.333% - 10px); max-width: calc(33.333% - 10px); box-sizing: border-box; text-align: center; border: 1px solid #cbd5e1; padding: 6px; border-radius: 6px; background: #f8fafc;">
-                                    <img src="${imgSrc}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 4px; display: block;" alt="Dokumentasi ${index + 1}" />
-                                    <span style="font-size: 10px; color: #475569; display: block; margin-top: 4px; font-weight: bold;">Dokumentasi #${index + 1}</span>
-                                </div>
-                            `;
-                        }
-                    });
-                    photosGridHtml += `</div>`;
-
-                    const photoCard = document.createElement('div');
-                    photoCard.id = "separateAdminPhotoCard";
-                    photoCard.style.cssText = "margin-top: 20px; padding: 15px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px;";
-                    photoCard.innerHTML = `
-                        <h4 style="border-left: 4px solid #0284c7; padding-left: 8px; color: #0f172a; margin: 0 0 10px 0; font-size:13px;">
-                            📷 DOKUMENTASI FOTO KELOMPOK LAPANGAN
-                        </h4>
-                    ` + photosGridHtml;
-
-                    renderArea.parentNode.appendChild(photoCard);
-                }
-            }
-        } catch(e) {
-            console.warn("Gagal memuat foto di panel admin:", e);
-        }
 
     } catch (err) {
         alert("Gagal membuka laporan: " + err.message);
@@ -3104,8 +3037,7 @@ function downloadAdminReportPDF() {
         return;
     }
     
-    // Hanya cetak bagian teks dokumen agar tidak membebani memori
-    const element = document.getElementById('pdfTextOnlyContainer') || document.getElementById('adminReportRenderArea');
+    const element = document.getElementById('adminReportRenderArea');
     if (!element || !element.innerText.trim()) {
         showToast("⚠️ Isi laporan kosong atau tidak valid!", "error");
         return;
@@ -3120,7 +3052,7 @@ function downloadAdminReportPDF() {
         margin:       [10, 10, 10, 10],
         filename:     `Laporan_Resmi_${gId}_${nama}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, logging: false },
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
