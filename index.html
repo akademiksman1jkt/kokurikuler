@@ -2397,51 +2397,71 @@ function handleGroupFotoUpload(event) {
 }
 
 // 4. Fungsi Menghapus Foto dari Daftar Lokal
-function deleteGroupPhoto(photoIdOrIndex) {
-            showCustomConfirm("Hapus Foto?", "Apakah Anda yakin ingin menghapus foto ini dari album kelompok?", () => {
-                currentGroupPhotos = currentGroupPhotos.filter((p, idx) => (p.id && p.id !== photoIdOrIndex) && (idx.toString() !== photoIdOrIndex.toString()));
-                renderGroupPhotosUI();
-                showToast("🗑️ Foto berhasil dihapus. Jangan lupa simpan perubahan.", "info");
-            });
-        }
+async function deleteGroupPhoto(photoIdOrIndex) {
+    // Memanggil Pop-Up Konfirmasi Modern (Hanya Kirim Teks Biasa)
+    const setuju = await showCustomConfirm(
+        "Hapus Foto Kelompok?", 
+        "Apakah Anda yakin ingin menghapus foto ini dari album dokumentasi kelompok?", 
+        "🗑️"
+    );
+
+    if (!setuju) return; // Batal jika tekan 'Batal'
+
+    // Proses Hapus Foto dari Daftar Lokal
+    currentGroupPhotos = currentGroupPhotos.filter((p, idx) => {
+        return (p.id && p.id !== photoIdOrIndex) && (idx.toString() !== photoIdOrIndex.toString());
+    });
+
+    renderGroupPhotosUI();
+    showToast("🗑️ Foto berhasil dihapus. Jangan lupa simpan perubahan.", "info");
+}
 
 // 5. Menyimpan Data Foto ke Server Kelompok
 async function saveGroupPhotosServer() {
-            if(!currentStudentData) return;
-            const targetUrl = getApiUrl(currentStudentData.kelas);
-            
-            showToast("Menyinkronkan dokumentasi foto ke server kelompok...", "info");
+    if(!currentStudentData) return;
 
-            const dataObj = {
-                groupId: currentStudentData.groupId,
-                nisn: currentStudentData.nisn,
-                nama: currentStudentData.nama,
-                photos: currentGroupPhotos
-            };
+    // Pop-Up Konfirmasi Sebelum Upload Foto
+    const setuju = await showCustomConfirm(
+        "Simpan Foto Kelompok?", 
+        "Apakah Anda yakin ingin menyinkronkan seluruh foto dokumentasi kelompok ini ke server?", 
+        "📸"
+    );
 
-            const formData = new URLSearchParams();
-            formData.append("action", "saveGroupPhotos");
-            formData.append("data", JSON.stringify(dataObj));
+    if (!setuju) return;
 
-            try {
-                const res = await fetch(targetUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: formData.toString()
-                });
-                const result = await res.json();
-                if(result.status === "success") {
-                    completionStatus.docs = true;
-                    updateChecklistUI();
-                    showToast("✅ Dokumentasi foto kelompok berhasil disimpan!", "success");
-                    backToHub();
-                } else {
-                    showToast("Gagal menyimpan foto: " + result.message, "error");
-                }
-            } catch(err) {
-                showToast("Terjadi kesalahan jaringan saat menyimpan foto.", "error");
-            }
+    const targetUrl = getApiUrl(currentStudentData.kelas);
+    showToast("Menyinkronkan dokumentasi foto ke server kelompok...", "info");
+
+    const dataObj = {
+        groupId: currentStudentData.groupId,
+        nisn: currentStudentData.nisn,
+        nama: currentStudentData.nama,
+        photos: currentGroupPhotos
+    };
+
+    const formData = new URLSearchParams();
+    formData.append("action", "saveGroupPhotos");
+    formData.append("data", JSON.stringify(dataObj));
+
+    try {
+        const res = await fetch(targetUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData.toString()
+        });
+        const result = await res.json();
+        if(result.status === "success") {
+            completionStatus.docs = true;
+            updateChecklistUI();
+            showToast("✅ Dokumentasi foto kelompok berhasil disimpan!", "success");
+            backToHub();
+        } else {
+            showToast("Gagal menyimpan foto: " + result.message, "error");
         }
+    } catch(err) {
+        showToast("Terjadi kesalahan jaringan saat menyimpan foto.", "error");
+    }
+}
 
         // ==========================================
         // FUNGSI MERGE & RENDER LAPORAN
@@ -2662,36 +2682,6 @@ async function saveGroupPhotosServer() {
             }, 3500);
         }
 
-        // FUNGSI KONFIRMASI POP-UP INTERAKTIF (REPLACE CONFIRM)
-        function showCustomConfirm(title, message, onConfirm) {
-            const overlay = document.getElementById('customConfirmOverlay');
-            document.getElementById('confirmTitle').innerText = title;
-            document.getElementById('confirmMessage').innerText = message;
-
-            overlay.classList.add('active');
-
-            const btnOk = document.getElementById('btnConfirmOk');
-            const btnCancel = document.getElementById('btnConfirmCancel');
-
-            const handleOk = () => {
-                overlay.classList.remove('active');
-                cleanup();
-                onConfirm();
-            };
-
-            const handleCancel = () => {
-                overlay.classList.remove('active');
-                cleanup();
-            };
-
-            const cleanup = () => {
-                btnOk.removeEventListener('click', handleOk);
-                btnCancel.removeEventListener('click', handleCancel);
-            };
-
-            btnOk.addEventListener('click', handleOk);
-            btnCancel.addEventListener('click', handleCancel);
-        }
     let adminCachedReports = [];
         let currentAdminSelectedReport = null;
 
