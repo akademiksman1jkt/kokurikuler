@@ -1647,6 +1647,8 @@ function applyAnswersToForm(mySub) {
 
         function renderGroupStatusTable(submissions) {
     const tbody = document.getElementById('groupStatusTableBody');
+    if (!tbody) return;
+
     const members = currentStudentData.groupMembers || [currentStudentData.nama];
     
     let groupHasLk1 = false;
@@ -1656,44 +1658,48 @@ function applyAnswersToForm(mySub) {
 
     let rowsHtml = "";
 
+    // Helper untuk memastikan input benar-benar diisi (bukan null, undefined, "null", atau "-")
+    const isValidInput = (val) => {
+        if (val === null || val === undefined) return false;
+        const str = val.toString().trim().toLowerCase();
+        return str !== "" && str !== "null" && str !== "undefined" && str !== "-";
+    };
+
     members.forEach(memberNama => {
         const cleanMember = memberNama.trim().toLowerCase();
         
-        // Pencarian nama murid dibuat fleksibel & abaikan spasi
-        const sub = submissions.find(s => 
-            (s.nama && s.nama.trim().toLowerCase() === cleanMember) ||
-            (s.Nama && s.Nama.trim().toLowerCase() === cleanMember)
-        );
+        // Pencarian nama murid fleksibel
+        const sub = (Array.isArray(submissions) ? submissions : []).find(s => {
+            const nameInDb = (s.nama || s.Nama || "").toString().trim().toLowerCase();
+            return nameInDb === cleanMember;
+        });
         
-        // Pengecekan LKPD 1 (Abaikan String Kosong)
-        const hasLk1 = sub && !!(
-            (sub.lk1_a1_nama && sub.lk1_a1_nama.toString().trim() !== "") || 
-            (sub.lk1_a1_hasil && sub.lk1_a1_hasil.toString().trim() !== "") ||
-            (sub.lk1_aplikasi && sub.lk1_aplikasi.toString().trim() !== "")
+        // Pengecekan per LKPD dengan validasi ketat
+        const hasLk1 = sub && (
+            isValidInput(sub.lk1_a1_nama) || 
+            isValidInput(sub.lk1_a1_hasil) || 
+            isValidInput(sub.lk1_aplikasi)
         );
 
-        // Pengecekan LKPD 2
-        const hasLk2 = sub && !!(
-            (sub.lk2_fokus && sub.lk2_fokus.toString().trim() !== "") || 
-            (sub.lk2_data1 && sub.lk2_data1.toString().trim() !== "") ||
-            (sub.lk2_koneksi && sub.lk2_koneksi.toString().trim() !== "")
+        const hasLk2 = sub && (
+            isValidInput(sub.lk2_fokus) || 
+            isValidInput(sub.lk2_data1) || 
+            isValidInput(sub.lk2_koneksi)
         );
 
-        // Pengecekan LKPD 3 (Seluruh Pilar STEAM)
-        const hasLk3 = sub && !!(
-            (sub.lk3_judul && sub.lk3_judul.toString().trim() !== "") || 
-            (sub.lk3_format && sub.lk3_format.toString().trim() !== "") || 
-            (sub.steam_s && sub.steam_s.toString().trim() !== "") || 
-            (sub.steam_t && sub.steam_t.toString().trim() !== "") || 
-            (sub.steam_e && sub.steam_e.toString().trim() !== "") || 
-            (sub.steam_a && sub.steam_a.toString().trim() !== "") || 
-            (sub.steam_m && sub.steam_m.toString().trim() !== "")
+        const hasLk3 = sub && (
+            isValidInput(sub.lk3_judul) || 
+            isValidInput(sub.lk3_format) || 
+            isValidInput(sub.steam_s) || 
+            isValidInput(sub.steam_t) || 
+            isValidInput(sub.steam_e) || 
+            isValidInput(sub.steam_a) || 
+            isValidInput(sub.steam_m)
         );
 
-        // Pengecekan LKPD 4
-        const hasLk4 = sub && !!(
-            (sub.lk4_kendala && sub.lk4_kendala.toString().trim() !== "") || 
-            (sub.lk4_kerjasama && sub.lk4_kerjasama.toString().trim() !== "")
+        const hasLk4 = sub && (
+            isValidInput(sub.lk4_kendala) || 
+            isValidInput(sub.lk4_kerjasama)
         );
 
         if(hasLk1) groupHasLk1 = true;
@@ -1701,9 +1707,9 @@ function applyAnswersToForm(mySub) {
         if(hasLk3) groupHasLk3 = true;
         if(hasLk4) groupHasLk4 = true;
 
-        const isSelf = cleanMember === currentStudentData.nama.trim().toLowerCase();
+        const isSelf = cleanMember === (currentStudentData.nama || "").trim().toLowerCase();
 
-        // 🟢 UBAH CHECKLIST MENU UTAMA SECARA OTOMATIS JIKA INI AKUN SAYA
+        // UBAH CHECKLIST MENU UTAMA JIKA INI AKUN SAYA
         if (isSelf) {
             completionStatus.lkpd1 = hasLk1;
             completionStatus.lkpd2 = hasLk2;
@@ -1724,18 +1730,18 @@ function applyAnswersToForm(mySub) {
         rowsHtml += `
             <tr>
                 <td><strong>${memberNama}</strong> ${isSelf ? '<span style="font-size:11px; color:var(--primary); font-weight:800;">(Saya)</span>' : ''}</td>
-                <td>${makePill(hasLk1)}</td>
-                <td>${makePill(hasLk2)}</td>
-                <td>${makePill(hasLk3)}</td>
-                <td>${makePill(hasLk4)}</td>
-                <td>${btnLihat}</td>
+                <td style="text-align:center;">${makePill(hasLk1)}</td>
+                <td style="text-align:center;">${makePill(hasLk2)}</td>
+                <td style="text-align:center;">${makePill(hasLk3)}</td>
+                <td style="text-align:center;">${makePill(hasLk4)}</td>
+                <td style="text-align:center;">${btnLihat}</td>
             </tr>
         `;
     });
 
     tbody.innerHTML = rowsHtml;
 
-    // 🟢 CEK SYARAT LKPD 1-4 DAN FOTO UNTUK MEMBUKA TOMBOL KIRIM LAPORAN
+    // CEK SYARAT KELOMPOK UNTUK TOMBOL KIRIM LAPORAN
     const hasPhotos = (typeof currentGroupPhotos !== 'undefined' && currentGroupPhotos.length > 0) || completionStatus.docs;
     const btnSubmit = document.getElementById('btnSubmitFinalLaporan');
     const submitBadge = document.getElementById('submitStatusBadge');
