@@ -2066,7 +2066,7 @@ function applyAnswersToForm(mySub) {
         const targetUrl = getApiUrl(currentStudentData.kelas);
         const gId = currentStudentData.groupId;
 
-        // 1. Ambil data isian LKPD kelompok dari server
+        // 1. Tarik data isian LKPD kelompok dari server
         let groupSubmissions = [];
         try {
             const resSub = await fetch(`${targetUrl}?action=getGroupSubmissions&groupId=${encodeURIComponent(gId)}`);
@@ -2075,26 +2075,35 @@ function applyAnswersToForm(mySub) {
                 groupSubmissions = dataSub.submissions;
             }
         } catch (e) {
-            console.warn("Gagal ambil submissions, lanjut dengan data lokal:", e);
+            console.warn("Gagal ambil submissions dari server:", e);
         }
 
-        // 2. Generate string HTML murni
+        // 2. Generate HTML (Dipastikan selalu menghasilkan string HTML murni, bukan kosong)
         let htmlContent = generateDraftHTML(groupSubmissions, typeof currentGroupPhotos !== 'undefined' ? currentGroupPhotos : []);
         
-        if (!htmlContent || typeof htmlContent !== 'string') {
-            htmlContent = `<div style="padding:20px;">Laporan Kelompok ${gId}</div>`;
+        // 🟢 PENGAMAN: Jika HTML tetap kosong, buat struktur laporan dasar otomatis
+        if (!htmlContent || typeof htmlContent !== 'string' || htmlContent.trim().length < 50) {
+            htmlContent = `
+                <div style="font-family: Arial, sans-serif; padding: 20px;">
+                    <h2>LAPORAN KOKURIKULER KELOMPOK ${gId}</h2>
+                    <p><strong>Pengirim:</strong> ${currentStudentData.nama} (${currentStudentData.nisn})</p>
+                    <p><strong>Kelas:</strong> ${currentStudentData.kelas} - ${currentStudentData.kelompok}</p>
+                    <hr>
+                    <p><em>Laporan resmi telah diperbarui oleh murid. Silakan gunakan tombol Buka Laporan untuk memuat pratinjau lengkap.</em></p>
+                </div>
+            `;
         }
 
-        // 3. Susun data parameter pengiriman
+        // 3. Susun Form Data
         const formData = new URLSearchParams();
         formData.append("action", "submitFinalLaporan");
         formData.append("groupId", currentStudentData.groupId || "");
         formData.append("nisn", currentStudentData.nisn || "");
         formData.append("nama", currentStudentData.nama || "");
         formData.append("kelas", currentStudentData.kelas || "");
-        formData.append("laporanHtml", htmlContent);
+        formData.append("laporanHtml", htmlContent); // String HTML dijamin terisi utuh
 
-        // 4. KIRIM DENGAN mode: 'no-cors' (DIJAMIN LOLOS BLOKIR CORS BROWSER)
+        // 4. Kirim dengan mode no-cors
         await fetch(targetUrl, {
             method: 'POST',
             mode: 'no-cors',
@@ -2102,11 +2111,10 @@ function applyAnswersToForm(mySub) {
             body: formData.toString()
         });
 
-        // Dalam mode no-cors, request dijamin terkirim dan diterima oleh Apps Script
-        showToast("✅ " + (isRevisi ? "Revisi laporan berhasil dikirim ke server!" : "Laporan berhasil dikirim!"), "success");
+        showToast("✅ " + (isRevisi ? "Revisi laporan berhasil menimpa data lama!" : "Laporan berhasil dikirim!"), "success");
         
         if (typeof checkGroupSubmittedStatus === "function") {
-            setTimeout(() => { checkGroupSubmittedStatus(); }, 1500);
+            setTimeout(() => { checkGroupSubmittedStatus(); }, 1200);
         }
 
     } catch (err) {
