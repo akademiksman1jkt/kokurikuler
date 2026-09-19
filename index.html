@@ -2041,7 +2041,7 @@ function applyAnswersToForm(mySub) {
 
     const setuju = await showCustomConfirm(
         "Kirim Laporan Final?", 
-        "Laporan resmi kelompok akan dikirimkan. Pastikan seluruh isian sudah benar!", 
+        "Laporan resmi kelompok akan dikirimkan. Pastikan seluruh isian LKPD sudah benar!", 
         "🚀"
     );
 
@@ -2057,16 +2057,17 @@ function applyAnswersToForm(mySub) {
         const targetUrl = getApiUrl(currentStudentData.kelas);
         const gId = currentStudentData.groupId;
 
-        // 1. Tarik isian LKPD
+        // 1. Tarik data isian LKPD kelompok dari server
         const resSub = await fetch(`${targetUrl}?action=getGroupSubmissions&groupId=${encodeURIComponent(gId)}`);
         const dataSub = await resSub.json();
         const groupSubmissions = (dataSub.status === "success" && dataSub.submissions) ? dataSub.submissions : [];
 
-        // 🟢 2. NETRALKAN VARIABEL FOTO GLOBAL AGAR STRIP/BASE64 TIDAK MASUK KE HTML
+        // 🟢 2. STERILKAN VARIABEL FOTO GLOBAL SEMENTARA
+        // Ini memastikan generateDraftHTML hanya membuat teks HTML laporan (tanpa menyertakan Base64 foto)
         const backupPhotos = typeof currentGroupPhotos !== 'undefined' ? currentGroupPhotos : [];
-        window.currentGroupPhotos = []; // Kosongkan sementara
+        window.currentGroupPhotos = [];
 
-        // Generate HTML murni teks (tanpa foto)
+        // Generate HTML laporan murni teks
         const cleanHtmlContent = generateDraftHTML(groupSubmissions, []);
 
         // Kembalikan variabel global foto di frontend
@@ -2078,10 +2079,11 @@ function applyAnswersToForm(mySub) {
             groupId: currentStudentData.groupId,
             nisn: currentStudentData.nisn,
             nama: currentStudentData.nama,
+            kelas: currentStudentData.kelas || "",
             laporanHtml: cleanHtmlContent
         };
 
-        // 🟢 4. KIRIM PAYLOAD RINGAN (TANPA HEADER KUSTOM AGAR BEBAS CORS)
+        // 🟢 4. KIRIM PAYLOAD DENGAN KONEKSI STABIL
         const res = await fetch(targetUrl, {
             method: 'POST',
             body: JSON.stringify(payload)
