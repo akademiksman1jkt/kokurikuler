@@ -2614,15 +2614,23 @@ async function deleteGroupPhoto(photoIdOrIndex) {
 
     if (!setuju) return;
 
-    // Filter diperbaiki agar mencocokkan ID atau Index dengan benar
+    // 1. Hapus foto dari array lokal
     currentGroupPhotos = currentGroupPhotos.filter((p, idx) => {
         const matchId = p.id && p.id.toString() === photoIdOrIndex.toString();
         const matchIdx = idx.toString() === photoIdOrIndex.toString();
         return !matchId && !matchIdx;
     });
 
+    // 2. Render ulang tampilan di browser
     renderGroupPhotosUI();
-    showToast("🗑️ Foto berhasil dihapus. Jangan lupa simpan perubahan.", "info");
+
+    // 3. 🟢 OTOMATIS SINKRONKAN KE GOOGLE SHEETS
+    // Agar perubahan permanen dan foto tidak muncul lagi saat pindah menu
+    showToast("Memperbarui data di server...", "info");
+    
+    if (typeof saveGroupPhotosServer === "function") {
+        saveGroupPhotosServer();
+    }
 }
 
 // 5. Menyimpan Data Foto ke Server Kelompok
