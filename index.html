@@ -2898,6 +2898,152 @@ async function saveGroupPhotosServer() {
         function downloadReportPDF() { exportToPDF(); }
         function downloadReportWord() { exportToWord(); }
 
+        // 2. Tempelkan Isi Fungsi Utama di Bawahnya
+    function exportToPDF() {
+        const element = document.getElementById('pratinjauLaporan') 
+                     || document.getElementById('studentReportRenderArea')
+                     || document.getElementById('reportRenderArea');
+
+        if (!element || !element.innerText.trim()) {
+            if (typeof showToast === 'function') showToast("⚠️ Isi pratinjau laporan kosong!", "error");
+            return;
+        }
+
+        const printStyle = document.createElement('style');
+        printStyle.id = 'pdf-export-style';
+        printStyle.innerHTML = `
+            @media print {
+                body * { visibility: hidden !important; }
+                #${element.id}, #${element.id} * { visibility: visible !important; }
+                #${element.id} {
+                    position: absolute !important;
+                    left: 0 !important;
+                    top: 0 !important;
+                    width: 100% !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                }
+                @page { size: A4 portrait; margin: 10mm; }
+            }
+        `;
+        document.head.appendChild(printStyle);
+
+        window.print();
+
+        setTimeout(() => {
+            const styleEl = document.getElementById('pdf-export-style');
+            if (styleEl) styleEl.remove();
+        }, 1000);
+    }
+
+    function exportToWord() {
+        const element = document.getElementById('pratinjauLaporan') 
+                     || document.getElementById('studentReportRenderArea')
+                     || document.getElementById('reportRenderArea');
+
+        if (!element || !element.innerText.trim()) {
+            if (typeof showToast === 'function') showToast("⚠️ Isi pratinjau laporan kosong!", "error");
+            return;
+        }
+
+        const clone = element.cloneNode(true);
+
+        // Format Subjudul Bab
+        clone.querySelectorAll('h4, [class*="LKPD"], [class*="DAFTAR"], .font-bold').forEach(el => {
+            if (el.innerText.includes('I.') || el.innerText.includes('II.') || el.innerText.includes('V.') || el.innerText.includes('VI.')) {
+                el.setAttribute('style', 'color: #0f172a !important; font-size: 12pt !important; font-weight: bold !important; border-left: 4px solid #0284c7 !important; padding-left: 10px !important; margin-top: 18px !important; margin-bottom: 10px !important;');
+            }
+        });
+
+        // Format Box Isian
+        clone.querySelectorAll('div').forEach(el => {
+            const cls = el.className || '';
+            if (cls.includes('bg-') || cls.includes('border') || cls.includes('rounded') || cls.includes('p-')) {
+                el.style.backgroundColor = '#f8fafc';
+                el.style.border = '1px solid #e2e8f0';
+                el.style.borderRadius = '6px';
+                el.style.padding = '10px';
+                el.style.marginBottom = '12px';
+            }
+        });
+
+        // Format Teks Penanda "Ditulis oleh"
+        clone.querySelectorAll('p, span, i, div').forEach(el => {
+            if (el.innerText && el.innerText.includes('Ditulis oleh')) {
+                el.setAttribute('style', 'color: #0284c7 !important; font-style: italic !important; font-size: 9pt !important; margin-top: 4px !important; display: block !important;');
+            }
+        });
+
+        // Ubah Grid Foto Menjadi Tabel HTML
+        const photoContainers = clone.querySelectorAll('.grid, .flex, [class*="grid-cols"]');
+        photoContainers.forEach(container => {
+            const imgs = container.querySelectorAll('img');
+            if (imgs.length > 0) {
+                const table = document.createElement('table');
+                table.setAttribute('style', 'width: 100%; border-collapse: collapse; border: none; margin-top: 10px; margin-bottom: 15px;');
+                const tr = document.createElement('tr');
+
+                imgs.forEach(img => {
+                    const td = document.createElement('td');
+                    td.setAttribute('style', 'text-align: center; vertical-align: top; padding: 4px; border: none;');
+                    
+                    const newImg = document.createElement('img');
+                    newImg.src = img.src;
+                    newImg.setAttribute('style', 'width: 110px; height: auto; border-radius: 6px; border: 1px solid #cbd5e1;');
+                    
+                    const parentCard = img.closest('div');
+                    const captionText = parentCard ? parentCard.innerText.replace(img.innerText || '', '').trim() : '';
+
+                    td.appendChild(newImg);
+                    if (captionText) {
+                        const capDiv = document.createElement('div');
+                        capDiv.setAttribute('style', 'font-size: 8.5pt; color: #64748b; margin-top: 4px;');
+                        capDiv.innerText = captionText;
+                        td.appendChild(capDiv);
+                    }
+                    tr.appendChild(td);
+                });
+                table.appendChild(tr);
+                
+                if (container.parentNode) {
+                    container.parentNode.replaceChild(table, container);
+                }
+            }
+        });
+
+        // Proses Pembuatan File .doc
+        const bodyContent = clone.innerHTML;
+        const htmlHeader = `
+            <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+            <head>
+                <meta charset='utf-8'>
+                <title>Laporan Resmi</title>
+                <style>
+                    body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11pt; color: #1e293b; padding: 20px; }
+                    h2 { color: #0284c7; text-align: center; font-size: 16pt; font-weight: bold; }
+                    p { font-size: 10.5pt; line-height: 1.5; }
+                    table { border-collapse: collapse; width: 100%; }
+                    td, th { border: 1px solid #cbd5e1; padding: 6px 10px; font-size: 10pt; }
+                </style>
+            </head>
+            <body>
+                ${bodyContent}
+            </body>
+            </html>
+        `;
+
+        const blob = new Blob(['\ufeff' + htmlHeader], { type: 'application/msword' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `Laporan_Kokurikuler_Kelompok.doc`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+
+        if (typeof showToast === 'function') showToast("✅ File Word berhasil diunduh!", "success");
+    }
+
         // FUNGSI NOTIFIKASI MELAYANG (REPLACE ALERT)
         function showToast(message, type = 'info') {
             const toast = document.getElementById('customToast');
