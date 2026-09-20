@@ -2857,18 +2857,40 @@ async function saveGroupPhotosServer() {
         return items.length > 0 ? items.join("") : '<em style="color:#94a3b8; font-size:12px;">(Belum diisi)</em>';
     };
 
-    // Render Foto Dokumentasi Kelompok
+    // 🟢 RENDER FOTO DOKUMENTASI DENGAN TABEL HTML (RAMAH MS WORD & PDF)
     let photosHTML = '';
     if (photos && photos.length > 0) {
         photosHTML = `
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 10px;">
-                ${photos.map((p, idx) => `
-                    <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px; text-align: center; background: #fafafa;">
-                        <img src="${p.url}" style="width: 100%; height: 110px; object-fit: cover; border-radius: 6px; display: block; margin-bottom: 5px;">
-                        <small style="font-size: 11px; color: #64748b;">Foto ${idx+1} (${p.uploadedBy || 'Tim'})</small>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                <tr>
+        `;
+
+        photos.forEach((p, idx) => {
+            // Pindah ke baris tabel baru setiap 2 foto agar rapi di Word
+            if (idx > 0 && idx % 2 === 0) {
+                photosHTML += `</tr><tr>`;
+            }
+
+            photosHTML += `
+                <td style="width: 50%; padding: 8px; vertical-align: top; text-align: center;">
+                    <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px; background: #fafafa; display: inline-block; width: 95%;">
+                        <img src="${p.url}" style="width: 100%; max-height: 180px; object-fit: cover; border-radius: 6px; display: block; margin: 0 auto 6px auto;">
+                        <div style="font-size: 11px; color: #475569; text-align: center; font-weight: bold; width: 100%;">
+                            Foto ${idx + 1} (${p.uploadedBy || 'Tim'})
+                        </div>
                     </div>
-                `).join('')}
-            </div>
+                </td>
+            `;
+        });
+
+        // Tutup sisa sel tabel jika jumlah foto ganjil
+        if (photos.length % 2 !== 0) {
+            photosHTML += `<td style="width: 50%;"></td>`;
+        }
+
+        photosHTML += `
+                </tr>
+            </table>
         `;
     } else {
         photosHTML = `<p style="font-style: italic; color: #94a3b8; font-size: 13px;">Belum ada foto dokumentasi yang diunggah.</p>`;
