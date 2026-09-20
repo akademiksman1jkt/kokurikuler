@@ -3305,8 +3305,8 @@ function renderAdminProgressTable(progressMap, targetKelas) {
 
         const isFullyDone = p.lk1 && p.lk2 && p.lk3 && p.lk4 && p.photosCount >= 5;
         const totalStatus = isFullyDone 
-            ? `<span style="color:#059669; font-weight:800; font-size:12px;">✅ Siap Kirim</span>` 
-            : `<span style="color:#d97706; font-weight:700; font-size:12px;">⏳ Sedang Mencicil</span>`;
+            ? `<span style="color:#059669; font-weight:800; font-size:12px;">✅ Lengkap</span>` 
+            : `<span style="color:#d97706; font-weight:700; font-size:12px;">⏳ Belum Lengkap</span>`;
 
         html += `
             <tr>
