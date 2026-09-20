@@ -3391,8 +3391,8 @@ async function checkGroupSubmittedStatus() {
         console.warn("Gagal cek status laporan terkirim:", err);
     }
 }
-        // Fungsi untuk kompresi foto agar muat di sel Google Sheets
-function compressImage(file, maxWidth = 600, quality = 0.5) {
+        // Kompresi ketat: 1 foto ~6-8 KB Base64 (Aman untuk 5 foto dalam 1 sel)
+function compressImage(file, maxWidth = 360, quality = 0.25) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -3412,9 +3412,9 @@ function compressImage(file, maxWidth = 600, quality = 0.5) {
                 canvas.width = width;
                 canvas.height = height;
                 const ctx = canvas.getContext('2d');
+                
+                // Gambar ulang foto dengan resolusi & kualitas hemat memori
                 ctx.drawImage(img, 0, 0, width, height);
-
-                // Output Base64 terkompresi
                 resolve(canvas.toDataURL('image/jpeg', quality));
             };
             img.onerror = (err) => reject(err);
