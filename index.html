@@ -3184,120 +3184,109 @@ function previewAdminReport(index) {
     document.getElementById('adminReportPreviewCard').scrollIntoView({ behavior: 'smooth' });
 }
 
-// 1. Unduh PDF dengan Pengaman CORS & Render Kualitas Tinggi
+// 1. UNDUH PDF DAN WORD (Mengambil 100% Tampilan & CSS Pratinjau di Layar)
 function downloadAdminReportPDF() {
-    if (!currentAdminSelectedReport) {
-        showToast("⚠️ Silakan pilih dan buka laporan kelompok terlebih dahulu!", "error");
-        return;
-    }
-    
-    const element = document.getElementById('adminReportRenderArea');
+    const element = document.getElementById('adminReportRenderArea') || document.getElementById('pratinjauLaporan');
     if (!element || !element.innerText.trim()) {
-        showToast("⚠️ Isi laporan kosong atau tidak valid!", "error");
+        showToast("⚠️ Isi pratinjau laporan kosong!", "error");
         return;
     }
 
-    // Pastikan pustaka html2pdf terdeteksi
-    if (typeof html2pdf === 'undefined') {
-        showToast("⚠️ Pustaka html2pdf belum dimuat di HTML!", "error");
-        return;
-    }
+    showToast("⏳ Membuka jendela PDF presisi...", "info");
 
-    const gId = currentAdminSelectedReport.groupId || "Kelompok";
-    const nama = (currentAdminSelectedReport.nama || "Murid").replace(/[^a-zA-Z0-9]/g, "_");
+    // Ambil seluruh link CSS dan tag <style> yang ada di halaman web saat ini
+    const stylesheets = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
+        .map(el => el.outerHTML)
+        .join('\n');
 
-    showToast("⏳ Mengunduh PDF laporan...", "info");
+    const printWin = window.open('', '_blank');
+    printWin.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Laporan_Kelompok_Resmi</title>
+            ${stylesheets}
+            <style>
+                body { 
+                    background: #ffffff !important; 
+                    padding: 20px !important; 
+                    font-family: Arial, sans-serif;
+                }
+                @page { size: A4 portrait; margin: 8mm; }
+                @media print {
+                    body { padding: 0 !important; }
+                }
+            </style>
+        </head>
+        <body>
+            <div style="width: 100%; max-width: 800px; margin: 0 auto;">
+                ${element.innerHTML}
+            </div>
+        </body>
+        </html>
+    `);
 
-    const opt = {
-        margin:       [10, 10, 10, 10],
-        filename:     `Laporan_Resmi_${gId}_${nama}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { 
-            scale: 2,           // Kualitas gambar lebih tajam
-            logging: false, 
-            useCORS: true,      // Wajib agar gambar/foto dari Drive/External bisa di-render
-            allowTaint: true 
-        },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
+    printWin.document.close();
 
-    html2pdf().set(opt).from(element).save().then(() => {
-        showToast("✅ File PDF berhasil diunduh!", "success");
-    }).catch(err => {
-        console.error("PDF Error:", err);
-        showToast("Gagal mengunduh PDF: " + err.message, "error");
-    });
+    // Tunggu gambar & font termuat sempurna sebelum memicu dialog PDF browser
+    setTimeout(() => {
+        printWin.focus();
+        printWin.print();
+        printWin.close();
+        showToast("✅ Cetak/Simpan PDF selesai!", "success");
+    }, 1000);
 }
 
-// 2. Unduh Word dengan Styling Presisi Sesuai Pratinjau
+// 2. UNDUH WORD (Menerjemahkan Tampilan Pratinjau ke Format MS Word)
 function downloadAdminReportWord() {
-    if (!currentAdminSelectedReport) {
-        showToast("⚠️ Silakan pilih dan buka laporan kelompok terlebih dahulu!", "error");
+    const element = document.getElementById('adminReportRenderArea') || document.getElementById('pratinjauLaporan');
+    if (!element || !element.innerText.trim()) {
+        showToast("⚠️ Isi pratinjau laporan kosong!", "error");
         return;
     }
 
-    const element = document.getElementById('adminReportRenderArea');
-    if (!element || !element.innerText.trim()) {
-        showToast("⚠️ Isi laporan kosong atau tidak valid!", "error");
-        return;
-    }
+    showToast("⏳ Mengunduh laporan ke format Word...", "info");
 
     const bodyContent = element.innerHTML;
-    const gId = currentAdminSelectedReport.groupId || "Kelompok";
-    const nama = (currentAdminSelectedReport.nama || "Murid").replace(/[^a-zA-Z0-9]/g, "_");
+    const gId = (typeof currentAdminSelectedReport !== 'undefined' && currentAdminSelectedReport.groupId) ? currentAdminSelectedReport.groupId : "Kelompok";
 
-    // CSS Khusus MS Word agar layout box, border biru, dan tabel presisi seperti di web
+    // Styling Khusus agar MS Word meniru persis tampilan di gambar pratinjau
     const htmlHeader = `
         <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
         <head>
             <meta charset='utf-8'>
             <title>Laporan Resmi</title>
             <style>
-                body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11pt; line-height: 1.6; color: #1e293b; padding: 20px; }
+                body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11pt; color: #1e293b; padding: 20px; }
                 
-                /* Layout Judul Utama */
-                h2, h3 { color: #0284c7; text-align: center; margin-bottom: 2px; font-weight: bold; }
-                .subtitle { text-align: center; color: #64748b; font-size: 10pt; margin-bottom: 15px; }
-                hr { border: 0; border-top: 2px solid #0284c7; margin-bottom: 20px; }
-
-                /* Style Kotak Informasi Kelompok */
-                .info-box, table.info-table { 
-                    background-color: #f8fafc; 
-                    border: 1px solid #e2e8f0; 
-                    border-radius: 6px; 
-                    padding: 12px; 
-                    width: 100%; 
-                    margin-bottom: 20px; 
-                }
+                /* Header Judul Utama */
+                h2, h3 { color: #0284c7 !important; text-align: center; font-weight: bold; margin-bottom: 4px; }
                 
-                /* Subjudul Bab dengan Garis Biru Kiri */
-                h4, .section-title { 
+                /* Subjudul Bab dengan Garis Biru Tegak di Kiri */
+                h4, .section-title, [class*="title"] { 
                     color: #0f172a; 
                     font-size: 12pt; 
                     font-weight: bold; 
-                    border-left: 4px solid #0284c7; 
-                    padding-left: 10px; 
-                    margin-top: 20px; 
+                    border-left: 4px solid #0284c7 !important; 
+                    padding-left: 8px !important; 
+                    margin-top: 18px; 
                     margin-bottom: 10px; 
                 }
 
-                /* Container Card / Kartu Isian */
-                .card, .border-box { 
-                    border: 1px solid #e2e8f0; 
-                    background-color: #ffffff; 
-                    padding: 12px; 
-                    margin-bottom: 15px; 
+                /* Box Kartu Isian Jawaban */
+                div, .card { 
                     border-radius: 6px; 
                 }
-
-                /* Format Tabel Umum */
+                
+                /* Teks Isian & Penanda 'Ditulis oleh' */
+                i, em { color: #0284c7; font-size: 9.5pt; }
+                
+                /* Tabel Informasi & Lampiran Foto */
                 table { border-collapse: collapse; width: 100%; margin-top: 10px; margin-bottom: 15px; }
-                td, th { border: 1px solid #cbd5e1; padding: 8px 12px; font-size: 10pt; text-align: left; }
-                th { background-color: #f1f5f9; color: #0f172a; font-weight: bold; }
-
-                /* List & Gambar */
-                ol, ul { margin-top: 5px; padding-left: 20px; }
-                img { max-width: 100%; height: auto; margin-top: 10px; border-radius: 4px; }
+                td, th { border: 1px solid #e2e8f0; padding: 8px; font-size: 10pt; text-align: left; vertical-align: top; }
+                
+                /* Pengaturan Gambar Dokumentasi */
+                img { max-width: 140px; height: auto; border-radius: 6px; display: inline-block; margin: 5px; }
             </style>
         </head>
         <body>
@@ -3309,13 +3298,13 @@ function downloadAdminReportWord() {
     
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `Laporan_Resmi_${gId}_${nama}.doc`;
+    a.download = `Laporan_Resmi_${gId}.doc`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(a.href);
 
-    showToast("✅ File Word laporan berhasil diunduh!", "success");
+    showToast("✅ File Word berhasil diunduh!", "success");
 }
     // MEMANGGIL DATA PROGRES + FOTO DARI BACKEND
 async function fetchAdminProgressRealtime() {
