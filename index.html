@@ -2409,8 +2409,9 @@ function exportToPDF() {
 }
 
 // 🟢 FUNGSI UNDUH WORD SISI SISWA (SESUAI PRATINJAU, ISI LKPD UTUH, & FOTO AMAN)
-async function exportToWord() {
-    // Ambil elemen pratinjau laporan yang sedang tampil di layar
+// 🟢 FUNGSI UNDUH WORD SISI SISWA (INSTAN, BEBAS CORS, & GAMBAR TAMPIL UTUH)
+function exportToWord() {
+    // 1. Ambil elemen pratinjau yang sedang tampil di layar
     const element = document.getElementById('printableReport') || 
                     document.getElementById('reportPreviewArea') || 
                     document.getElementById('draftDocumentRender');
@@ -2421,29 +2422,28 @@ async function exportToWord() {
     }
 
     const gId = (currentStudentData && currentStudentData.groupId) ? currentStudentData.groupId : "Kelompok";
-    showToast("⏳ Mengonversi foto untuk file Word...", "info");
+    showToast("⏳ Memproses dokumen Word...", "info");
 
-    // 1. Duplikasi elemen pratinjau agar tidak mengganggu tampilan di browser
+    // 2. Duplikasi elemen agar tampilan di browser tidak berubah
     const clone = element.cloneNode(true);
 
-    // 2. Konversi semua tag <img> yang menggunakan URL web/Drive menjadi Base64
-    const images = clone.querySelectorAll('img');
-    for (let img of images) {
-        if (img.src && !img.src.startsWith('data:image')) {
-            try {
-                const base64Data = await getBase64FromUrl(img.src);
-                if (base64Data) {
-                    img.src = base64Data;
-                }
-            } catch (e) {
-                console.warn("Gagal konversi gambar ke Base64:", e);
+    // 3. Ambil data foto langsung dari memori JavaScript aplikasi
+    const photos = (typeof currentGroupPhotos !== 'undefined' && Array.isArray(currentGroupPhotos)) ? currentGroupPhotos : [];
+    const imgElements = clone.querySelectorAll('table img, .card img');
+
+    // Injeksi langsung data URL / Base64 dari memori ke elemen klon
+    imgElements.forEach((img, idx) => {
+        if (photos[idx]) {
+            const rawSrc = (typeof photos[idx] === 'object' && photos[idx].url) ? photos[idx].url : photos[idx];
+            if (rawSrc) {
+                img.setAttribute('src', rawSrc);
             }
         }
-    }
+    });
 
     const bodyContent = clone.innerHTML;
 
-    // 3. Header HTML standar MS Word agar format tabel, warna, dan posisi foto rapi
+    // 4. Header HTML khusus Microsoft Word agar format tabel & posisi gambar presisi
     const htmlHeader = `
         <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
         <head>
@@ -2454,7 +2454,7 @@ async function exportToWord() {
                 table { border-collapse: collapse; width: 100%; margin-bottom: 15px; }
                 td, th { border: 1px solid #cbd5e1; padding: 6px 10px; font-size: 10pt; }
                 h2, h3, h4 { color: #0284c7; }
-                img { max-width: 220px; height: auto; border-radius: 6px; display: block; margin: 0 auto; }
+                img { width: 100%; max-width: 250px; height: auto; border-radius: 6px; display: block; margin: 0 auto 6px auto; }
             </style>
         </head>
         <body>
@@ -2473,24 +2473,6 @@ async function exportToWord() {
     URL.revokeObjectURL(a.href);
 
     showToast("✅ Berhasil mengunduh dokumen Word!", "success");
-}
-
-// 🟢 FUNGSI HELPER: KONVERSI URL GAMBAR KE BASE64
-function getBase64FromUrl(url) {
-    return new Promise((resolve) => {
-        const img = new Image();
-        img.crossOrigin = 'Anonymous';
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = img.naturalWidth || img.width;
-            canvas.height = img.naturalHeight || img.height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0);
-            resolve(canvas.toDataURL('image/jpeg', 0.85));
-        };
-        img.onerror = () => resolve(null); // Jika gagal, kembalikan null tanpa memicu crash
-        img.src = url;
-    });
 }
 
 // Menyelaraskan panggilan nama fungsi
